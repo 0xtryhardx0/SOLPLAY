@@ -1,0 +1,20 @@
+[package]
+name = "solana_counter"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "=1.18.26"
+borsh = "=1.2.1"
+indexmap = "=2.2.6"
+hashbrown = "=0.14.5"
+blake3 = "=1.5.0"
+cpufeatures = "=0.2.17"
+zeroize_derive = "=1.4.2"
+jobserver = "=0.1.32"
+
+[patch.crates-io]
+cpufeatures = { path = "./cpufeatures_mock" }

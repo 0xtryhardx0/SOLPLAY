@@ -1,0 +1,20 @@
+# Solana compilation artifacts
+target/
+test-ledger/
+
+# Python environment
+venv/
+__pycache__/
+*.pyc
+
+# Local Solana sandbox keypairs (containing private keys)
+dev_wallet.json
+treasury.json
+bettor_a.json
+bettor_b.json
+punter_creator.json
+platform_state.json
+market_999.json
+wager_a.json
+wager_b.json
+milestone_1.json

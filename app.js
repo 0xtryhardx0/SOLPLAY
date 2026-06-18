@@ -1,0 +1,975 @@
+// SolPlay Client Application Logic
+let connection;
+let walletKeypair = null;
+let currentProgramId = null;
+let activeSelection = null;
+let milestoneProgress = 0;
+let watchTimer = null;
+let isWalletConnected = false;
+let currentBettingTab = 'live';
+
+// Simulated match state
+let matchScore = { home: 0, away: 0 };
+let matchTime = 45;
+let matchTimer = null;
+let matchStatus = 'LIVE';
+
+// Hardcoded account seeds (in a production app, these would be derived via findProgramAddress)
+// For simplicity in local testing, we generate persistent developer keys
+const PLATFORM_STATE_KEY = "platform_state_account";
+const TREASURY_KEY = "treasury_account";
+const PUNTER_CREATOR_KEY = "punter_creator_account";
+const MARKET_KEY = "market_999_account";
+
+// Mock database for wagers
+let localWagers = [];
+let localLPDeposited = 0;
+
+// Initialize on page load
+window.addEventListener('load', () => {
+    // Connect to local validator
+    try {
+        connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
+        showToast("Connected to Solana Localnet Validator!", "success");
+    } catch (e) {
+        showToast("Failed to connect to Localnet validator. Running in offline fallback.", "error");
+    }
+
+    // Load wallet if stored
+    loadOrCreateWallet();
+    
+    // Start live simulation elements
+    startMockStreamChat();
+    startMatchTimer();
+    
+    // Check if Program ID is stored in localStorage
+    const savedProgramId = localStorage.getItem("solplay_program_id");
+    if (savedProgramId) {
+        document.getElementById("admin-program-id").value = savedProgramId;
+        currentProgramId = new solanaWeb3.PublicKey(savedProgramId);
+    }
+});
+
+// 1. Wallet Management (Local Sandbox Wallet)
+function loadOrCreateWallet() {
+    const storedSecret = localStorage.getItem("solplay_wallet_secret");
+    if (storedSecret) {
+        try {
+            const secretArray = JSON.parse(storedSecret);
+            walletKeypair = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(secretArray));
+        } catch (e) {
+            console.error("Failed to parse stored wallet secret", e);
+        }
+    }
+
+    if (!walletKeypair) {
+        walletKeypair = solanaWeb3.Keypair.generate();
+        const secretArray = Array.from(walletKeypair.secretKey);
+        localStorage.setItem("solplay_wallet_secret", JSON.stringify(secretArray));
+    }
+}
+
+async function toggleWallet() {
+    const connectBtn = document.getElementById("btn-connect-wallet");
+    const balanceContainer = document.getElementById("sol-balance-container");
+    const airdropBtn = document.getElementById("btn-airdrop");
+
+    if (!isWalletConnected) {
+        isWalletConnected = true;
+        connectBtn.textContent = walletKeypair.publicKey.toString().slice(0, 6) + "..." + walletKeypair.publicKey.toString().slice(-4);
+        connectBtn.style.background = "linear-gradient(135deg, var(--neon-teal), #0d9488)";
+        connectBtn.style.boxShadow = "var(--glow-teal)";
+        balanceContainer.style.display = "block";
+        airdropBtn.style.display = "block";
+        
+        showToast("Sandbox Wallet Connected!", "success");
+        await updateWalletBalance();
+        startWatchMilestone();
+    } else {
+        isWalletConnected = false;
+        connectBtn.textContent = "Connect Developer Sandbox Wallet";
+        connectBtn.style.background = "linear-gradient(135deg, var(--neon-purple), #7c3aed)";
+        connectBtn.style.boxShadow = "var(--glow-purple)";
+        balanceContainer.style.display = "none";
+        airdropBtn.style.display = "none";
+        
+        stopWatchMilestone();
+    }
+}
+
+async function updateWalletBalance() {
+    if (!walletKeypair || !connection) return;
+    try {
+        const balance = await connection.getBalance(walletKeypair.publicKey);
+        const solVal = balance / solanaWeb3.LAMPORTS_PER_SOL;
+        document.getElementById("wallet-balance").textContent = solVal.toFixed(4);
+    } catch (e) {
+        document.getElementById("wallet-balance").textContent = "0.0000";
+    }
+}
+
+async function requestAirdrop() {
+    if (!walletKeypair || !connection) return;
+    showToast("Requesting airdrop of 1 SOL...", "info");
+    try {
+        const sig = await connection.requestAirdrop(walletKeypair.publicKey, solanaWeb3.LAMPORTS_PER_SOL);
+        await connection.confirmTransaction(sig);
+        showToast("Airdrop confirmed!", "success");
+        await updateWalletBalance();
+    } catch (e) {
+        showToast("Airdrop failed. Ensure local validator is running.", "error");
+    }
+}
+
+// 2. Video Player Server Switching
+function switchServer(serverId) {
+    const playerFrame = document.getElementById("video-iframe-player");
+    const mockPlayer = document.getElementById("mock-video-player");
+    const btns = document.querySelectorAll(".server-btn");
+
+    btns.forEach((btn, idx) => {
+        if (idx === serverId - 1) btn.classList.add("active");
+        else btn.classList.remove("active");
+    });
+
+    if (serverId === 1) {
+        playerFrame.style.display = "block";
+        mockPlayer.style.display = "none";
+        playerFrame.src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1";
+        document.getElementById("stream-title").textContent = "Arsenal vs Chelsea - Live Stream (YouTube Server)";
+    } else if (serverId === 2) {
+        playerFrame.style.display = "none";
+        mockPlayer.style.display = "flex";
+        document.getElementById("stream-title").textContent = "Arsenal vs Chelsea - Live Stream (HLS Direct Server)";
+    } else if (serverId === 3) {
+        playerFrame.style.display = "none";
+        mockPlayer.style.display = "flex";
+        document.getElementById("stream-title").textContent = "IShowSpeed vs Kai Cenat - Live FIFA Match (E-Sports Server)";
+    }
+}
+
+// 3. Milestone Progress Tracker
+function startWatchMilestone() {
+    if (watchTimer) clearInterval(watchTimer);
+    
+    const bar = document.getElementById("milestone-progress-bar");
+    const text = document.getElementById("milestone-percentage");
+    const claimBtn = document.getElementById("btn-claim-milestone");
+
+    watchTimer = setInterval(() => {
+        if (milestoneProgress < 15) {
+            milestoneProgress++;
+            const pct = Math.floor((milestoneProgress / 15) * 100);
+            bar.style.width = pct + "%";
+            text.textContent = `${pct}% (${milestoneProgress}s / 15s)`;
+            
+            if (milestoneProgress === 15) {
+                claimBtn.disabled = false;
+                claimBtn.style.background = "linear-gradient(135deg, var(--neon-teal), #0d9488)";
+                showToast("Viewer Milestone Reached! Claim your on-chain Viewer Badge.", "info");
+            }
+        }
+    }, 1000);
+}
+
+function stopWatchMilestone() {
+    if (watchTimer) clearInterval(watchTimer);
+}
+
+async function claimMilestone() {
+    if (!isWalletConnected) {
+        showToast("Connect your wallet first!", "error");
+        return;
+    }
+    if (!currentProgramId) {
+        showToast("Set and initialize the Program ID in the Admin Console first.", "error");
+        return;
+    }
+
+    showToast("Submitting Viewer Badge milestone on-chain...", "info");
+    
+    try {
+        const milestoneKeypair = getOrCreateAccountKeypair("milestone_badge");
+        
+        // Build RecordMilestone Instruction (ID 5)
+        // size: 13 bytes
+        const data = new Uint8Array(13);
+        data[0] = 5; // Type 5
+        writeU64(data, 1, 888); // Milestone ID
+        writeU32(data, 9, 600); // Watch time seconds (10 mins)
+
+        // Create PDA/Account on-chain if not already created
+        await createLocalAccount(milestoneKeypair.publicKey, 44);
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: milestoneKeypair.publicKey, isSigner: false, isWritable: true }
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
+        await connection.confirmTransaction(sig);
+        
+        showToast("Success! Viewer Badge registered on Solana.", "success");
+        document.getElementById("btn-claim-milestone").textContent = "Badge Claimed! ✅";
+        document.getElementById("btn-claim-milestone").disabled = true;
+        
+        // Add badge next to username in chat
+        appendChatMessage("System", "🎉 Verification Badge claimed! You now have a VIP Badge next to your username.", true);
+    } catch (e) {
+        console.error(e);
+        showToast("Transaction failed: " + e.message, "error");
+    }
+}
+
+// 4. Live Chat Simulation with copy codes and tipping
+const mockUsers = ["SolSniper", "MangaFan99", "SolanaGiga", "SportyKev", "TrollMaster", "RonaldoGoat"];
+const mockMessages = [
+    "WHAT A SHOT BY SAKA!",
+    "Chelsea's defense is in shambles lol",
+    "Just copied @SolSniper's wagers! Code: BET-ARS-99",
+    "Where is the memecoin launching? Ready to buy the win!",
+    "Wait, is this streaming completely free? SolPlay is fire",
+    "Need Chelsea to score so my bet slips win",
+    "This P2P chat tipping is awesome, just sent 0.05 SOL to @TrollMaster",
+    "Odds for Arsenal Win are looking boosted today!"
+];
+
+function startMockStreamChat() {
+    setInterval(() => {
+        const user = mockUsers[Math.floor(Math.random() * mockUsers.length)];
+        const msg = mockMessages[Math.floor(Math.random() * mockMessages.length)];
+        appendChatMessage(user, msg);
+    }, 4500);
+}
+
+function appendChatMessage(user, text, isSystem = false) {
+    const container = document.getElementById("chat-messages-container");
+    const bubble = document.createElement("div");
+    bubble.className = "chat-bubble";
+    if (isSystem) {
+        bubble.style.borderLeft = "3px solid var(--neon-teal)";
+        bubble.style.background = "rgba(20, 184, 166, 0.05)";
+    }
+
+    const header = document.createElement("div");
+    header.className = "chat-author";
+    header.innerHTML = `<span>${isSystem ? "🤖 " + user : "👤 " + user}</span>`;
+    
+    // Add tip/copy actions
+    if (!isSystem) {
+        const actions = document.createElement("span");
+        actions.innerHTML = `
+            <span style="color: var(--neon-orange); cursor: pointer; margin-right: 0.5rem;" onclick="tipUserChat('${user}')">🪙 Tip</span>
+            <span style="color: var(--neon-teal); cursor: pointer;" onclick="copyCodeFromChat('${text}')">📋 Copy</span>
+        `;
+        header.appendChild(actions);
+    }
+    
+    const body = document.createElement("div");
+    body.className = "chat-text";
+    body.textContent = text;
+
+    bubble.appendChild(header);
+    bubble.appendChild(body);
+    container.appendChild(bubble);
+    
+    // Scroll to bottom
+    container.scrollTop = container.scrollHeight;
+}
+
+function handleChatKey(event) {
+    if (event.key === 'Enter') {
+        sendChatMessage();
+    }
+}
+
+function sendChatMessage() {
+    const input = document.getElementById("chat-msg-input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    const username = isWalletConnected ? "Me (" + walletKeypair.publicKey.toString().slice(0, 4) + ")" : "Anonymous User";
+    appendChatMessage(username, text, false);
+    input.value = "";
+}
+
+function copyCodeFromChat(text) {
+    const regex = /BET-[A-Z0-9-]+/i;
+    const match = text.match(regex);
+    if (match) {
+        const code = match[0];
+        document.getElementById("import-code-input").value = code;
+        showToast(`Loaded copy code from chat: ${code}`, "success");
+        importBetslipCode();
+    } else {
+        showToast("No copy code found in this message.", "error");
+    }
+}
+
+async function tipUserChat(user) {
+    if (!isWalletConnected) {
+        showToast("Connect your wallet first!", "error");
+        return;
+    }
+    showToast(`Sending 0.05 SOL tip to @${user}...`, "info");
+    
+    try {
+        // Send actual local transfer transaction
+        const targetWallet = solanaWeb3.Keypair.generate().publicKey; // simulate target key
+        const tx = new solanaWeb3.Transaction().add(
+            solanaWeb3.SystemProgram.transfer({
+                fromPubkey: walletKeypair.publicKey,
+                toPubkey: targetWallet,
+                lamports: 0.05 * solanaWeb3.LAMPORTS_PER_SOL
+            })
+        );
+        const sig = await connection.sendTransaction(tx, [walletKeypair]);
+        await connection.confirmTransaction(sig);
+        
+        showToast(`Tip of 0.05 SOL sent successfully!`, "success");
+        appendChatMessage("System", `💰 You sent a 0.05 SOL tip to @${user}. Rake contribution: 5%.`, true);
+        await updateWalletBalance();
+    } catch (e) {
+        showToast("Tip failed: " + e.message, "error");
+    }
+}
+
+// 5. Betting Slip Logic
+function switchBettingTab(tab) {
+    currentBettingTab = tab;
+    document.getElementById("tab-live").classList.toggle("active", tab === 'live');
+    document.getElementById("tab-custom").classList.toggle("active", tab === 'custom');
+    document.getElementById("tab-lp").classList.toggle("active", tab === 'lp');
+
+    document.getElementById("content-live").style.display = tab === 'live' ? 'block' : 'none';
+    document.getElementById("content-custom").style.display = tab === 'custom' ? 'block' : 'none';
+    document.getElementById("content-lp").style.display = tab === 'lp' ? 'block' : 'none';
+}
+
+function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel) {
+    const container = document.getElementById("betslip-items-container");
+    container.innerHTML = ""; // Single selection for simplicity in prototype
+
+    activeSelection = { gameId, outcomeId, oddsValue, outcomeLabel };
+
+    const item = document.createElement("div");
+    item.className = "betslip-selection";
+    item.innerHTML = `
+        <button class="btn-remove-selection" onclick="clearSelection()">Remove</button>
+        <div class="selection-teams">Arsenal vs Chelsea</div>
+        <div class="selection-outcome">Wager Option: <span style="font-weight:600; color:var(--text-primary);">${outcomeLabel}</span></div>
+        <div style="display:flex; justify-content:space-between; margin-top:0.4rem; font-size:0.8rem;">
+            <span>Odds Value:</span>
+            <span class="selection-odds-text">${oddsValue.toFixed(2)}x</span>
+        </div>
+    `;
+    container.appendChild(item);
+
+    document.getElementById("slip-count-badge").textContent = "1 Selection";
+    document.getElementById("betslip-calc").style.display = "block";
+    document.getElementById("slip-odds-multiplier").textContent = oddsValue.toFixed(2) + "x";
+    
+    // Set random sportybet share code
+    document.getElementById("generated-slip-code").textContent = `BET-${gameId}-${outcomeId}-${Math.floor(Math.random()*90 + 10)}`;
+
+    calculatePayout();
+}
+
+function clearSelection() {
+    activeSelection = null;
+    document.getElementById("betslip-items-container").innerHTML = `
+        <div class="betslip-empty" id="betslip-empty-text">Select odds from matches to build your slip</div>
+    `;
+    document.getElementById("slip-count-badge").textContent = "0 Selection";
+    document.getElementById("betslip-calc").style.display = "none";
+}
+
+function calculatePayout() {
+    if (!activeSelection) return;
+    const stake = parseFloat(document.getElementById("stake-amount").value) || 0;
+    const returnVal = stake * activeSelection.oddsValue;
+    const routingFee = stake * 0.01; // 1%
+
+    document.getElementById("slip-routing-fee").textContent = routingFee.toFixed(4) + " SOL";
+    document.getElementById("slip-potential-payout").textContent = returnVal.toFixed(4) + " SOL";
+}
+
+function copyGeneratedCode() {
+    const code = document.getElementById("generated-slip-code").textContent;
+    navigator.clipboard.writeText(code);
+    showToast(`Betslip Code Copied: ${code}`, "success");
+    
+    // Post to chat automatically
+    const username = isWalletConnected ? "Me" : "User";
+    appendChatMessage(username, `Check out my prediction code: ${code} 🔥`);
+}
+
+function importBetslipCode() {
+    const code = document.getElementById("import-code-input").value.trim().toUpperCase();
+    if (!code) {
+        showToast("Enter a valid code.", "error");
+        return;
+    }
+
+    const parts = code.split("-");
+    if (parts.length < 3) {
+        showToast("Invalid code format. Format: BET-GAMEID-OUTCOMEID-RAND", "error");
+        return;
+    }
+
+    const gameId = parseInt(parts[1]);
+    const outcomeId = parseInt(parts[2]);
+
+    let label = "Arsenal Win";
+    let odds = 2.25;
+    if (outcomeId === 1) { label = "Chelsea Win"; odds = 3.50; }
+    if (outcomeId === 2) { label = "Draw"; odds = 3.20; }
+
+    selectOdds(gameId, outcomeId, odds, label);
+    showToast("Betslip code loaded successfully!", "success");
+}
+
+// 6. Deposit LP (Be the House)
+function depositLP() {
+    if (!isWalletConnected) {
+        showToast("Connect your wallet first!", "error");
+        return;
+    }
+    const val = parseFloat(document.getElementById("lp-deposit-amount").value);
+    if (!val || val <= 0) {
+        showToast("Enter a valid deposit amount.", "error");
+        return;
+    }
+
+    showToast(`Depositing ${val} SOL into Liquidity Vault...`, "info");
+    
+    setTimeout(() => {
+        localLPDeposited += val;
+        document.getElementById("lp-deposited-sol").textContent = `${localLPDeposited.toFixed(2)} SOL`;
+        document.getElementById("lp-deposit-amount").value = "";
+        showToast("Success! Liquidity deposited into vault.", "success");
+        updateWalletBalance();
+    }, 1500);
+}
+
+// 7. Place Wager On-Chain
+async function placeBet() {
+    if (!isWalletConnected) {
+        showToast("Connect your wallet first!", "error");
+        return;
+    }
+    if (!currentProgramId) {
+        showToast("Initialize Program ID in the Admin Console first.", "error");
+        return;
+    }
+    if (!activeSelection) return;
+
+    const stakeSol = parseFloat(document.getElementById("stake-amount").value);
+    if (!stakeSol || stakeSol <= 0) {
+        showToast("Enter a valid stake.", "error");
+        return;
+    }
+
+    const lamports = Math.floor(stakeSol * solanaWeb3.LAMPORTS_PER_SOL);
+    showToast("Routing wager on-chain to Solana contract...", "info");
+
+    try {
+        const marketAccountPubkey = getOrCreateAccountKeypair("market_999").publicKey;
+        const wagerAccountKeypair = getOrCreateAccountKeypair("wager_active");
+
+        // Create Wager Account on-chain
+        await createLocalAccount(wagerAccountKeypair.publicKey, 83);
+
+        // Build PlaceWager Instruction (ID 2)
+        // Length: 51 bytes
+        const data = new Uint8Array(51);
+        data[0] = 2; // Type 2
+        writeU64(data, 1, activeSelection.gameId);
+        data[9] = activeSelection.outcomeId; // 0=Home, 1=Away, 2=Draw
+        writeU64(data, 10, lamports);
+        data[18] = 0; // Local pool wager
+
+        // Copy creator public key (mock punter address for commissions)
+        const dummyPunter = getOrCreateAccountKeypair("punter_creator").publicKey;
+        data.set(dummyPunter.toBytes(), 19);
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: marketAccountPubkey, isSigner: false, isWritable: true },
+                { pubkey: wagerAccountKeypair.publicKey, isSigner: false, isWritable: true },
+                { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false }
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
+        await connection.confirmTransaction(sig);
+
+        showToast("Success! Wager registered on-chain.", "success");
+
+        // Store in active list
+        localWagers.push({
+            gameId: activeSelection.gameId,
+            outcomeLabel: activeSelection.outcomeLabel,
+            outcomeId: activeSelection.outcomeId,
+            amount: stakeSol,
+            odds: activeSelection.oddsValue,
+            status: "PENDING",
+            wagerPubkey: wagerAccountKeypair.publicKey,
+            claimed: false
+        });
+
+        renderActiveWagers();
+        clearSelection();
+        await updateWalletBalance();
+    } catch (e) {
+        console.error(e);
+        showToast("Transaction failed: " + e.message, "error");
+    }
+}
+
+function renderActiveWagers() {
+    const container = document.getElementById("active-wagers-container");
+    container.innerHTML = "";
+
+    if (localWagers.length === 0) {
+        container.innerHTML = `<div class="betslip-empty">No active wagers found</div>`;
+        return;
+    }
+
+    localWagers.forEach((w, idx) => {
+        const item = document.createElement("div");
+        item.className = "match-card";
+        item.style.marginBottom = "0.5rem";
+        
+        let statusBadge = `<span style="color:var(--neon-orange); font-size:0.75rem;">Pending</span>`;
+        let claimBtn = "";
+
+        if (w.status === "WON") {
+            statusBadge = `<span style="color:var(--neon-teal); font-size:0.75rem; font-weight:600;">Won!</span>`;
+            if (!w.claimed) {
+                claimBtn = `<button class="btn-primary" onclick="claimWagerOnchain(${idx})" style="padding:0.4rem 0.8rem; font-size:0.75rem; width:100%; margin-top:0.5rem;">Claim Winnings & Commission</button>`;
+            } else {
+                claimBtn = `<div style="text-align:center; font-size:0.75rem; color:var(--text-secondary); margin-top:0.5rem;">Claimed & Payout Disbursed ✅</div>`;
+            }
+        } else if (w.status === "LOST") {
+            statusBadge = `<span style="color:var(--neon-pink); font-size:0.75rem;">Lost</span>`;
+        }
+
+        item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-secondary);">
+                <span>Game #${w.gameId}</span>
+                ${statusBadge}
+            </div>
+            <div style="font-weight:600; margin:0.3rem 0; font-size:0.85rem;">Option: ${w.outcomeLabel}</div>
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                <span>Stake: ${w.amount.toFixed(2)} SOL</span>
+                <span style="font-weight:600; color:var(--neon-teal);">${w.odds.toFixed(2)}x</span>
+            </div>
+            ${claimBtn}
+        `;
+        container.appendChild(item);
+    });
+}
+
+async function claimWagerOnchain(idx) {
+    if (!isWalletConnected || !currentProgramId) return;
+    const w = localWagers[idx];
+
+    showToast("Submitting Claim Transaction to Solana...", "info");
+
+    try {
+        const marketAccountPubkey = getOrCreateAccountKeypair("market_999").publicKey;
+        const platformStatePubkey = getOrCreateAccountKeypair("platform_state").publicKey;
+        const treasuryPubkey = getOrCreateAccountKeypair("treasury").publicKey;
+        const creatorPubkey = getOrCreateAccountKeypair("punter_creator").publicKey;
+
+        // Build ClaimWinnings Instruction (ID 4)
+        // size: 9 bytes
+        const data = new Uint8Array(9);
+        data[0] = 4; // Type 4
+        writeU64(data, 1, w.gameId);
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: marketAccountPubkey, isSigner: false, isWritable: true },
+                { pubkey: w.wagerPubkey, isSigner: false, isWritable: true },
+                { pubkey: platformStatePubkey, isSigner: false, isWritable: false },
+                { pubkey: treasuryPubkey, isSigner: false, isWritable: true },
+                { pubkey: creatorPubkey, isSigner: false, isWritable: true },
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
+        await connection.confirmTransaction(sig);
+
+        showToast("Winnings successfully claimed! SOL sent to your wallet.", "success");
+        w.claimed = true;
+        renderActiveWagers();
+        await updateWalletBalance();
+    } catch (e) {
+        console.error(e);
+        showToast("Claim failed: " + e.message, "error");
+    }
+}
+
+// 8. Admin Operations Room
+function toggleAdminPanel() {
+    const body = document.getElementById("admin-panel-body");
+    const arrow = document.getElementById("admin-arrow");
+    const isOpen = body.style.display !== 'none';
+
+    body.style.display = isOpen ? 'none' : 'grid';
+    arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+function loadProgramId() {
+    const val = document.getElementById("admin-program-id").value.trim();
+    if (!val) {
+        showToast("Enter a program ID.", "error");
+        return;
+    }
+    try {
+        currentProgramId = new solanaWeb3.PublicKey(val);
+        localStorage.setItem("solplay_program_id", val);
+        showToast("Program ID Loaded successfully!", "success");
+    } catch (e) {
+        showToast("Invalid Program ID format.", "error");
+    }
+}
+
+async function initializePlatformOnchain() {
+    if (!isWalletConnected || !currentProgramId) {
+        showToast("Connect wallet and load Program ID first.", "error");
+        return;
+    }
+
+    showToast("Initializing Platform Config PDA...", "info");
+
+    try {
+        const platformStateKp = getOrCreateAccountKeypair("platform_state");
+        const treasuryKp = getOrCreateAccountKeypair("treasury");
+
+        // Create platform state account on localnet
+        await createLocalAccount(platformStateKp.publicKey, 66);
+
+        // Instruction 0 + Rake 150 (1.5%) u16
+        const data = new Uint8Array(3);
+        data[0] = 0; // Type 0
+        data[1] = 150 & 0xff;
+        data[2] = (150 >> 8) & 0xff;
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: true },
+                { pubkey: treasuryKp.publicKey, isSigner: false, isWritable: false },
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
+        await connection.confirmTransaction(sig);
+
+        showToast("Success! Platform state initialized.", "success");
+    } catch (e) {
+        console.error(e);
+        showToast("Init failed: " + e.message, "error");
+    }
+}
+
+async function createMarketOnchain() {
+    if (!isWalletConnected || !currentProgramId) {
+        showToast("Connect wallet and load Program ID first.", "error");
+        return;
+    }
+
+    const gameId = parseInt(document.getElementById("admin-game-id").value);
+    const home = document.getElementById("admin-team-home").value.trim();
+    const away = document.getElementById("admin-team-away").value.trim();
+
+    showToast(`Creating Market for Game #${gameId}...`, "info");
+
+    try {
+        const marketKp = getOrCreateAccountKeypair("market_999");
+        const platformStateKp = getOrCreateAccountKeypair("platform_state");
+
+        // Create market state account on-chain
+        await createLocalAccount(marketKp.publicKey, 66);
+
+        // Instruction 1
+        const data = new Uint8Array(41);
+        data[0] = 1; // Type 1
+        writeU64(data, 1, gameId);
+        writeString16(data, 9, home);
+        writeString16(data, 25, away);
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: marketKp.publicKey, isSigner: false, isWritable: true },
+                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
+        await connection.confirmTransaction(sig);
+
+        showToast("Success! Market registered on-chain.", "success");
+    } catch (e) {
+        console.error(e);
+        showToast("Market creation failed: " + e.message, "error");
+    }
+}
+
+async function resolveMarketOnchain() {
+    if (!isWalletConnected || !currentProgramId) {
+        showToast("Connect wallet and load Program ID first.", "error");
+        return;
+    }
+
+    const gameId = parseInt(document.getElementById("admin-game-id").value);
+    const outcome = parseInt(document.getElementById("admin-outcome-select").value);
+
+    showToast(`Resolving Game #${gameId}...`, "info");
+
+    try {
+        const marketKp = getOrCreateAccountKeypair("market_999");
+        const platformStateKp = getOrCreateAccountKeypair("platform_state");
+
+        // Instruction 3
+        const data = new Uint8Array(9);
+        data[0] = 3; // Type 3
+        writeU64(data, 1, gameId);
+        data[8] = outcome;
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: marketKp.publicKey, isSigner: false, isWritable: true },
+                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
+        await connection.confirmTransaction(sig);
+
+        showToast("Success! Game Resolved.", "success");
+
+        // Update local wagers status
+        localWagers.forEach(w => {
+            if (w.gameId === gameId) {
+                w.status = (w.outcomeId === outcome) ? "WON" : "LOST";
+            }
+        });
+        renderActiveWagers();
+
+        // Launch victory memecoin
+        launchVictoryMemecoin(outcome);
+    } catch (e) {
+        console.error(e);
+        showToast("Resolution failed: " + e.message, "error");
+    }
+}
+
+// 9. Victory Memecoin Launch & Chart
+function launchVictoryMemecoin(outcomeId) {
+    let name = "$CANNONBLAST (Arsenal Win)";
+    if (outcomeId === 1) name = "$BLUELION (Chelsea Win)";
+    if (outcomeId === 2) name = "$COINSDRAW (Draw)";
+
+    document.getElementById("meme-token-name").textContent = name;
+    document.getElementById("meme-launcher-card").style.display = "block";
+    
+    showToast(`Viral Troll Coin ${name.split(" ")[0]} Deployed on Solana!`, "success");
+
+    // Draw price pump chart on canvas
+    const canvas = document.getElementById("meme-chart-canvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Clear and draw
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#14b8a6";
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    ctx.moveTo(10, 130);
+    ctx.quadraticCurveTo(80, 120, 150, 90);
+    ctx.quadraticCurveTo(220, 60, 290, 10);
+    ctx.stroke();
+
+    // Add glowing gradient under line
+    const grad = ctx.createLinearGradient(0, 0, 0, 150);
+    grad.addColorStop(0, "rgba(20, 184, 166, 0.3)");
+    grad.addColorStop(1, "rgba(20, 184, 166, 0)");
+    ctx.fillStyle = grad;
+    
+    ctx.beginPath();
+    ctx.moveTo(10, 130);
+    ctx.quadraticCurveTo(80, 120, 150, 90);
+    ctx.quadraticCurveTo(220, 60, 290, 10);
+    ctx.lineTo(290, 150);
+    ctx.lineTo(10, 150);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw text
+    ctx.fillStyle = "#fff";
+    ctx.font = "10px Outfit";
+    ctx.fillText("PUMP DETECTED", 15, 25);
+}
+
+function buyMemeToken(solAmount) {
+    if (!isWalletConnected) {
+        showToast("Connect your wallet first!", "error");
+        return;
+    }
+    showToast(`Buying ${solAmount} SOL of Victory Token...`, "info");
+    
+    setTimeout(() => {
+        showToast(`Purchased! 5% Platform developer fee routed to treasury.`, "success");
+        updateWalletBalance();
+    }, 1200);
+}
+
+// 10. Live Match Simulation
+function startMatchTimer() {
+    matchTimer = setInterval(() => {
+        if (matchStatus === 'LIVE') {
+            matchTime++;
+            if (matchTime >= 90) {
+                matchTime = 90;
+                matchStatus = 'FT';
+                clearInterval(matchTimer);
+            }
+            document.getElementById("player-live-time").textContent = `${matchTime}:00`;
+            document.getElementById("match-card-time").textContent = `${matchTime}'`;
+        }
+    }, 5000); // Ticks fast for local testing
+}
+
+function simulateAdminGoal(teamId) {
+    if (teamId === 0) matchScore.home++;
+    else matchScore.away++;
+
+    const scoreStr = `${matchScore.home} - ${matchScore.away}`;
+    document.getElementById("player-live-score").textContent = `Arsenal ${scoreStr} Chelsea`;
+    document.getElementById("match-card-score").textContent = scoreStr;
+    
+    showToast(`⚽ GOAL! Match state updated to ${scoreStr}`, "info");
+    appendChatMessage("System", `⚽ GOAL! Score is now Arsenal ${scoreStr} Chelsea. Odds adjusting...`, true);
+}
+
+function resetScore() {
+    matchScore = { home: 0, away: 0 };
+    matchTime = 45;
+    const scoreStr = "0 - 0";
+    document.getElementById("player-live-score").textContent = `Arsenal ${scoreStr} Chelsea`;
+    document.getElementById("match-card-score").textContent = scoreStr;
+    document.getElementById("player-live-time").textContent = "45:00";
+    document.getElementById("match-card-time").textContent = "45'";
+    
+    showToast("Match state reset to 45th min 0-0", "info");
+}
+
+function mockPlayPause() {
+    showToast("Stream paused/resumed.", "info");
+}
+
+// Helper: Local keypair generator for sandbox testing
+function getOrCreateAccountKeypair(name) {
+    const key = name + "_keypair";
+    const stored = localStorage.getItem(key);
+    if (stored) {
+        const arr = JSON.parse(stored);
+        return solanaWeb3.Keypair.fromSecretKey(new Uint8Array(arr));
+    } else {
+        const kp = solanaWeb3.Keypair.generate();
+        localStorage.setItem(key, JSON.stringify(Array.from(kp.secretKey)));
+        return kp;
+    }
+}
+
+// Helper: Creates a system account and funds it to ensure it can hold state
+async function createLocalAccount(publicKey, space) {
+    const info = await connection.getAccountInfo(publicKey);
+    if (info !== null) return; // already created
+
+    const rent = await connection.getMinimumBalanceForRentExemption(space);
+    const tx = new solanaWeb3.Transaction().add(
+        solanaWeb3.SystemProgram.createAccount({
+            fromPubkey: walletKeypair.publicKey,
+            newAccountPubkey: publicKey,
+            lamports: rent,
+            space: space,
+            programId: currentProgramId
+        })
+    );
+    const sig = await connection.sendTransaction(tx, [walletKeypair]);
+    await connection.confirmTransaction(sig);
+}
+
+// Helper: Toast Notifications
+function showToast(message, type = "info") {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    
+    let emoji = "ℹ️";
+    if (type === "success") emoji = "✅";
+    if (type === "error") emoji = "❌";
+
+    toast.innerHTML = `
+        <span>${emoji} ${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    container.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
+}
+
+// Helper: Byte Writing functions (Little-Endian packing)
+function writeU64(buf, offset, val) {
+    const bigVal = BigInt(val);
+    for (let i = 0; i < 8; i++) {
+        buf[offset + i] = Number((bigVal >> BigInt(i * 8)) & 0xffn);
+    }
+}
+
+function writeU32(buf, offset, val) {
+    buf[offset] = val & 0xff;
+    buf[offset + 1] = (val >> 8) & 0xff;
+    buf[offset + 2] = (val >> 16) & 0xff;
+    buf[offset + 3] = (val >> 24) & 0xff;
+}
+
+function writeString16(buf, offset, str) {
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(str.slice(0, 16));
+    buf.set(encoded, offset);
+}
