@@ -301,8 +301,7 @@ async function claimMilestone() {
         });
 
         const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
-        await connection.confirmTransaction(sig);
+        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
         
         showToast("Success! Viewer Badge registered on Solana.", "success");
         document.getElementById("btn-claim-milestone").textContent = "Badge Claimed! ✅";
@@ -418,8 +417,7 @@ async function tipUserChat(user) {
                 lamports: 0.05 * solanaWeb3.LAMPORTS_PER_SOL
             })
         );
-        const sig = await connection.sendTransaction(tx, [walletKeypair]);
-        await connection.confirmTransaction(sig);
+        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
         
         showToast(`Tip of 0.05 SOL sent successfully!`, "success");
         appendChatMessage("System", `💰 You sent a 0.05 SOL tip to @${user}. Rake contribution: 5%.`, true);
@@ -579,11 +577,27 @@ async function placeBet() {
     }
 
     const lamports = Math.floor(stakeSol * solanaWeb3.LAMPORTS_PER_SOL);
-    showToast("Routing wager on-chain to Solana contract...", "info");
 
     try {
         const marketAccountPubkey = getOrCreateAccountKeypair("market_999").publicKey;
-        
+        const platformStatePubkey = getOrCreateAccountKeypair("platform_state").publicKey;
+
+        // Pre-check: Verify platform state is initialized
+        const platformStateInfo = await connection.getAccountInfo(platformStatePubkey);
+        if (!platformStateInfo || platformStateInfo.data.length < 66) {
+            showToast("Platform state is not initialized! Please 'Init Platform' under 'Program Deploys' in the Operations Control Room (Admin Console) first.", "error");
+            return;
+        }
+
+        // Pre-check: Verify market account is initialized
+        const marketInfo = await connection.getAccountInfo(marketAccountPubkey);
+        if (!marketInfo || marketInfo.data.length < 66) {
+            showToast("Market account is not initialized! Please 'Create Market' in the Operations Control Room (Admin Console) first.", "error");
+            return;
+        }
+
+        showToast("Routing wager on-chain to Solana contract...", "info");
+
         // Generate unique keypair for each wager to avoid account conflicts and size errors
         const wagerAccountKeypair = solanaWeb3.Keypair.generate();
 
@@ -615,8 +629,7 @@ async function placeBet() {
         });
 
         const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
-        await connection.confirmTransaction(sig);
+        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
 
         showToast("Success! Wager registered on-chain.", "success");
 
@@ -718,8 +731,7 @@ async function claimWagerOnchain(idx) {
         });
 
         const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
-        await connection.confirmTransaction(sig);
+        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
 
         showToast("Winnings successfully claimed! SOL sent to your wallet.", "success");
         w.claimed = true;
@@ -788,8 +800,7 @@ async function initializePlatformOnchain() {
         });
 
         const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
-        await connection.confirmTransaction(sig);
+        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
 
         showToast("Success! Platform state initialized.", "success");
     } catch (e) {
@@ -835,8 +846,7 @@ async function createMarketOnchain() {
         });
 
         const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
-        await connection.confirmTransaction(sig);
+        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
 
         showToast("Success! Market registered on-chain.", "success");
     } catch (e) {
@@ -877,8 +887,7 @@ async function resolveMarketOnchain() {
         });
 
         const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await connection.sendTransaction(tx, [walletKeypair], { skipPreflight: false });
-        await connection.confirmTransaction(sig);
+        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
 
         showToast("Success! Game Resolved.", "success");
 
@@ -1038,8 +1047,7 @@ async function createLocalAccount(newAccountKeypair, space) {
             programId: currentProgramId
         })
     );
-    const sig = await connection.sendTransaction(tx, [walletKeypair, newAccountKeypair]);
-    await connection.confirmTransaction(sig);
+    const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair, newAccountKeypair]);
 }
 
 // Helper: Toast Notifications
@@ -1147,5 +1155,56 @@ async function switchNetwork() {
     }
     await updateWalletBalance();
     showToast("Network switched successfully!", "success");
+}
+
+// Unified robust transaction sender & confirmation checker
+async function sendConfirmAndVerifyTransaction(tx, signers) {
+    try {
+        const sig = await connection.sendTransaction(tx, signers, { skipPreflight: true });
+        await connection.confirmTransaction(sig);
+        
+        // Verify on-chain success by fetching status
+        const status = await connection.getSignatureStatus(sig);
+        if (status && status.value && status.value.err) {
+            let logs = [];
+            try {
+                // Fetch transaction details to extract contract log messages
+                const txDetails = await connection.getTransaction(sig, { commitment: 'confirmed' });
+                if (txDetails && txDetails.meta && txDetails.meta.logMessages) {
+                    logs = txDetails.meta.logMessages;
+                }
+            } catch (err) {
+                console.error("Could not fetch logs for failed transaction", err);
+            }
+            const errorMsg = logs.length > 0 
+                ? `Transaction failed on-chain: ${JSON.stringify(status.value.err)}. Logs: ${logs.join(" | ")}` 
+                : `Transaction failed on-chain: ${JSON.stringify(status.value.err)}`;
+            const finalErr = new Error(errorMsg);
+            if (logs.length > 0) {
+                finalErr.logs = logs;
+            }
+            throw finalErr;
+        }
+        return sig;
+    } catch (e) {
+        // Retrieve transaction simulation logs if transaction threw SendTransactionError
+        let logs = e.logs;
+        if (!logs && typeof e.getLogs === 'function') {
+            try {
+                logs = await e.getLogs();
+            } catch (err) {
+                console.error("getLogs failed", err);
+            }
+        }
+        if (logs && logs.length > 0) {
+            e.logs = logs;
+            const accountDataTooSmall = logs.some(log => log.includes("account data too small"));
+            if (accountDataTooSmall) {
+                throw new Error("Account data too small. Ensure the match market and platform state are initialized in the Admin Console (Operations Control Room) first. Logs: " + logs.join(" | "));
+            }
+            throw new Error(`${e.message}. Logs: ${logs.join(" | ")}`);
+        }
+        throw e;
+    }
 }
 
