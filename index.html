@@ -39,16 +39,24 @@
                 <div class="stream-header">
                     <span class="stream-title-text" id="stream-title">Arsenal vs Chelsea - Live Stream</span>
                     <div class="stream-controls-header">
-                        <select class="stream-select" id="stream-region-select" onchange="updateStreamProviders()">
-                            <option value="uk_eu">🇪🇺 UK & Europe</option>
-                            <option value="us_am">🇺🇸 US & Americas</option>
-                            <option value="africa">🌍 Africa</option>
-                            <option value="asia_in">🌏 Asia & India</option>
-                            <option value="mock" selected>⚡ Developer Mocks</option>
-                        </select>
-                        <select class="stream-select" id="stream-provider-select" onchange="switchStreamProvider()">
-                            <!-- Populated dynamically -->
-                        </select>
+                        <div class="select-wrapper">
+                            <span class="select-label">Region:</span>
+                            <select class="stream-select" id="stream-region-select" onchange="updateStreamProviders()">
+                                <option value="uk_eu">🇪🇺 UK & Europe</option>
+                                <option value="us_am">🇺🇸 US & Americas</option>
+                                <option value="africa">🌍 Africa</option>
+                                <option value="asia_in">🌏 Asia & India</option>
+                                <option value="mock" selected>⚡ Developer Mocks</option>
+                            </select>
+                        </div>
+                        <div class="select-wrapper">
+                            <span class="select-label">Free Stream:</span>
+                            <select class="stream-select" id="stream-provider-select" onchange="switchStreamProvider()">
+                                <option value="0">Server 1 (YouTube Live)</option>
+                                <option value="1">Server 2 (HLS Direct)</option>
+                                <option value="2">Server 3 (E-Sports Mock)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

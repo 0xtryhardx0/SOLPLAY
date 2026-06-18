@@ -285,7 +285,7 @@ async function claimMilestone() {
         writeU32(data, 9, 600); // Watch time seconds (10 mins)
 
         // Create PDA/Account on-chain if not already created
-        await createLocalAccount(milestoneKeypair.publicKey, 44);
+        await createLocalAccount(milestoneKeypair, 44);
 
         const ix = new solanaWeb3.TransactionInstruction({
             keys: [
@@ -569,7 +569,7 @@ async function placeBet() {
         const wagerAccountKeypair = getOrCreateAccountKeypair("wager_active");
 
         // Create Wager Account on-chain
-        await createLocalAccount(wagerAccountKeypair.publicKey, 83);
+        await createLocalAccount(wagerAccountKeypair, 83);
 
         // Build PlaceWager Instruction (ID 2)
         // Length: 51 bytes
@@ -749,7 +749,7 @@ async function initializePlatformOnchain() {
         const treasuryKp = getOrCreateAccountKeypair("treasury");
 
         // Create platform state account on localnet
-        await createLocalAccount(platformStateKp.publicKey, 66);
+        await createLocalAccount(platformStateKp, 66);
 
         // Instruction 0 + Rake 150 (1.5%) u16
         const data = new Uint8Array(3);
@@ -795,7 +795,7 @@ async function createMarketOnchain() {
         const platformStateKp = getOrCreateAccountKeypair("platform_state");
 
         // Create market state account on-chain
-        await createLocalAccount(marketKp.publicKey, 66);
+        await createLocalAccount(marketKp, 66);
 
         // Instruction 1
         const data = new Uint8Array(41);
@@ -997,21 +997,21 @@ function getOrCreateAccountKeypair(name) {
 }
 
 // Helper: Creates a system account and funds it to ensure it can hold state
-async function createLocalAccount(publicKey, space) {
-    const info = await connection.getAccountInfo(publicKey);
+async function createLocalAccount(newAccountKeypair, space) {
+    const info = await connection.getAccountInfo(newAccountKeypair.publicKey);
     if (info !== null) return; // already created
 
     const rent = await connection.getMinimumBalanceForRentExemption(space);
     const tx = new solanaWeb3.Transaction().add(
         solanaWeb3.SystemProgram.createAccount({
             fromPubkey: walletKeypair.publicKey,
-            newAccountPubkey: publicKey,
+            newAccountPubkey: newAccountKeypair.publicKey,
             lamports: rent,
             space: space,
             programId: currentProgramId
         })
     );
-    const sig = await connection.sendTransaction(tx, [walletKeypair]);
+    const sig = await connection.sendTransaction(tx, [walletKeypair, newAccountKeypair]);
     await connection.confirmTransaction(sig);
 }
 

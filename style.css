@@ -207,7 +207,21 @@ main {
 
 .stream-controls-header {
     display: flex;
-    gap: 0.5rem;
+    gap: 1rem;
+}
+
+.select-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.select-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stream-select {
