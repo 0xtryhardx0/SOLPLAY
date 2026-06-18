@@ -19,6 +19,10 @@
         <div class="network-badge" id="network-badge">
             <div class="badge-dot"></div>
             <span id="network-status-text">Solana Localnet</span>
+            <select class="network-select" id="network-rpc-select" onchange="switchNetwork()" style="background: none; border: none; color: var(--neon-teal); font-family: var(--font-outfit); font-size: 0.75rem; margin-left: 0.5rem; cursor: pointer; outline: none; font-weight: 600;">
+                <option value="localnet" selected>💻 Localnet</option>
+                <option value="devnet">🚀 Devnet</option>
+            </select>
         </div>
 
         <div class="wallet-connector">
@@ -32,8 +36,8 @@
 
     <!-- Main Dashboard Grid -->
     <main>
-        <!-- Column 1: Stream, Milestones & Chat -->
-        <div class="col">
+        <!-- Left Pane: Live Stream & Engagement -->
+        <div class="left-pane col">
             <!-- Aggregated Video Player -->
             <div class="stream-panel glass">
                 <div class="stream-header">
@@ -109,210 +113,223 @@
             </div>
         </div>
 
-        <!-- Column 2: Betting Center & Memecoin Launcher -->
-        <div class="col">
-            <!-- Betting Center -->
-            <div class="betting-panel glass">
-                <div class="panel-tabs">
-                    <button class="tab-btn active" id="tab-live" onclick="switchBettingTab('live')">Live Sports</button>
-                    <button class="tab-btn" id="tab-custom" onclick="switchBettingTab('custom')">Polymarket Pools</button>
-                    <button class="tab-btn" id="tab-lp" onclick="switchBettingTab('lp')">LP Portal</button>
-                </div>
+        <!-- Right Pane: Sportsbook Exchange & Wallet Hub -->
+        <div class="right-pane glass">
+            <!-- Navigation Tabs -->
+            <div class="exchange-tabs">
+                <button class="exch-tab-btn active" id="btn-tab-sports" onclick="switchExchangeTab('sports')">🏆 Sports Book</button>
+                <button class="exch-tab-btn" id="btn-tab-slip" onclick="switchExchangeTab('slip')">🎫 Betslip <span class="tab-badge" id="tab-slip-badge" style="display:none;">1</span></button>
+                <button class="exch-tab-btn" id="btn-tab-wagers" onclick="switchExchangeTab('wagers')">🛡️ Wagers & LP</button>
+                <button class="exch-tab-btn" id="btn-tab-memes" onclick="switchExchangeTab('memes')">🚀 Victory Coins</button>
+            </div>
 
-                <div class="panel-content">
-                    <!-- Tab Content: Live Matches -->
-                    <div id="content-live">
-                        <div class="match-card">
-                            <div class="match-info-top">
-                                <span>Premier League • Matchday 35</span>
-                                <span style="color: var(--neon-pink); font-weight: 600;">LIVE</span>
-                            </div>
-                            <div class="match-teams-score">
-                                <div>
-                                    <div class="team-row">⚽ Arsenal</div>
-                                    <div class="team-row" style="margin-top: 0.3rem;">🛡️ Chelsea</div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <div class="score-row" id="match-card-score">0 - 0</div>
-                                    <div id="match-card-time" style="font-size: 0.75rem; color: var(--text-secondary);">45'</div>
-                                </div>
-                            </div>
-                            <div class="match-odds-row">
-                                <button class="odds-btn" id="odds-home" onclick="selectOdds(999, 0, 2.05, 'Arsenal Win')">
-                                    <span class="odds-label">Arsenal</span>
-                                    <span class="odds-value odds-boosted" id="odds-val-home">2.25</span>
-                                </button>
-                                <button class="odds-btn" id="odds-draw" onclick="selectOdds(999, 2, 3.20, 'Draw')">
-                                    <span class="odds-label">Draw</span>
-                                    <span class="odds-value" id="odds-val-draw">3.20</span>
-                                </button>
-                                <button class="odds-btn" id="odds-away" onclick="selectOdds(999, 1, 3.50, 'Chelsea Win')">
-                                    <span class="odds-label">Chelsea</span>
-                                    <span class="odds-value" id="odds-val-away">3.50</span>
-                                </button>
-                            </div>
-                        </div>
+            <!-- Tab Content 1: Sports Book -->
+            <div class="tab-panel-content" id="panel-sports">
+                <div class="betting-panel">
+                    <div class="panel-tabs">
+                        <button class="tab-btn active" id="tab-live" onclick="switchBettingTab('live')">Live Matches</button>
+                        <button class="tab-btn" id="tab-custom" onclick="switchBettingTab('custom')">Polymarket Pools</button>
                     </div>
-
-                    <!-- Tab Content: Custom Polymarket Pools -->
-                    <div id="content-custom" style="display: none;">
-                        <div class="match-card">
-                            <div class="match-info-top">
-                                <span>Streamer Showdown • FIFA 26</span>
-                                <span style="color: var(--neon-pink); font-weight: 600;">UPCOMING</span>
-                            </div>
-                            <div style="font-weight: 600; margin: 0.5rem 0; font-size: 0.95rem;">
-                                Will Kai Cenat defeat IShowSpeed in FIFA?
-                            </div>
-                            <div class="match-odds-row" style="grid-template-columns: repeat(2, 1fr);">
-                                <button class="odds-btn" onclick="selectOdds(888, 0, 2.10, 'Yes (Kai Wins)')">
-                                    <span class="odds-label">Yes</span>
-                                    <span class="odds-value">2.10</span>
-                                </button>
-                                <button class="odds-btn" onclick="selectOdds(888, 1, 1.80, 'No (Speed Wins)')">
-                                    <span class="odds-label">No</span>
-                                    <span class="odds-value">1.80</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="match-card">
-                            <div class="match-info-top">
-                                <span>Ronaldo Career Milestones</span>
-                                <span style="color: var(--text-secondary);">LONG TERM</span>
-                            </div>
-                            <div style="font-weight: 600; margin: 0.5rem 0; font-size: 0.95rem;">
-                                Will Cristiano Ronaldo score his 1000th goal this year?
-                            </div>
-                            <div class="match-odds-row" style="grid-template-columns: repeat(2, 1fr);">
-                                <button class="odds-btn" onclick="selectOdds(777, 0, 4.50, 'Yes (1000 Goals)')">
-                                    <span class="odds-label">Yes</span>
-                                    <span class="odds-value">4.50</span>
-                                </button>
-                                <button class="odds-btn" onclick="selectOdds(777, 1, 1.15, 'No')">
-                                    <span class="odds-label">No</span>
-                                    <span class="odds-value">1.15</span>
-                                </button>
+                    <div class="panel-content">
+                        <!-- Live Matches -->
+                        <div id="content-live">
+                            <div class="match-card">
+                                <div class="match-info-top">
+                                    <span>Premier League • Matchday 35</span>
+                                    <span style="color: var(--neon-pink); font-weight: 600;">LIVE</span>
+                                </div>
+                                <div class="match-teams-score">
+                                    <div>
+                                        <div class="team-row">⚽ Arsenal</div>
+                                        <div class="team-row" style="margin-top: 0.3rem;">🛡️ Chelsea</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div class="score-row" id="match-card-score">0 - 0</div>
+                                        <div id="match-card-time" style="font-size: 0.75rem; color: var(--text-secondary);">45'</div>
+                                    </div>
+                                </div>
+                                <div class="match-odds-row">
+                                    <button class="odds-btn" id="odds-home" onclick="selectOdds(999, 0, 2.05, 'Arsenal Win')">
+                                        <span class="odds-label">Arsenal</span>
+                                        <span class="odds-value odds-boosted" id="odds-val-home">2.25</span>
+                                    </button>
+                                    <button class="odds-btn" id="odds-draw" onclick="selectOdds(999, 2, 3.20, 'Draw')">
+                                        <span class="odds-label">Draw</span>
+                                        <span class="odds-value" id="odds-val-draw">3.20</span>
+                                    </button>
+                                    <button class="odds-btn" id="odds-away" onclick="selectOdds(999, 1, 3.50, 'Chelsea Win')">
+                                        <span class="odds-label">Chelsea</span>
+                                        <span class="odds-value" id="odds-val-away">3.50</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Tab Content: LP Vault Portal -->
-                    <div id="content-lp" style="display: none;">
-                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: rgba(0,0,0,0.25);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                                <span style="font-weight: 600;">SolPlay LP Vault</span>
-                                <span style="font-size: 0.8rem; background: rgba(20, 184, 166, 0.15); color: var(--neon-teal); padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600;">24.5% APY</span>
+                        <!-- Custom Pools -->
+                        <div id="content-custom" style="display: none;">
+                            <div class="match-card">
+                                <div class="match-info-top">
+                                    <span>Streamer Showdown • FIFA 26</span>
+                                    <span style="color: var(--neon-pink); font-weight: 600;">UPCOMING</span>
+                                </div>
+                                <div style="font-weight: 600; margin: 0.5rem 0; font-size: 0.95rem;">
+                                    Will Kai Cenat defeat IShowSpeed in FIFA?
+                                </div>
+                                <div class="match-odds-row" style="grid-template-columns: repeat(2, 1fr);">
+                                    <button class="odds-btn" onclick="selectOdds(888, 0, 2.10, 'Yes (Kai Wins)')">
+                                        <span class="odds-label">Yes</span>
+                                        <span class="odds-value">2.10</span>
+                                    </button>
+                                    <button class="odds-btn" onclick="selectOdds(888, 1, 1.80, 'No (Speed Wins)')">
+                                        <span class="odds-label">No</span>
+                                        <span class="odds-value">1.80</span>
+                                    </button>
+                                </div>
                             </div>
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
-                                Deposit SOL into the public vault to provide liquidity for wagers on localnet. You earn yield from losing wagers.
-                            </p>
-                            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                                <input type="number" class="chat-input" id="lp-deposit-amount" placeholder="SOL amount" style="width: 50%;">
-                                <button class="btn-primary" onclick="depositLP()" style="flex: 1; padding: 0.5rem;">Be the House</button>
-                            </div>
-                            <div style="border-top: 1px solid var(--border-color); padding-top: 0.8rem; display: flex; justify-content: space-between; font-size: 0.85rem;">
-                                <span style="color: var(--text-secondary);">Your Deposited Value:</span>
-                                <span id="lp-deposited-sol" style="font-weight: 600; color: var(--neon-teal);">0.00 SOL</span>
+                            <div class="match-card">
+                                <div class="match-info-top">
+                                    <span>Ronaldo Career Milestones</span>
+                                    <span style="color: var(--text-secondary);">LONG TERM</span>
+                                </div>
+                                <div style="font-weight: 600; margin: 0.5rem 0; font-size: 0.95rem;">
+                                    Will Cristiano Ronaldo score his 1000th goal this year?
+                                </div>
+                                <div class="match-odds-row" style="grid-template-columns: repeat(2, 1fr);">
+                                    <button class="odds-btn" onclick="selectOdds(777, 0, 4.50, 'Yes (1000 Goals)')">
+                                        <span class="odds-label">Yes</span>
+                                        <span class="odds-value">4.50</span>
+                                    </button>
+                                    <button class="odds-btn" onclick="selectOdds(777, 1, 1.15, 'No')">
+                                        <span class="odds-label">No</span>
+                                        <span class="odds-value">1.15</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Victory Memecoin Launcher Card (Displayed on Resolve) -->
-            <div class="match-card meme-launcher-card glass" id="meme-launcher-card" style="display: none; animation: slideUp 0.5s ease;">
-                <div class="meme-title">🚀 Victory Token Deployed!</div>
-                <div class="meme-image-container">
-                    <canvas class="meme-canvas" id="meme-chart-canvas"></canvas>
-                </div>
-                <div style="text-align: center; margin-bottom: 0.8rem;">
-                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);" id="meme-token-name">$CANNONBLAST (Arsenal Win)</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">Troll the losers live on X!</div>
-                </div>
-                <div class="meme-token-stats">
-                    <div>
-                        <span class="meme-stat-label">Price:</span>
-                        <span class="meme-stat-value" id="meme-price">0.00014 SOL</span>
+            <!-- Tab Content 2: My Betslip -->
+            <div class="tab-panel-content" id="panel-slip" style="display:none;">
+                <div class="betslip-panel">
+                    <div class="betslip-header">
+                        <span>Active Betting Slip</span>
+                        <span style="font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); color: var(--neon-purple); padding: 0.1rem 0.5rem; border-radius: 4px;" id="slip-count-badge">0 Selection</span>
                     </div>
-                    <div>
-                        <span class="meme-stat-label">Market Cap:</span>
-                        <span class="meme-stat-value" id="meme-mcap">140 SOL</span>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-primary" onclick="buyMemeToken(0.1)" style="flex: 1; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink);">Buy 0.1 SOL</button>
-                    <button class="btn-primary" onclick="buyMemeToken(0.5)" style="flex: 1; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink);">Buy 0.5 SOL</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Column 3: Betslip & Claims -->
-        <div class="col">
-            <!-- Betslip -->
-            <div class="betslip-panel glass">
-                <div class="betslip-header">
-                    <span>Betting Slip</span>
-                    <span style="font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); color: var(--neon-purple); padding: 0.1rem 0.5rem; border-radius: 4px;" id="slip-count-badge">0 Selection</span>
-                </div>
-                <div class="betslip-body">
-                    <!-- Selections container -->
-                    <div id="betslip-items-container">
-                        <div class="betslip-empty" id="betslip-empty-text">Select odds from matches to build your slip</div>
-                    </div>
-
-                    <!-- Stake & Summary (Shown when selection exists) -->
-                    <div class="betslip-stake-calculator" id="betslip-calc" style="display: none;">
-                        <div class="stake-input-row">
-                            <span class="stake-label">Stake Wager:</span>
-                            <div class="stake-input-container">
-                                <input type="number" step="0.1" class="stake-input" id="stake-amount" value="1.0" oninput="calculatePayout()">
-                                <span class="stake-unit">SOL</span>
+                    <div class="betslip-body">
+                        <div id="betslip-items-container">
+                            <div class="betslip-empty" id="betslip-empty-text">Select odds from matches to build your slip</div>
+                        </div>
+                        <div class="betslip-stake-calculator" id="betslip-calc" style="display: none;">
+                            <div class="stake-input-row">
+                                <span class="stake-label">Stake Amount:</span>
+                                <div class="stake-input-container">
+                                    <input type="number" step="0.1" class="stake-input" id="stake-amount" value="1.0" oninput="calculatePayout()">
+                                    <span class="stake-unit">SOL</span>
+                                </div>
+                            </div>
+                            <div class="betslip-summary-row" style="margin-top: 0.3rem;">
+                                <span>Combined Odds:</span>
+                                <span class="betslip-summary-value" id="slip-odds-multiplier">2.25x</span>
+                            </div>
+                            <div class="betslip-summary-row">
+                                <span>DeFi Routing Fee (1.0%):</span>
+                                <span class="betslip-summary-value" id="slip-routing-fee">0.0100 SOL</span>
+                            </div>
+                            <div class="betslip-summary-row" style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.2rem;">
+                                <span style="font-weight: 600; color: var(--text-primary);">Potential Return:</span>
+                                <span class="betslip-payout-value" id="slip-potential-payout">2.2500 SOL</span>
+                            </div>
+                            <button class="btn-primary" style="margin-top: 0.5rem;" onclick="placeBet()">Place Wager On-Chain</button>
+                            <div class="betslip-code-area">
+                                <div class="betslip-code-title">Share Betslip Code</div>
+                                <div class="betslip-code-row">
+                                    <span class="betslip-code-text" id="generated-slip-code">BET-SLIP-WAIT</span>
+                                    <button class="btn-mini" onclick="copyGeneratedCode()">Copy</button>
+                                </div>
                             </div>
                         </div>
-                        <div class="betslip-summary-row" style="margin-top: 0.3rem;">
-                            <span>Combined Odds:</span>
-                            <span class="betslip-summary-value" id="slip-odds-multiplier">2.25x</span>
-                        </div>
-                        <div class="betslip-summary-row">
-                            <span>DeFi Routing Fee (1.0%):</span>
-                            <span class="betslip-summary-value" id="slip-routing-fee">0.0100 SOL</span>
-                        </div>
-                        <div class="betslip-summary-row" style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.2rem;">
-                            <span style="font-weight: 600; color: var(--text-primary);">Potential Return:</span>
-                            <span class="betslip-payout-value" id="slip-potential-payout">2.2500 SOL</span>
-                        </div>
-                        
-                        <button class="btn-primary" style="margin-top: 0.5rem;" onclick="placeBet()">Place Wager On-Chain</button>
-                        
-                        <!-- Betslip Code Generation -->
-                        <div class="betslip-code-area">
-                            <div class="betslip-code-title">Share Betslip Code</div>
+                        <div class="betslip-code-area" style="margin-top: auto; padding-top: 1rem;">
+                            <div class="betslip-code-title">Load SportyBet Code</div>
                             <div class="betslip-code-row">
-                                <span class="betslip-code-text" id="generated-slip-code">BET-SLIP-WAIT</span>
-                                <button class="btn-mini" onclick="copyGeneratedCode()">Copy</button>
+                                <input type="text" class="betslip-code-input" id="import-code-input" placeholder="e.g. BET-ARS-99">
+                                <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="importBetslipCode()">Load Slip</button>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Betslip Code Importing -->
-                    <div class="betslip-code-area" style="margin-top: auto;">
-                        <div class="betslip-code-title">Load SportyBet Code</div>
-                        <div class="betslip-code-row">
-                            <input type="text" class="betslip-code-input" id="import-code-input" placeholder="e.g. BET-ARS-99">
-                            <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="importBetslipCode()">Load Slip</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Active Bets Tracking -->
-            <div class="glass" style="display: flex; flex-direction: column; flex: 1.2; min-height: 0;">
-                <div style="font-weight: 600; padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-color);">
-                    My Wagers & Claims
+            <!-- Tab Content 3: Claims & Vault -->
+            <div class="tab-panel-content" id="panel-wagers" style="display:none;">
+                <!-- My Wagers -->
+                <div style="display: flex; flex-direction: column; height: 100%;">
+                    <div style="font-weight: 600; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 0.8rem;">
+                        My Wagers & Claims
+                    </div>
+                    <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; max-height: 250px; margin-bottom: 1.5rem;" id="active-wagers-container">
+                        <div class="betslip-empty" id="active-wagers-empty-text">No active wagers found</div>
+                    </div>
+
+                    <!-- LP Portal -->
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: rgba(0,0,0,0.25); margin-top: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                            <span style="font-weight: 600;">SolPlay LP Vault</span>
+                            <span style="font-size: 0.8rem; background: rgba(20, 184, 166, 0.15); color: var(--neon-teal); padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600;">24.5% APY</span>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
+                            Deposit SOL into the public vault to provide liquidity for wagers on localnet. You earn yield from losing wagers.
+                        </p>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="number" class="chat-input" id="lp-deposit-amount" placeholder="SOL amount" style="width: 50%;">
+                            <button class="btn-primary" onclick="depositLP()" style="flex: 1; padding: 0.5rem;">Be the House</button>
+                        </div>
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 0.8rem; display: flex; justify-content: space-between; font-size: 0.85rem;">
+                            <span style="color: var(--text-secondary);">Your Deposited Value:</span>
+                            <span id="lp-deposited-sol" style="font-weight: 600; color: var(--neon-teal);">0.00 SOL</span>
+                        </div>
+                    </div>
                 </div>
-                <div style="flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem;" id="active-wagers-container">
-                    <div class="betslip-empty" id="active-wagers-empty-text">No active wagers found</div>
+            </div>
+
+            <!-- Tab Content 4: Victory Coins -->
+            <div class="tab-panel-content" id="panel-memes" style="display:none;">
+                <div style="display: flex; flex-direction: column; gap: 1rem; height: 100%;">
+                    <div style="font-weight: 600; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                        Victory Memecoin Factory
+                    </div>
+                    <!-- Empty placeholder if not launched -->
+                    <div id="meme-launcher-placeholder" style="text-align: center; color: var(--text-secondary); padding: 2rem 1rem;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🚀</div>
+                        <div>A waiting match resolution will auto-trigger the deployment of the Victory Memecoin to troll the losing fans.</div>
+                    </div>
+                    
+                    <!-- Victory Memecoin Launcher Card (Displayed on Resolve) -->
+                    <div class="match-card meme-launcher-card glass" id="meme-launcher-card" style="display: none; animation: slideUp 0.5s ease; margin-bottom: 0;">
+                        <div class="meme-title">🚀 Victory Token Deployed!</div>
+                        <div class="meme-image-container">
+                            <canvas class="meme-canvas" id="meme-chart-canvas"></canvas>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 0.8rem;">
+                            <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);" id="meme-token-name">$CANNONBLAST (Arsenal Win)</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Troll the losers live on X!</div>
+                        </div>
+                        <div class="meme-token-stats">
+                            <div>
+                                <span class="meme-stat-label">Price:</span>
+                                <span class="meme-stat-value" id="meme-price">0.00014 SOL</span>
+                            </div>
+                            <div>
+                                <span class="meme-stat-label">Market Cap:</span>
+                                <span class="meme-stat-value" id="meme-mcap">140 SOL</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-primary" onclick="buyMemeToken(0.1)" style="flex: 1; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink);">Buy 0.1 SOL</button>
+                            <button class="btn-primary" onclick="buyMemeToken(0.5)" style="flex: 1; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink);">Buy 0.5 SOL</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -31,6 +31,17 @@ def get_or_create_keypair(name):
         print(f"Generated keypair for {name} saved at: {path}")
         return keypair
 
+def confirm_tx(client, sig):
+    import time
+    for _ in range(30):
+        statuses = client.get_signature_statuses([sig]).value
+        if statuses and statuses[0] is not None:
+            if statuses[0].err is not None:
+                raise Exception(f"Transaction failed: {statuses[0].err}")
+            return
+        time.sleep(0.5)
+    raise Exception("Transaction confirmation timeout")
+
 def create_program_account(client, payer, account_keypair, space, program_id):
     # Check if exists
     info = client.get_account_info(account_keypair.pubkey())
@@ -51,15 +62,15 @@ def create_program_account(client, payer, account_keypair, space, program_id):
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([create_ix], payer.pubkey(), [payer, account_keypair], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print(f"Created account: {account_keypair.pubkey()} (Size: {space} bytes)")
-    time.sleep(1)
+    time.sleep(10.0)
 
 def airdrop_sol(client, pubkey, amount_sol=10):
     print(f"Airdropping {amount_sol} SOL to {pubkey}...")
     resp = client.request_airdrop(pubkey, int(amount_sol * 1_000_000_000))
-    client.confirm_transaction(resp.value)
+    confirm_tx(client, resp.value)
     balance = client.get_balance(pubkey).value / 1_000_000_000
     print(f"Balance: {balance} SOL")
 
@@ -87,9 +98,13 @@ def main():
     punter_creator = get_or_create_keypair("punter_creator")
 
     # Airdrops
-    airdrop_sol(client, payer.pubkey(), 5)
-    airdrop_sol(client, bettor_a.pubkey(), 2)
-    airdrop_sol(client, bettor_b.pubkey(), 2)
+    # airdrop_sol(client, payer.pubkey(), 5)
+    # airdrop_sol(client, bettor_a.pubkey(), 2)
+    # airdrop_sol(client, bettor_b.pubkey(), 2)
+
+    print(f"Payer {payer.pubkey()} balance: {client.get_balance(payer.pubkey()).value / 1_000_000_000} SOL")
+    print(f"Bettor A {bettor_a.pubkey()} balance: {client.get_balance(bettor_a.pubkey()).value / 1_000_000_000} SOL")
+    print(f"Bettor B {bettor_b.pubkey()} balance: {client.get_balance(bettor_b.pubkey()).value / 1_000_000_000} SOL")
 
     # 2. Setup Accounts
     platform_state_kp = get_or_create_keypair("platform_state")
@@ -109,8 +124,8 @@ def main():
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([init_ix], payer.pubkey(), [payer], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print("[Success] Platform Initialized.")
     time.sleep(1)
 
@@ -134,8 +149,8 @@ def main():
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([create_ix], payer.pubkey(), [payer], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print(f"[Success] Market created for game {game_id}.")
     time.sleep(1)
 
@@ -159,8 +174,8 @@ def main():
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([place_ix_a], bettor_a.pubkey(), [bettor_a], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print("[Success] Bettor A placed 1 SOL on Arsenal.")
     time.sleep(1)
 
@@ -183,8 +198,8 @@ def main():
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([place_ix_b], bettor_b.pubkey(), [bettor_b], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print("[Success] Bettor B placed 0.5 SOL on Arsenal (Copied from Punter Creator).")
     time.sleep(1)
 
@@ -201,8 +216,8 @@ def main():
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([resolve_ix], payer.pubkey(), [payer], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print("[Success] Market resolved: Arsenal Wins!")
     time.sleep(1)
 
@@ -224,8 +239,8 @@ def main():
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([claim_ix_b], bettor_b.pubkey(), [bettor_b], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print("[Success] Bettor B claimed winnings.")
     time.sleep(1)
 
@@ -252,8 +267,8 @@ def main():
     )
     blockhash = client.get_latest_blockhash().value.blockhash
     tx = Transaction.new_signed_with_payer([milestone_ix], bettor_a.pubkey(), [bettor_a], blockhash)
-    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=False))
-    client.confirm_transaction(resp.value)
+    resp = client.send_transaction(tx, opts=TxOpts(skip_preflight=True))
+    confirm_tx(client, resp.value)
     print("[Success] Recorded watch time milestone: 600 seconds.")
 
 if __name__ == "__main__":

@@ -53,6 +53,10 @@ window.addEventListener('load', () => {
 
     // Populate stream providers
     updateStreamProviders();
+    
+    // Load and render persistent wagers
+    loadWagersFromStorage();
+    renderActiveWagers();
 });
 
 // 1. Wallet Management (Local Sandbox Wallet)
@@ -463,6 +467,14 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel) {
     // Set random sportybet share code
     document.getElementById("generated-slip-code").textContent = `BET-${gameId}-${outcomeId}-${Math.floor(Math.random()*90 + 10)}`;
 
+    // Show indicator badge on the Betslip tab and auto-navigate to it
+    const badge = document.getElementById("tab-slip-badge");
+    if (badge) {
+        badge.textContent = "1";
+        badge.style.display = "inline-block";
+    }
+    switchExchangeTab("slip");
+
     calculatePayout();
 }
 
@@ -473,6 +485,11 @@ function clearSelection() {
     `;
     document.getElementById("slip-count-badge").textContent = "0 Selection";
     document.getElementById("betslip-calc").style.display = "none";
+    
+    const badge = document.getElementById("tab-slip-badge");
+    if (badge) {
+        badge.style.display = "none";
+    }
 }
 
 function calculatePayout() {
@@ -566,7 +583,9 @@ async function placeBet() {
 
     try {
         const marketAccountPubkey = getOrCreateAccountKeypair("market_999").publicKey;
-        const wagerAccountKeypair = getOrCreateAccountKeypair("wager_active");
+        
+        // Generate unique keypair for each wager to avoid account conflicts and size errors
+        const wagerAccountKeypair = solanaWeb3.Keypair.generate();
 
         // Create Wager Account on-chain
         await createLocalAccount(wagerAccountKeypair, 83);
@@ -613,6 +632,7 @@ async function placeBet() {
             claimed: false
         });
 
+        saveWagersToStorage();
         renderActiveWagers();
         clearSelection();
         await updateWalletBalance();
@@ -884,8 +904,15 @@ function launchVictoryMemecoin(outcomeId) {
     if (outcomeId === 1) name = "$BLUELION (Chelsea Win)";
     if (outcomeId === 2) name = "$COINSDRAW (Draw)";
 
+    // Hide placeholder and show launcher card
+    const placeholder = document.getElementById("meme-launcher-placeholder");
+    if (placeholder) placeholder.style.display = "none";
+    
     document.getElementById("meme-token-name").textContent = name;
     document.getElementById("meme-launcher-card").style.display = "block";
+    
+    // Auto switch tabs to highlight victory coin deployment
+    switchExchangeTab("memes");
     
     showToast(`Viral Troll Coin ${name.split(" ")[0]} Deployed on Solana!`, "success");
 
@@ -1075,3 +1102,50 @@ function getFriendlyUsername(pubkeyString) {
     
     return prefixes[prefixIdx] + suffixes[suffixIdx] + "_" + walletSuffix;
 }
+
+function saveWagersToStorage() {
+    localStorage.setItem("solplay_wagers", JSON.stringify(localWagers));
+}
+
+function loadWagersFromStorage() {
+    const stored = localStorage.getItem("solplay_wagers");
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            localWagers = parsed.map(w => ({
+                ...w,
+                wagerPubkey: new solanaWeb3.PublicKey(w.wagerPubkey)
+            }));
+        } catch (e) { console.error(e); }
+    }
+}
+
+function switchExchangeTab(tabId) {
+    const tabs = ["sports", "slip", "wagers", "memes"];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`btn-tab-${t}`);
+        const panel = document.getElementById(`panel-${t}`);
+        if (btn) btn.classList.toggle("active", t === tabId);
+        if (panel) panel.style.display = (t === tabId) ? "flex" : "none";
+    });
+    if (tabId === "slip") {
+        const badge = document.getElementById("tab-slip-badge");
+        if (badge) badge.style.display = "none";
+    }
+}
+
+async function switchNetwork() {
+    const val = document.getElementById("network-rpc-select").value;
+    const status = document.getElementById("network-status-text");
+    showToast(`Switching to ${val}...`, "info");
+    if (val === "localnet") {
+        connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
+        status.textContent = "Solana Localnet";
+    } else {
+        connection = new solanaWeb3.Connection("https://api.devnet.solana.com", "confirmed");
+        status.textContent = "Solana Devnet";
+    }
+    await updateWalletBalance();
+    showToast("Network switched successfully!", "success");
+}
+
