@@ -1,7 +1,7 @@
 // SolPlay Client Application Logic
 let connection;
 let walletKeypair = null;
-let currentProgramId = null;
+let currentProgramId = new solanaWeb3.PublicKey("GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va");
 let activeSelection = null;
 let milestoneProgress = 0;
 let watchTimer = null;
@@ -42,12 +42,17 @@ window.addEventListener('load', () => {
     startMockStreamChat();
     startMatchTimer();
     
-    // Check if Program ID is stored in localStorage
-    const savedProgramId = localStorage.getItem("solplay_program_id");
-    if (savedProgramId) {
-        document.getElementById("admin-program-id").value = savedProgramId;
-        currentProgramId = new solanaWeb3.PublicKey(savedProgramId);
+    // Check if Program ID is stored in localStorage, default to target deployment
+    let savedProgramId = localStorage.getItem("solplay_program_id");
+    if (!savedProgramId) {
+        savedProgramId = "GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va";
+        localStorage.setItem("solplay_program_id", savedProgramId);
     }
+    document.getElementById("admin-program-id").value = savedProgramId;
+    currentProgramId = new solanaWeb3.PublicKey(savedProgramId);
+
+    // Populate stream providers
+    updateStreamProviders();
 });
 
 // 1. Wallet Management (Local Sandbox Wallet)
@@ -121,30 +126,111 @@ async function requestAirdrop() {
     }
 }
 
-// 2. Video Player Server Switching
-function switchServer(serverId) {
+// 2. Video Player Server Switching and Regional Routing
+const REGIONAL_STREAMS = {
+    "uk_eu": [
+        { name: "VIPLeague Feed (UK/EU)", url: "https://www.vipleague.pm/football-schedule-streaming-links", description: "Regional favorite for UK Premier League & La Liga. Clean HD feeds.", type: "external" },
+        { name: "FootyBite Live", url: "https://footybite.to/", description: "Excellent multi-source football aggregator.", type: "external" },
+        { name: "CricFree TV", url: "https://cricfree.live/", description: "UK streams optimized for football and rugby.", type: "external" }
+    ],
+    "us_am": [
+        { name: "SportSurge (US/AM)", url: "https://sportsurge.net/", description: "No-ad P2P aggregator for MLS, NFL, and NBA.", type: "external" },
+        { name: "Buffstreams HD", url: "https://buffstreams.sx/", description: "US sports specialty, high-bitrate streaming.", type: "external" },
+        { name: "Stream2Watch Hub", url: "https://www.stream2watch.in/", description: "Global sports hub with high availability mirrors.", type: "external" }
+    ],
+    "africa": [
+        { name: "VIPRow Africa Portal", url: "https://www.viprow.nu/", description: "Premium quality streams for Football and Athletics.", type: "external" },
+        { name: "HesGoal CAF Streams", url: "http://www.hesgoal.com/", description: "African football portal. Lightweight & low data usage.", type: "external" }
+    ],
+    "asia_in": [
+        { name: "Smartcric Mobile (IN)", url: "https://www.smartcric.com/", description: "High-compression mobile feed for Cricket matches.", type: "external" },
+        { name: "LiveTV Asia Feed", url: "http://livetv.sx/enx/", description: "Comprehensive coverage of Cricket & Asian Cup matches.", type: "external" }
+    ],
+    "mock": [
+        { name: "Server 1 (YouTube Live)", url: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1", description: "Direct YouTube embed stream test.", type: "youtube" },
+        { name: "Server 2 (HLS Direct)", url: "", description: "Direct HLS live feed simulator.", type: "mock_hls" },
+        { name: "Server 3 (E-Sports Mock)", url: "", description: "Interactive simulated e-sports screen.", type: "mock_esports" }
+    ]
+};
+
+function updateStreamProviders() {
+    const regionSelect = document.getElementById("stream-region-select");
+    const providerSelect = document.getElementById("stream-provider-select");
+    if (!regionSelect || !providerSelect) return;
+    const selectedRegion = regionSelect.value;
+    
+    // Clear previous options
+    providerSelect.innerHTML = "";
+    
+    // Populate new options
+    const providers = REGIONAL_STREAMS[selectedRegion];
+    providers.forEach((prov, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = prov.name;
+        providerSelect.appendChild(opt);
+    });
+    
+    switchStreamProvider();
+}
+
+function switchStreamProvider() {
+    const regionSelect = document.getElementById("stream-region-select");
+    const providerSelect = document.getElementById("stream-provider-select");
+    if (!regionSelect || !providerSelect) return;
+    const selectedRegion = regionSelect.value;
+    const providerIdx = parseInt(providerSelect.value);
+    
+    const provider = REGIONAL_STREAMS[selectedRegion][providerIdx];
     const playerFrame = document.getElementById("video-iframe-player");
     const mockPlayer = document.getElementById("mock-video-player");
-    const btns = document.querySelectorAll(".server-btn");
-
-    btns.forEach((btn, idx) => {
-        if (idx === serverId - 1) btn.classList.add("active");
-        else btn.classList.remove("active");
-    });
-
-    if (serverId === 1) {
+    
+    document.getElementById("stream-title").textContent = `${provider.name} - Routed Live`;
+    
+    // Remove existing routing block if any
+    const existingRoutingBlock = document.getElementById("routing-info-block");
+    if (existingRoutingBlock) {
+        existingRoutingBlock.remove();
+    }
+    
+    if (provider.type === "youtube") {
         playerFrame.style.display = "block";
         mockPlayer.style.display = "none";
-        playerFrame.src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1";
-        document.getElementById("stream-title").textContent = "Arsenal vs Chelsea - Live Stream (YouTube Server)";
-    } else if (serverId === 2) {
+        playerFrame.src = provider.url;
+    } else if (provider.type === "external") {
+        // Show Live Graphical Tracker and Open Link Button
         playerFrame.style.display = "none";
         mockPlayer.style.display = "flex";
-        document.getElementById("stream-title").textContent = "Arsenal vs Chelsea - Live Stream (HLS Direct Server)";
-    } else if (serverId === 3) {
+        
+        // Add open link button info block to mock player
+        const routingBlock = document.createElement("div");
+        routingBlock.id = "routing-info-block";
+        routingBlock.className = "stream-routing-info";
+        routingBlock.innerHTML = `
+            <span class="provider-desc" style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; display: block; margin-bottom: 0.5rem; line-height: 1.4;">
+                ${provider.description}
+            </span>
+            <a href="${provider.url}" class="btn-primary" target="_blank" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink); padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600;">
+                🚀 Route Feed & Launch Portal
+            </a>
+        `;
+        
+        // Insert right under score
+        mockPlayer.insertBefore(routingBlock, mockPlayer.querySelector(".stream-controls"));
+    } else {
+        // Mock HLS or E-Sports Mock
         playerFrame.style.display = "none";
         mockPlayer.style.display = "flex";
-        document.getElementById("stream-title").textContent = "IShowSpeed vs Kai Cenat - Live FIFA Match (E-Sports Server)";
+        
+        const descBlock = document.createElement("div");
+        descBlock.id = "routing-info-block";
+        descBlock.className = "stream-routing-info";
+        descBlock.innerHTML = `
+            <span class="provider-desc" style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; display: block; margin-bottom: 0.5rem; line-height: 1.4;">
+                ${provider.description}
+            </span>
+        `;
+        mockPlayer.insertBefore(descBlock, mockPlayer.querySelector(".stream-controls"));
     }
 }
 
@@ -293,7 +379,7 @@ function sendChatMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    const username = isWalletConnected ? "Me (" + walletKeypair.publicKey.toString().slice(0, 4) + ")" : "Anonymous User";
+    const username = isWalletConnected ? getFriendlyUsername(walletKeypair.publicKey.toString()) : "Anonymous User";
     appendChatMessage(username, text, false);
     input.value = "";
 }
@@ -405,7 +491,7 @@ function copyGeneratedCode() {
     showToast(`Betslip Code Copied: ${code}`, "success");
     
     // Post to chat automatically
-    const username = isWalletConnected ? "Me" : "User";
+    const username = isWalletConnected ? getFriendlyUsername(walletKeypair.publicKey.toString()) : "User";
     appendChatMessage(username, `Check out my prediction code: ${code} 🔥`);
 }
 
@@ -972,4 +1058,20 @@ function writeString16(buf, offset, str) {
     const encoder = new TextEncoder();
     const encoded = encoder.encode(str.slice(0, 16));
     buf.set(encoded, offset);
+}
+
+// Helper: Deterministic friendly username generation
+function getFriendlyUsername(pubkeyString) {
+    const prefixes = ["SolRunner", "GigaTrader", "BullishFan", "TrollSniper", "ApeLord", "BlockPunter", "DegenChamp", "SolChaser"];
+    const suffixes = ["_Goat", "_Alpha", "_Deg", "_Whale", "_Dev", "_Pro", "_Chad", "_Giga"];
+    
+    let hash = 0;
+    for (let i = 0; i < pubkeyString.length; i++) {
+        hash = pubkeyString.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const prefixIdx = Math.abs(hash) % prefixes.length;
+    const suffixIdx = Math.abs(hash >> 3) % suffixes.length;
+    const walletSuffix = pubkeyString.slice(0, 4);
+    
+    return prefixes[prefixIdx] + suffixes[suffixIdx] + "_" + walletSuffix;
 }

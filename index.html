@@ -38,10 +38,17 @@
             <div class="stream-panel glass">
                 <div class="stream-header">
                     <span class="stream-title-text" id="stream-title">Arsenal vs Chelsea - Live Stream</span>
-                    <div class="server-selector">
-                        <button class="server-btn active" onclick="switchServer(1)">Server 1 (YouTube)</button>
-                        <button class="server-btn" onclick="switchServer(2)">Server 2 (HLS Direct)</button>
-                        <button class="server-btn" onclick="switchServer(3)">Server 3 (E-Sports Mock)</button>
+                    <div class="stream-controls-header">
+                        <select class="stream-select" id="stream-region-select" onchange="updateStreamProviders()">
+                            <option value="uk_eu">🇪🇺 UK & Europe</option>
+                            <option value="us_am">🇺🇸 US & Americas</option>
+                            <option value="africa">🌍 Africa</option>
+                            <option value="asia_in">🌏 Asia & India</option>
+                            <option value="mock" selected>⚡ Developer Mocks</option>
+                        </select>
+                        <select class="stream-select" id="stream-provider-select" onchange="switchStreamProvider()">
+                            <!-- Populated dynamically -->
+                        </select>
                     </div>
                 </div>
 
@@ -314,7 +321,7 @@
             <div class="admin-col">
                 <div class="admin-title">Program Deploys</div>
                 <label style="font-size: 0.75rem; color: var(--text-secondary);">Program ID (Target):</label>
-                <input type="text" class="admin-input" id="admin-program-id" placeholder="Copy from deploy command">
+                <input type="text" class="admin-input" id="admin-program-id" placeholder="Copy from deploy command" value="GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va">
                 <button class="btn-admin" onclick="loadProgramId()" style="margin-top: 0.3rem;">Load Program</button>
                 <button class="btn-admin" onclick="initializePlatformOnchain()" style="margin-top: 0.3rem; background: #ea580c;">Init Platform</button>
             </div>

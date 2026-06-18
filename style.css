@@ -205,26 +205,42 @@ main {
     font-weight: 600;
 }
 
-.server-selector {
+.stream-controls-header {
     display: flex;
-    gap: 0.3rem;
+    gap: 0.5rem;
 }
 
-.server-btn {
-    background: rgba(255, 255, 255, 0.03);
+.stream-select {
+    background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    padding: 0.3rem 0.6rem;
+    color: var(--text-primary);
+    padding: 0.4rem 0.8rem;
     border-radius: 6px;
-    font-size: 0.75rem;
+    font-family: var(--font-outfit);
+    font-size: 0.8rem;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
-.server-btn.active {
-    background: rgba(20, 184, 166, 0.15);
-    border-color: var(--neon-teal);
-    color: var(--neon-teal);
+.stream-select:focus {
+    outline: none;
+    border-color: var(--neon-purple);
+}
+
+.stream-routing-info {
+    margin-top: 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    z-index: 10;
+}
+
+.provider-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    max-width: 280px;
+    line-height: 1.4;
 }
 
 .video-container {
