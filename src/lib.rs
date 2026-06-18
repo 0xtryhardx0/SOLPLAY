@@ -93,6 +93,9 @@ fn initialize_platform(
     };
 
     let mut state_data = platform_state_account.try_borrow_mut_data()?;
+    msg!("InitializePlatform: program_id: {}", _program_id);
+    msg!("InitializePlatform: platform_state_account key: {}", platform_state_account.key);
+    msg!("InitializePlatform: platform_state_account owner: {}", platform_state_account.owner);
     msg!("InitializePlatform: state_data.len() = {}", state_data.len());
     if state_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
@@ -126,6 +129,7 @@ fn create_market(
 
     // Manual deserialize PlatformState:
     let state_data = platform_state_account.try_borrow_data()?;
+    msg!("create_market: platform_state_account data length: {}", state_data.len());
     if state_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
     }
@@ -152,6 +156,7 @@ fn create_market(
     team_away.copy_from_slice(&data[24..40]);
 
     let mut market_data = market_account.try_borrow_mut_data()?;
+    msg!("create_market: market_account data length: {}", market_data.len());
     if market_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
     }
