@@ -1,3 +1,54 @@
+// Fallback mock for solanaWeb3 when loaded offline/locally without CDN access
+if (typeof solanaWeb3 === 'undefined') {
+    console.warn("solanaWeb3 is not defined. Using local sandbox fallback mock.");
+    window.solanaWeb3 = {
+        Connection: function() {
+            return {
+                getBalance: async () => 0,
+                getAccountInfo: async () => null,
+                sendTransaction: async () => "mock-signature",
+                confirmTransaction: async () => {},
+                getSignatureStatus: async () => ({ value: { err: null } }),
+            };
+        },
+        Keypair: {
+            generate: function() {
+                const mockBytes = new Uint8Array(64);
+                return {
+                    publicKey: {
+                        toString: () => "GnjgbeuLcmy1tUNRSzwAM5yPmsmKJvvP7H33H6vMoAm9",
+                        toBytes: () => mockBytes.slice(0, 32)
+                    },
+                    secretKey: mockBytes
+                };
+            },
+            fromSecretKey: function(key) {
+                return {
+                    publicKey: {
+                        toString: () => "GnjgbeuLcmy1tUNRSzwAM5yPmsmKJvvP7H33H6vMoAm9",
+                        toBytes: () => key.slice(0, 32)
+                    },
+                    secretKey: key
+                };
+            }
+        },
+        PublicKey: function(val) {
+            return {
+                toString: () => val,
+                toBytes: () => new Uint8Array(32)
+            };
+        },
+        SystemProgram: {
+            programId: {
+                toString: () => "11111111111111111111111111111111"
+            },
+            createAccount: () => ({}),
+            transfer: () => ({})
+        },
+        LAMPORTS_PER_SOL: 1000000000
+    };
+}
+
 // SolPlay Admin Dashboard Logic
 let connection;
 let walletKeypair = null;
@@ -10,6 +61,16 @@ const WHITELIST = [
     "DirmZaAX8CuoHyvwick6wjnvfDWxnyZyTSf1yoSME2hT",
     "GnjgbeuLcmy1tUNRSzwAM5yPmsmKJvvP7H33H6vMoAm9"
 ];
+
+const ADMIN_MATCHES = {
+    999: { home: "Brazil", away: "France" },
+    998: { home: "Arsenal", away: "Chelsea" },
+    997: { home: "Al Nassr", away: "Al Hilal" },
+    996: { home: "Inter Miami", away: "LA Galaxy" },
+    995: { home: "Real Madrid", away: "Barcelona" },
+    994: { home: "Inter Milan", away: "Juventus" },
+    993: { home: "Bayern Munich", away: "Dortmund" }
+};
 
 // Initialize on page load
 window.addEventListener('load', () => {
@@ -30,22 +91,49 @@ window.addEventListener('load', () => {
 
     // Load developer wallet if stored
     loadAdminWallet();
+
+    // Prefill team names based on game ID changes
+    const gameIdInput = document.getElementById("admin-game-id");
+    if (gameIdInput) {
+        // Pre-fill initial value
+        const initialId = parseInt(gameIdInput.value);
+        if (ADMIN_MATCHES[initialId]) {
+            document.getElementById("admin-team-home").value = ADMIN_MATCHES[initialId].home;
+            document.getElementById("admin-team-away").value = ADMIN_MATCHES[initialId].away;
+        }
+        
+        gameIdInput.addEventListener("input", (e) => {
+            const id = parseInt(e.target.value);
+            if (ADMIN_MATCHES[id]) {
+                document.getElementById("admin-team-home").value = ADMIN_MATCHES[id].home;
+                document.getElementById("admin-team-away").value = ADMIN_MATCHES[id].away;
+            }
+        });
+    }
 });
 
 function loadAdminWallet() {
-    const storedSecret = localStorage.getItem("solplay_wallet_secret");
-    if (storedSecret) {
-        try {
+    try {
+        const storedSecret = localStorage.getItem("solplay_wallet_secret");
+        if (storedSecret) {
             const secretArray = JSON.parse(storedSecret);
-            walletKeypair = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(secretArray));
-        } catch (e) {
-            console.error("Failed to parse admin wallet secret", e);
+            if (Array.isArray(secretArray)) {
+                walletKeypair = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(secretArray));
+            }
         }
+    } catch (e) {
+        console.error("Failed to parse stored wallet secret, resetting keypair...", e);
+        localStorage.removeItem("solplay_wallet_secret");
     }
+
     if (!walletKeypair) {
-        walletKeypair = solanaWeb3.Keypair.generate();
-        const secretArray = Array.from(walletKeypair.secretKey);
-        localStorage.setItem("solplay_wallet_secret", JSON.stringify(secretArray));
+        try {
+            walletKeypair = solanaWeb3.Keypair.generate();
+            const secretArray = Array.from(walletKeypair.secretKey);
+            localStorage.setItem("solplay_wallet_secret", JSON.stringify(secretArray));
+        } catch (e) {
+            console.error("Failed to generate developer fallback keypair", e);
+        }
     }
 }
 
@@ -127,21 +215,62 @@ function loadProgramId() {
 
 // Score Syncing via LocalStorage
 function simulateAdminGoal(teamId) {
+    let scorer = document.getElementById("admin-goalscorer").value.trim();
+    const homeTeam = document.getElementById("admin-team-home").value.trim() || "Arsenal";
+    const awayTeam = document.getElementById("admin-team-away").value.trim() || "Chelsea";
+    
+    // Star players list for random fallbacks
+    const homeStars = {
+        "Arsenal": ["Saka", "Ødegaard", "Martinelli", "Havertz", "Rice"],
+        "Brazil": ["Vinicius Jr", "Neymar Jr", "Rodrygo", "Raphinha", "Lucas Paqueta"],
+        "Inter Miami": ["Messi", "Suarez", "Busquets", "Jordi Alba", "Campana"],
+        "Al Nassr": ["Ronaldo", "Sadio Mane", "Talisca", "Otavio", "Brozovic"],
+        "Real Madrid": ["Mbappe", "Bellingham", "Vinicius Jr", "Valverde", "Rodrygo"],
+        "Inter Milan": ["Lautaro", "Thuram", "Calhanoglu", "Barella", "Mkhitaryan"],
+        "Bayern Munich": ["Harry Kane", "Musiala", "Sane", "Gnabry", "Thomas Muller"]
+    };
+    
+    const awayStars = {
+        "Chelsea": ["Palmer", "Jackson", "Madueke", "Nkunku", "Enzo Fernandez"],
+        "France": ["Mbappe", "Griezmann", "Dembele", "Giroud", "Coman"],
+        "LA Galaxy": ["Gabriel Pec", "Marco Reus", "Joveljic", "Fagundez", "Riqui Puig"],
+        "Al Hilal": ["Mitrovic", "Neymar", "Malcom", "Milinkovic-Savic", "Ruben Neves"],
+        "Barcelona": ["Lewandowski", "Lamine Yamal", "Raphinha", "Pedri", "Gavi"],
+        "Juventus": ["Vlahovic", "Chiesa", "Yildiz", "Locatelli", "Rabiot"],
+        "Dortmund": ["Guirassy", "Brandt", "Sabitzer", "Adeyemi", "Malen"]
+    };
+
+    if (!scorer) {
+        if (teamId === 0) {
+            const stars = homeStars[homeTeam] || ["Star Player"];
+            scorer = stars[Math.floor(Math.random() * stars.length)];
+        } else {
+            const stars = awayStars[awayTeam] || ["Star Player"];
+            scorer = stars[Math.floor(Math.random() * stars.length)];
+        }
+    }
+
     if (teamId === 0) matchScore.home++;
     else matchScore.away++;
-    saveScoreToStorage();
+
+    saveScoreToStorage(scorer, teamId === 0 ? "home" : "away");
+    document.getElementById("admin-goalscorer").value = "";
 }
 
 function resetScore() {
     matchScore = { home: 0, away: 0 };
-    saveScoreToStorage();
+    saveScoreToStorage("", "");
     showToast("Match state reset to 45th min 0-0", "info");
 }
 
-function saveScoreToStorage() {
+function saveScoreToStorage(scorer = "", scoredSide = "") {
+    const gameId = parseInt(document.getElementById("admin-game-id").value) || 999;
     localStorage.setItem("solplay_match_score", JSON.stringify({
+        gameId: gameId,
         home: matchScore.home,
         away: matchScore.away,
+        scorer: scorer,
+        scoredSide: scoredSide,
         timestamp: Date.now()
     }));
     const scoreStr = `${matchScore.home} - ${matchScore.away}`;

@@ -1,3 +1,54 @@
+// Fallback mock for solanaWeb3 when loaded offline/locally without CDN access
+if (typeof solanaWeb3 === 'undefined') {
+    console.warn("solanaWeb3 is not defined. Using local sandbox fallback mock.");
+    window.solanaWeb3 = {
+        Connection: function() {
+            return {
+                getBalance: async () => 0,
+                getAccountInfo: async () => null,
+                sendTransaction: async () => "mock-signature",
+                confirmTransaction: async () => {},
+                getSignatureStatus: async () => ({ value: { err: null } }),
+            };
+        },
+        Keypair: {
+            generate: function() {
+                const mockBytes = new Uint8Array(64);
+                return {
+                    publicKey: {
+                        toString: () => "GnjgbeuLcmy1tUNRSzwAM5yPmsmKJvvP7H33H6vMoAm9",
+                        toBytes: () => mockBytes.slice(0, 32)
+                    },
+                    secretKey: mockBytes
+                };
+            },
+            fromSecretKey: function(key) {
+                return {
+                    publicKey: {
+                        toString: () => "GnjgbeuLcmy1tUNRSzwAM5yPmsmKJvvP7H33H6vMoAm9",
+                        toBytes: () => key.slice(0, 32)
+                    },
+                    secretKey: key
+                };
+            }
+        },
+        PublicKey: function(val) {
+            return {
+                toString: () => val,
+                toBytes: () => new Uint8Array(32)
+            };
+        },
+        SystemProgram: {
+            programId: {
+                toString: () => "11111111111111111111111111111111"
+            },
+            createAccount: () => ({}),
+            transfer: () => ({})
+        },
+        LAMPORTS_PER_SOL: 1000000000
+    };
+}
+
 // SolPlay Client Application Logic
 let connection;
 let walletKeypair = null;
@@ -9,8 +60,470 @@ let isWalletConnected = false;
 let currentBettingTab = 'live';
 
 // Simulated match state
-let matchScore = { home: 0, away: 0 };
-let matchTime = 45;
+let activeMatchId = 999; // Default to World Cup
+
+const MATCHES_DATA = [
+    {
+        id: 999,
+        league: "World Cup Tonight • Live",
+        homeTeam: "Brazil",
+        awayTeam: "France",
+        time: "62'",
+        status: "LIVE",
+        score: { home: 1, away: 1 },
+        formation: { home: "4-3-3", away: "4-2-3-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Alisson", pos: "GK" },
+                { num: 2, name: "Danilo", pos: "DF" },
+                { num: 3, name: "Marquinhos", pos: "DF" },
+                { num: 4, name: "Gabriel M.", pos: "DF" },
+                { num: 6, name: "Guilherme Arana", pos: "DF" },
+                { num: 5, name: "Bruno Guimaraes", pos: "MF" },
+                { num: 8, name: "Lucas Paqueta", pos: "MF" },
+                { num: 10, name: "Rodrygo", pos: "MF" },
+                { num: 7, name: "Vinicius Jr", pos: "FW" },
+                { num: 9, name: "Endrick", pos: "FW" },
+                { num: 11, name: "Raphinha", pos: "FW" }
+            ],
+            away: [
+                { num: 16, name: "Mike Maignan", pos: "GK" },
+                { num: 5, name: "Jules Kounde", pos: "DF" },
+                { num: 4, name: "Dayot Upamecano", pos: "DF" },
+                { num: 17, name: "William Saliba", pos: "DF" },
+                { num: 22, name: "Theo Hernandez", pos: "DF" },
+                { num: 8, name: "Aurelien Tchouameni", pos: "MF" },
+                { num: 13, name: "N'Golo Kante", pos: "MF" },
+                { num: 11, name: "Ousmane Dembele", pos: "MF" },
+                { num: 7, name: "Antoine Griezmann", pos: "MF" },
+                { num: 20, name: "Kingsley Coman", pos: "MF" },
+                { num: 10, name: "Kylian Mbappe", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Ederson", "Lucas Beraldo", "Douglas Luiz", "Andreas Pereira", "Savinho", "Gabriel Martinelli"],
+            away: ["Brice Samba", "Ibrahima Konate", "Eduardo Camavinga", "Warren Zaire-Emery", "Bradley Barcola", "Olivier Giroud"]
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Match started", icon: "🏁" },
+            { time: "22'", type: "goal", desc: "Goal! Brazil 1 - 0 France. Scored by Vinicius Jr (Assist: Lucas Paqueta).", icon: "⚽" },
+            { time: "38'", type: "card", desc: "Yellow Card: Aurelien Tchouameni (France)", icon: "🟨" },
+            { time: "45'", type: "half", desc: "Half Time (Brazil 1 - 0 France)", icon: "🏁" },
+            { time: "52'", type: "goal", desc: "Goal! Brazil 1 - 1 France. Scored by Kylian Mbappe (Assist: Antoine Griezmann).", icon: "⚽" }
+        ]
+    },
+    {
+        id: 998,
+        league: "Premier League • Live",
+        homeTeam: "Arsenal",
+        awayTeam: "Chelsea",
+        time: "45'",
+        status: "LIVE",
+        score: { home: 0, away: 0 },
+        formation: { home: "4-3-3", away: "4-2-3-1" },
+        lineup: {
+            home: [
+                { num: 22, name: "David Raya", pos: "GK" },
+                { num: 4, name: "Ben White", pos: "DF" },
+                { num: 2, name: "William Saliba", pos: "DF" },
+                { num: 6, name: "Gabriel Magalhaes", pos: "DF" },
+                { num: 12, name: "Jurrien Timber", pos: "DF" },
+                { num: 41, name: "Declan Rice", pos: "MF" },
+                { num: 5, name: "Thomas Partey", pos: "MF" },
+                { num: 8, name: "Martin Odegaard", pos: "MF" },
+                { num: 7, name: "Bukayo Saka", pos: "FW" },
+                { num: 29, name: "Kai Havertz", pos: "FW" },
+                { num: 11, name: "Gabriel Martinelli", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Robert Sanchez", pos: "GK" },
+                { num: 27, name: "Malo Gusto", pos: "DF" },
+                { num: 29, name: "Wesley Fofana", pos: "DF" },
+                { num: 6, name: "Levi Colwill", pos: "DF" },
+                { num: 3, name: "Marc Cucurella", pos: "DF" },
+                { num: 25, name: "Moises Caicedo", pos: "MF" },
+                { num: 8, name: "Enzo Fernandez", pos: "MF" },
+                { num: 11, name: "Noni Madueke", pos: "MF" },
+                { num: 20, name: "Cole Palmer", pos: "MF" },
+                { num: 19, name: "Jadon Sancho", pos: "MF" },
+                { num: 15, name: "Nicolas Jackson", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Neto", "Oleksandr Zinchenko", "Jorginho", "Mikel Merino", "Leandro Trossard", "Gabriel Jesus"],
+            away: ["Filip Jorgensen", "Tosin Adarabioyo", "Renato Veiga", "Romeo Lavia", "Joao Felix", "Christopher Nkunku"]
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Match started", icon: "🏁" },
+            { time: "18'", type: "card", desc: "Yellow Card: Marc Cucurella (Chelsea)", icon: "🟨" },
+            { time: "45'", type: "half", desc: "Half Time (Arsenal 0 - 0 Chelsea)", icon: "🏁" }
+        ]
+    },
+    {
+        id: 997,
+        league: "Saudi Pro League • Live",
+        homeTeam: "Al Nassr",
+        awayTeam: "Al Hilal",
+        time: "12'",
+        status: "LIVE",
+        score: { home: 0, away: 0 },
+        formation: { home: "4-2-3-1", away: "4-3-3" },
+        lineup: {
+            home: [
+                { num: 24, name: "Bento", pos: "GK" },
+                { num: 2, name: "Sultan Al-Ghannam", pos: "DF" },
+                { num: 3, name: "Mohamed Simakan", pos: "DF" },
+                { num: 27, name: "Aymeric Laporte", pos: "DF" },
+                { num: 83, name: "Salem Al-Najdi", pos: "DF" },
+                { num: 17, name: "Abdullah Al-Khaibari", pos: "MF" },
+                { num: 77, name: "Marcelo Brozovic", pos: "MF" },
+                { num: 94, name: "Anderson Talisca", pos: "MF" },
+                { num: 25, name: "Otavio", pos: "MF" },
+                { num: 10, name: "Sadio Mane", pos: "FW" },
+                { num: 7, name: "Cristiano Ronaldo", pos: "FW" }
+            ],
+            away: [
+                { num: 37, name: "Yassine Bounou", pos: "GK" },
+                { num: 66, name: "Saud Abdulhamid", pos: "DF" },
+                { num: 3, name: "Kalidou Koulibary", pos: "DF" },
+                { num: 87, name: "Hassan Tambakti", pos: "DF" },
+                { num: 12, name: "Yasir Al-Shahrani", pos: "DF" },
+                { num: 8, name: "Ruben Neves", pos: "MF" },
+                { num: 22, name: "Sergej Milinkovic-Savic", pos: "MF" },
+                { num: 29, name: "Salem Al-Dawsari", pos: "MF" },
+                { num: 77, name: "Malcom", pos: "FW" },
+                { num: 9, name: "Aleksandar Mitrovic", pos: "FW" },
+                { num: 10, name: "Neymar Jr", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Raghed Al-Najjar", "Ali Lajami", "Alex Telles", "Seko Fofana", "Abdulrahman Ghareeb", "Mohammed Maran"],
+            away: ["Mohammed Al-Owais", "Ali Al-Bulaihi", "Renan Lodi", "Mohamed Kanno", "Marcos Leonardo", "Abdullah Al-Hamdan"]
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Match started", icon: "🏁" }
+        ]
+    },
+    {
+        id: 996,
+        league: "MLS • Upcoming",
+        homeTeam: "Inter Miami",
+        awayTeam: "LA Galaxy",
+        time: "Upcoming",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        formation: { home: "4-3-3", away: "4-3-3" },
+        lineup: {
+            home: [
+                { num: 1, name: "Drake Callender", pos: "GK" },
+                { num: 57, name: "Marcelo Weigandt", pos: "DF" },
+                { num: 6, name: "Tomas Aviles", pos: "DF" },
+                { num: 21, name: "Nicolas Freire", pos: "DF" },
+                { num: 18, name: "Jordi Alba", pos: "DF" },
+                { num: 5, name: "Sergio Busquets", pos: "MF" },
+                { num: 24, name: "Julian Gressel", pos: "MF" },
+                { num: 20, name: "Diego Gomez", pos: "MF" },
+                { num: 16, name: "Robert Taylor", pos: "FW" },
+                { num: 9, name: "Luis Suarez", pos: "FW" },
+                { num: 10, name: "Lionel Messi", pos: "FW" }
+            ],
+            away: [
+                { num: 77, name: "John McCarthy", pos: "GK" },
+                { num: 2, name: "Miki Yamane", pos: "DF" },
+                { num: 4, name: "Maya Yoshida", pos: "DF" },
+                { num: 24, name: "Jalen Neal", pos: "DF" },
+                { num: 14, name: "John Nelson", pos: "DF" },
+                { num: 20, name: "Edwin Cerrillo", pos: "MF" },
+                { num: 8, name: "Mark Delgado", pos: "MF" },
+                { num: 10, name: "Riqui Puig", pos: "MF" },
+                { num: 28, name: "Joseph Paintsil", pos: "FW" },
+                { num: 9, name: "Dejan Joveljic", pos: "FW" },
+                { num: 7, name: "Gabriel Pec", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["C. Dos Santos", "Ryan Sailor", "Noah Allen", "Benjamin Cremaschi", "Federico Redondo", "Leonardo Campana"],
+            away: ["Novak Micovic", "Eriq Zavaleta", "Gaston Brugman", "Marco Reus", "Diego Fagundez", "Miguel Berry"]
+        },
+        timeline: []
+    },
+    {
+        id: 995,
+        league: "La Liga • Upcoming",
+        homeTeam: "Real Madrid",
+        awayTeam: "Barcelona",
+        time: "Upcoming",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        formation: { home: "4-3-1-2", away: "4-3-3" },
+        lineup: {
+            home: [
+                { num: 1, name: "Thibaut Courtois", pos: "GK" },
+                { num: 2, name: "Dani Carvajal", pos: "DF" },
+                { num: 3, name: "Eder Militao", pos: "DF" },
+                { num: 22, name: "Antonio Rudiger", pos: "DF" },
+                { num: 23, name: "Ferland Mendy", pos: "DF" },
+                { num: 14, name: "Aurelien Tchouameni", pos: "MF" },
+                { num: 15, name: "Federico Valverde", pos: "MF" },
+                { num: 8, name: "Federico Camavinga", pos: "MF" },
+                { num: 5, name: "Jude Bellingham", pos: "MF" },
+                { num: 9, name: "Kylian Mbappe", pos: "FW" },
+                { num: 7, name: "Vinicius Jr", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Marc-Andre ter Stegen", pos: "GK" },
+                { num: 23, name: "Jules Kounde", pos: "DF" },
+                { num: 2, name: "Pau Cubarsi", pos: "DF" },
+                { num: 5, name: "Inigo Martinez", pos: "DF" },
+                { num: 3, name: "Alejandro Balde", pos: "DF" },
+                { num: 17, name: "Marc Casado", pos: "MF" },
+                { num: 8, name: "Pedri", pos: "MF" },
+                { num: 20, name: "Dani Olmo", pos: "MF" },
+                { num: 19, name: "Lamine Yamal", pos: "FW" },
+                { num: 9, name: "Robert Lewandowski", pos: "FW" },
+                { num: 11, name: "Raphinha", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Andriy Lunin", "Lucas Vazquez", "Fran Garcia", "Luka Modric", "Arda Guler", "Rodrygo Goes"],
+            away: ["Inaki Pena", "Hector Fort", "Eric Garcia", "Frenkie de Jong", "Gavi", "Ferran Torres"]
+        },
+        timeline: []
+    },
+    {
+        id: 994,
+        league: "Serie A • Upcoming",
+        homeTeam: "Inter Milan",
+        awayTeam: "Juventus",
+        time: "Upcoming",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        formation: { home: "3-5-2", away: "4-1-4-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Yann Sommer", pos: "GK" },
+                { num: 28, name: "Benjamin Pavard", pos: "DF" },
+                { num: 15, name: "Francesco Acerbi", pos: "DF" },
+                { num: 95, name: "Alessandro Bastoni", pos: "DF" },
+                { num: 2, name: "Denzel Dumfries", pos: "MF" },
+                { num: 23, name: "Nicolo Barella", pos: "MF" },
+                { num: 20, name: "Hakan Calhanoglu", pos: "MF" },
+                { num: 22, name: "Henrikh Mkhitaryan", pos: "MF" },
+                { num: 32, name: "Federico Dimarco", pos: "MF" },
+                { num: 9, name: "Marcus Thuram", pos: "FW" },
+                { num: 10, name: "Lautaro Martinez", pos: "FW" }
+            ],
+            away: [
+                { num: 29, name: "Michele Di Gregorio", pos: "GK" },
+                { num: 37, name: "Saud Abdulhamid", pos: "DF" },
+                { num: 4, name: "Federico Gatti", pos: "DF" },
+                { num: 15, name: "Pierre Kalulu", pos: "DF" },
+                { num: 27, name: "Andrea Cambiaso", pos: "DF" },
+                { num: 19, name: "Khephren Thuram", pos: "MF" },
+                { num: 7, name: "Francisco Conceicao", pos: "MF" },
+                { num: 8, name: "Teun Koopmeiners", pos: "MF" },
+                { num: 16, name: "Weston McKennie", pos: "MF" },
+                { num: 10, name: "Kenan Yildiz", pos: "MF" },
+                { num: 9, name: "Dusan Vlahovic", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Raffaele Di Gennaro", "Stefan de Vrij", "Yann Bisseck", "Davide Frattesi", "Piotr Zielinski", "Mehdi Taremi"],
+            away: ["Mattia Perin", "Danilo Luiz", "Juan Cabal", "Manuel Locatelli", "Nicolo Fagioli", "Timothy Weah"]
+        },
+        timeline: []
+    },
+    {
+        id: 993,
+        league: "Bundesliga • Upcoming",
+        homeTeam: "Bayern Munich",
+        awayTeam: "Dortmund",
+        time: "Upcoming",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        formation: { home: "4-2-3-1", away: "4-2-3-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Manuel Neuer", pos: "GK" },
+                { num: 2, name: "Dayot Upamecano", pos: "DF" },
+                { num: 3, name: "Kim Min-jae", pos: "DF" },
+                { num: 22, name: "Raphael Guerreiro", pos: "DF" },
+                { num: 19, name: "Alphonso Davies", pos: "DF" },
+                { num: 6, name: "Joshua Kimmich", pos: "MF" },
+                { num: 45, name: "Aleksandar Pavlovic", pos: "MF" },
+                { num: 10, name: "Leroy Sane", pos: "MF" },
+                { num: 42, name: "Jamal Musiala", pos: "MF" },
+                { num: 7, name: "Serge Gnabry", pos: "MF" },
+                { num: 9, name: "Harry Kane", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Gregor Kobel", pos: "GK" },
+                { num: 26, name: "Julian Ryerson", pos: "DF" },
+                { num: 3, name: "Waldemar Anton", pos: "DF" },
+                { num: 4, name: "Nico Schlotterbeck", pos: "DF" },
+                { num: 5, name: "Ramy Bensebaini", pos: "DF" },
+                { num: 13, name: "Pascal Gross", pos: "MF" },
+                { num: 23, name: "Emre Can", pos: "MF" },
+                { num: 20, name: "Marcel Sabitzer", pos: "MF" },
+                { num: 10, name: "Julian Brandt", pos: "MF" },
+                { num: 27, name: "Karim Adeyemi", pos: "MF" },
+                { num: 9, name: "Serhou Guirassy", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Sven Ulreich", "Eric Dier", "Konrad Laimer", "Thomas Muller", "Kingsley Coman", "Mathys Tel"],
+            away: ["Alexander Meyer", "Niklas Sule", "Felix Nmecha", "Gio Reyna", "Jamie Gittens", "Donyell Malen"]
+        },
+        timeline: []
+    }
+];
+
+const activeMatchMarkets = {
+    999: '1x2',
+    998: '1x2',
+    997: '1x2',
+    996: '1x2',
+    995: '1x2',
+    994: '1x2',
+    993: '1x2'
+};
+
+const MATCH_MARKETS = {
+    999: { // Brazil vs France
+        '1x2': [
+            { label: "Brazil", value: 2.10, outcomeId: 0, desc: "Brazil Win" },
+            { label: "Draw", value: 3.40, outcomeId: 2, desc: "Draw" },
+            { label: "France", value: 3.10, outcomeId: 1, desc: "France Win" }
+        ],
+        'scorer': [
+            { label: "Vinicius Jr", value: 2.30, outcomeId: 10, desc: "Vinicius Jr to score" },
+            { label: "Mbappe", value: 2.15, outcomeId: 11, desc: "Mbappe to score" },
+            { label: "Neymar Jr", value: 2.50, outcomeId: 12, desc: "Neymar Jr to score" },
+            { label: "Griezmann", value: 2.80, outcomeId: 13, desc: "Griezmann to score" }
+        ],
+        'score': [
+            { label: "1 - 0", value: 7.00, outcomeId: 20, desc: "Brazil 1-0" },
+            { label: "2 - 1", value: 8.50, outcomeId: 21, desc: "Brazil 2-1" },
+            { label: "1 - 1", value: 6.00, outcomeId: 22, desc: "Draw 1-1" },
+            { label: "0 - 1", value: 9.00, outcomeId: 23, desc: "France 1-0" }
+        ]
+    },
+    998: { // Arsenal vs Chelsea
+        '1x2': [
+            { label: "Arsenal", value: 2.25, outcomeId: 0, desc: "Arsenal Win" },
+            { label: "Draw", value: 3.20, outcomeId: 2, desc: "Draw" },
+            { label: "Chelsea", value: 3.50, outcomeId: 1, desc: "Chelsea Win" }
+        ],
+        'scorer': [
+            { label: "Saka", value: 2.40, outcomeId: 10, desc: "Saka to score" },
+            { label: "Palmer", value: 2.60, outcomeId: 11, desc: "Palmer to score" },
+            { label: "Havertz", value: 2.80, outcomeId: 12, desc: "Havertz to score" },
+            { label: "Jackson", value: 3.10, outcomeId: 13, desc: "Jackson to score" }
+        ],
+        'score': [
+            { label: "1 - 0", value: 7.50, outcomeId: 20, desc: "Arsenal 1-0" },
+            { label: "2 - 1", value: 9.00, outcomeId: 21, desc: "Arsenal 2-1" },
+            { label: "1 - 1", value: 6.00, outcomeId: 22, desc: "Draw 1-1" },
+            { label: "0 - 1", value: 9.50, outcomeId: 23, desc: "Chelsea 1-0" }
+        ]
+    },
+    997: { // Al Nassr vs Al Hilal
+        '1x2': [
+            { label: "Al Nassr", value: 1.95, outcomeId: 0, desc: "Al Nassr Win" },
+            { label: "Draw", value: 3.60, outcomeId: 2, desc: "Draw" },
+            { label: "Al Hilal", value: 3.30, outcomeId: 1, desc: "Al Hilal Win" }
+        ],
+        'scorer': [
+            { label: "Ronaldo", value: 1.85, outcomeId: 10, desc: "Ronaldo to score" },
+            { label: "Mitrovic", value: 2.10, outcomeId: 11, desc: "Mitrovic to score" },
+            { label: "Sadio Mane", value: 2.50, outcomeId: 12, desc: "Sadio Mane to score" },
+            { label: "Malcom", value: 2.70, outcomeId: 13, desc: "Malcom to score" }
+        ],
+        'score': [
+            { label: "2 - 1", value: 8.00, outcomeId: 20, desc: "Al Nassr 2-1" },
+            { label: "3 - 2", value: 15.00, outcomeId: 21, desc: "Al Nassr 3-2" },
+            { label: "2 - 2", value: 12.00, outcomeId: 22, desc: "Draw 2-2" },
+            { label: "1 - 2", value: 11.00, outcomeId: 23, desc: "Al Hilal 2-1" }
+        ]
+    },
+    996: { // Inter Miami vs LA Galaxy
+        '1x2': [
+            { label: "Inter Miami", value: 1.70, outcomeId: 0, desc: "Inter Miami Win" },
+            { label: "Draw", value: 3.90, outcomeId: 2, desc: "Draw" },
+            { label: "LA Galaxy", value: 4.20, outcomeId: 1, desc: "LA Galaxy Win" }
+        ],
+        'scorer': [
+            { label: "Messi", value: 1.75, outcomeId: 10, desc: "Messi to score" },
+            { label: "Suarez", value: 2.05, outcomeId: 11, desc: "Suarez to score" },
+            { label: "Marco Reus", value: 3.40, outcomeId: 12, desc: "Marco Reus to score" },
+            { label: "Gabriel Pec", value: 3.80, outcomeId: 13, desc: "Gabriel Pec to score" }
+        ],
+        'score': [
+            { label: "2 - 1", value: 7.50, outcomeId: 20, desc: "Inter Miami 2-1" },
+            { label: "3 - 1", value: 12.00, outcomeId: 21, desc: "Inter Miami 3-1" },
+            { label: "1 - 1", value: 8.50, outcomeId: 22, desc: "Draw 1-1" },
+            { label: "1 - 2", value: 14.00, outcomeId: 23, desc: "LA Galaxy 2-1" }
+        ]
+    },
+    995: { // Real Madrid vs Barcelona
+        '1x2': [
+            { label: "Real Madrid", value: 2.00, outcomeId: 0, desc: "Real Madrid Win" },
+            { label: "Draw", value: 3.50, outcomeId: 2, desc: "Draw" },
+            { label: "Barcelona", value: 3.20, outcomeId: 1, desc: "Barcelona Win" }
+        ],
+        'scorer': [
+            { label: "Mbappe", value: 1.95, outcomeId: 10, desc: "Mbappe to score" },
+            { label: "Lewandowski", value: 2.20, outcomeId: 11, desc: "Lewandowski to score" },
+            { label: "Vinicius Jr", value: 2.30, outcomeId: 12, desc: "Vinicius Jr to score" },
+            { label: "Lamine Yamal", value: 3.10, outcomeId: 13, desc: "Lamine Yamal to score" }
+        ],
+        'score': [
+            { label: "2 - 1", value: 8.50, outcomeId: 20, desc: "Real Madrid 2-1" },
+            { label: "3 - 1", value: 13.00, outcomeId: 21, desc: "Real Madrid 3-1" },
+            { label: "2 - 2", value: 10.00, outcomeId: 22, desc: "Draw 2-2" },
+            { label: "1 - 2", value: 11.00, outcomeId: 23, desc: "Barcelona 2-1" }
+        ]
+    },
+    994: { // Inter Milan vs Juventus
+        '1x2': [
+            { label: "Inter Milan", value: 2.15, outcomeId: 0, desc: "Inter Milan Win" },
+            { label: "Draw", value: 3.10, outcomeId: 2, desc: "Draw" },
+            { label: "Juventus", value: 3.40, outcomeId: 1, desc: "Juventus Win" }
+        ],
+        'scorer': [
+            { label: "Lautaro", value: 2.20, outcomeId: 10, desc: "Lautaro to score" },
+            { label: "Vlahovic", value: 2.45, outcomeId: 11, desc: "Vlahovic to score" },
+            { label: "Thuram", value: 2.75, outcomeId: 12, desc: "Thuram to score" },
+            { label: "Yildiz", value: 3.80, outcomeId: 13, desc: "Yildiz to score" }
+        ],
+        'score': [
+            { label: "1 - 0", value: 6.50, outcomeId: 20, desc: "Inter Milan 1-0" },
+            { label: "2 - 0", value: 9.50, outcomeId: 21, desc: "Inter Milan 2-0" },
+            { label: "1 - 1", value: 5.80, outcomeId: 22, desc: "Draw 1-1" },
+            { label: "0 - 1", value: 8.50, outcomeId: 23, desc: "Juventus 1-0" }
+        ]
+    },
+    993: { // Bayern Munich vs Dortmund
+        '1x2': [
+            { label: "Bayern Munich", value: 1.65, outcomeId: 0, desc: "Bayern Munich Win" },
+            { label: "Draw", value: 4.10, outcomeId: 2, desc: "Draw" },
+            { label: "Dortmund", value: 4.80, outcomeId: 1, desc: "Dortmund Win" }
+        ],
+        'scorer': [
+            { label: "Harry Kane", value: 1.60, outcomeId: 10, desc: "Harry Kane to score" },
+            { label: "Guirassy", value: 2.40, outcomeId: 11, desc: "Guirassy to score" },
+            { label: "Musiala", value: 2.65, outcomeId: 12, desc: "Musiala to score" },
+            { label: "Adeyemi", value: 3.50, outcomeId: 13, desc: "Adeyemi to score" }
+        ],
+        'score': [
+            { label: "2 - 1", value: 8.00, outcomeId: 20, desc: "Bayern 2-1" },
+            { label: "3 - 1", value: 11.00, outcomeId: 21, desc: "Bayern 3-1" },
+            { label: "1 - 1", value: 9.00, outcomeId: 22, desc: "Draw 1-1" },
+            { label: "1 - 2", value: 15.00, outcomeId: 23, desc: "Dortmund 2-1" }
+        ]
+    }
+};
+
 let matchTimer = null;
 let matchStatus = 'LIVE';
 
@@ -48,7 +561,10 @@ window.addEventListener('load', () => {
         savedProgramId = "GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va";
         localStorage.setItem("solplay_program_id", savedProgramId);
     }
-    document.getElementById("admin-program-id").value = savedProgramId;
+    const adminProgIdEl = document.getElementById("admin-program-id");
+    if (adminProgIdEl) {
+        adminProgIdEl.value = savedProgramId;
+    }
     currentProgramId = new solanaWeb3.PublicKey(savedProgramId);
 
     // Populate stream providers
@@ -57,24 +573,35 @@ window.addEventListener('load', () => {
     // Load and render persistent wagers
     loadWagersFromStorage();
     renderActiveWagers();
+
+    // Render multi-league matches and select default
+    renderLiveMatches();
+    selectActiveMatch(999);
 });
 
 // 1. Wallet Management (Local Sandbox Wallet)
 function loadOrCreateWallet() {
-    const storedSecret = localStorage.getItem("solplay_wallet_secret");
-    if (storedSecret) {
-        try {
+    try {
+        const storedSecret = localStorage.getItem("solplay_wallet_secret");
+        if (storedSecret) {
             const secretArray = JSON.parse(storedSecret);
-            walletKeypair = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(secretArray));
-        } catch (e) {
-            console.error("Failed to parse stored wallet secret", e);
+            if (Array.isArray(secretArray)) {
+                walletKeypair = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(secretArray));
+            }
         }
+    } catch (e) {
+        console.error("Failed to parse stored wallet secret, resetting keypair...", e);
+        localStorage.removeItem("solplay_wallet_secret");
     }
 
     if (!walletKeypair) {
-        walletKeypair = solanaWeb3.Keypair.generate();
-        const secretArray = Array.from(walletKeypair.secretKey);
-        localStorage.setItem("solplay_wallet_secret", JSON.stringify(secretArray));
+        try {
+            walletKeypair = solanaWeb3.Keypair.generate();
+            const secretArray = Array.from(walletKeypair.secretKey);
+            localStorage.setItem("solplay_wallet_secret", JSON.stringify(secretArray));
+        } catch (e) {
+            console.error("Failed to generate developer fallback keypair", e);
+        }
     }
 }
 
@@ -237,6 +764,48 @@ function parseStreamAccount(data) {
     };
 }
 
+function getStreamsForMatchAndRegion(match, region) {
+    if (region === 'mock') {
+        return [
+            { name: "Server 1 (YouTube Live)", url: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1", description: "Direct YouTube embed stream test.", type: "youtube" },
+            { name: "Server 2 (HLS Direct)", url: "", description: "Direct HLS live feed simulator.", type: "mock_hls" },
+            { name: "Server 3 (E-Sports Mock)", url: "", description: "Interactive simulated e-sports screen.", type: "mock_esports" }
+        ];
+    }
+    
+    let suffix = "";
+    if (region === "uk_eu") suffix = " (Europe Feed)";
+    else if (region === "us_am") suffix = " (US Feed)";
+    else if (region === "africa") suffix = " (Africa Feed)";
+    else if (region === "asia_in") suffix = " (Asia Feed)";
+
+    if (match.id === 999) { // World Cup
+        return [
+            { name: `🏆 World Cup Stream 1 (VIPLeague - Free)${suffix}`, url: "https://www.vipleague.pm/", description: "Direct World Cup live stream feed. Free stream access.", type: "external" },
+            { name: `🏆 World Cup Stream 2 (FootyBite - Free)${suffix}`, url: "https://footybite.to/", description: "Aggregated live stream portal. Standard quality.", type: "external" },
+            { name: `🏆 World Cup Stream 3 (SportSurge - Free)${suffix}`, url: "https://sportsurge.net/", description: "P2P streaming portal. Recommended for desktop.", type: "external" },
+            { name: `🏆 World Cup Stream 4 (HesGoal - Free)${suffix}`, url: "http://www.hesgoal.com/", description: "Lightweight, low-latency mobile feed.", type: "external" }
+        ];
+    } else if (match.id === 997) { // Saudi Pro League
+        return [
+            { name: `🇸🇦 Al Nassr vs Al Hilal (VIPRow - Free)${suffix}`, url: "https://www.viprow.nu/", description: "Saudi Pro League direct feed. Free access.", type: "external" },
+            { name: `🇸🇦 Al Nassr vs Al Hilal (CricFree - Free)${suffix}`, url: "https://cricfree.live/", description: "Ad-supported mirror for Arab football league.", type: "external" }
+        ];
+    } else if (match.id === 996) { // MLS
+        return [
+            { name: `🇺🇸 Inter Miami vs LA Galaxy (VIPLeague - Free)${suffix}`, url: "https://www.vipleague.pm/", description: "MLS US stream. 100% free.", type: "external" },
+            { name: `🇺🇸 Inter Miami vs LA Galaxy (SportSurge - Free)${suffix}`, url: "https://sportsurge.net/", description: "Ad-free P2P aggregator for MLS matches.", type: "external" }
+        ];
+    } else { // Other matches
+        return [
+            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (VIPLeague - Free)${suffix}`, url: "https://www.vipleague.pm/", description: `Direct stream for ${match.homeTeam} vs ${match.awayTeam}. Free stream access.`, type: "external" },
+            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (FootyBite - Free)${suffix}`, url: "https://footybite.to/", description: "Aggregated live stream portal. Standard quality.", type: "external" },
+            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (SportSurge - Free)${suffix}`, url: "https://sportsurge.net/", description: "P2P streaming portal. Recommended for desktop.", type: "external" },
+            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (HesGoal - Free)${suffix}`, url: "http://www.hesgoal.com/", description: "Lightweight, low-latency mobile feed.", type: "external" }
+        ];
+    }
+}
+
 function updateStreamProviders() {
     const regionSelect = document.getElementById("stream-region-select");
     const providerSelect = document.getElementById("stream-provider-select");
@@ -246,12 +815,21 @@ function updateStreamProviders() {
     // Clear previous options
     providerSelect.innerHTML = "";
     
-    // Populate new options
-    const providers = activeStreams[selectedRegion] || [];
-    providers.forEach((prov, idx) => {
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId);
+    if (!match) return;
+    
+    const streams = getStreamsForMatchAndRegion(match, selectedRegion);
+    
+    // Merge on-chain streams registered via admin
+    const onchain = (activeStreams[selectedRegion] || []).filter(s => s.id !== undefined);
+    const combinedStreams = [...streams, ...onchain];
+    
+    activeStreams[selectedRegion] = combinedStreams;
+    
+    combinedStreams.forEach((s, idx) => {
         const opt = document.createElement("option");
         opt.value = idx;
-        opt.textContent = prov.name;
+        opt.textContent = s.name;
         providerSelect.appendChild(opt);
     });
     
@@ -513,27 +1091,40 @@ async function tipUserChat(user) {
 
 // 5. Betting Slip Logic
 function switchBettingTab(tab) {
-    currentBettingTab = tab;
-    document.getElementById("tab-live").classList.toggle("active", tab === 'live');
-    document.getElementById("tab-custom").classList.toggle("active", tab === 'custom');
-    document.getElementById("tab-lp").classList.toggle("active", tab === 'lp');
+    try {
+        currentBettingTab = tab;
+        const tabLive = document.getElementById("tab-live");
+        const tabCustom = document.getElementById("tab-custom");
+        const tabLp = document.getElementById("tab-lp");
 
-    document.getElementById("content-live").style.display = tab === 'live' ? 'block' : 'none';
-    document.getElementById("content-custom").style.display = tab === 'custom' ? 'block' : 'none';
-    document.getElementById("content-lp").style.display = tab === 'lp' ? 'block' : 'none';
+        if (tabLive) tabLive.classList.toggle("active", tab === 'live');
+        if (tabCustom) tabCustom.classList.toggle("active", tab === 'custom');
+        if (tabLp) tabLp.classList.toggle("active", tab === 'lp');
+
+        const contentLive = document.getElementById("content-live");
+        const contentCustom = document.getElementById("content-custom");
+        const contentLp = document.getElementById("content-lp");
+
+        if (contentLive) contentLive.style.display = tab === 'live' ? 'block' : 'none';
+        if (contentCustom) contentCustom.style.display = tab === 'custom' ? 'block' : 'none';
+        if (contentLp) contentLp.style.display = tab === 'lp' ? 'block' : 'none';
+    } catch (e) {
+        console.error("Error inside switchBettingTab:", e);
+        showToast("Betting tab error: " + e.message, "error");
+    }
 }
 
-function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel) {
+function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle) {
     const container = document.getElementById("betslip-items-container");
     container.innerHTML = ""; // Single selection for simplicity in prototype
 
-    activeSelection = { gameId, outcomeId, oddsValue, outcomeLabel };
+    activeSelection = { gameId, outcomeId, oddsValue, outcomeLabel, gameTitle };
 
     const item = document.createElement("div");
     item.className = "betslip-selection";
     item.innerHTML = `
         <button class="btn-remove-selection" onclick="clearSelection()">Remove</button>
-        <div class="selection-teams">Arsenal vs Chelsea</div>
+        <div class="selection-teams">${gameTitle}</div>
         <div class="selection-outcome">Wager Option: <span style="font-weight:600; color:var(--text-primary);">${outcomeLabel}</span></div>
         <div style="display:flex; justify-content:space-between; margin-top:0.4rem; font-size:0.8rem;">
             <span>Odds Value:</span>
@@ -558,6 +1149,7 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel) {
     switchExchangeTab("slip");
 
     calculatePayout();
+    renderLiveMatches();
 }
 
 function clearSelection() {
@@ -572,6 +1164,7 @@ function clearSelection() {
     if (badge) {
         badge.style.display = "none";
     }
+    renderLiveMatches();
 }
 
 function calculatePayout() {
@@ -610,12 +1203,100 @@ function importBetslipCode() {
     const gameId = parseInt(parts[1]);
     const outcomeId = parseInt(parts[2]);
 
-    let label = "Arsenal Win";
-    let odds = 2.25;
-    if (outcomeId === 1) { label = "Chelsea Win"; odds = 3.50; }
-    if (outcomeId === 2) { label = "Draw"; odds = 3.20; }
+    const match = MATCHES_DATA.find(m => m.id === gameId);
+    if (!match) {
+        showToast("Match not found.", "error");
+        return;
+    }
 
-    selectOdds(gameId, outcomeId, odds, label);
+    let label = "";
+    let odds = 1.0;
+
+    if (outcomeId >= 100) {
+        let activeOdds = [];
+        if (match.lineup && match.lineup.home) {
+            match.lineup.home.forEach((p, idx) => {
+                let oddsVal = 3.50;
+                if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
+                else if (p.pos === 'MF') oddsVal = 3.00 + ((p.name.length * 4 + idx) % 11) * 0.25;
+                else if (p.pos === 'DF') oddsVal = 6.00 + ((p.name.length * 5 + idx) % 7) * 1.0;
+                else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
+                activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 100 + idx, desc: `${p.name} to score` });
+            });
+            match.lineup.away.forEach((p, idx) => {
+                let oddsVal = 3.50;
+                if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
+                else if (p.pos === 'MF') oddsVal = 3.00 + ((p.name.length * 4 + idx) % 11) * 0.25;
+                else if (p.pos === 'DF') oddsVal = 6.00 + ((p.name.length * 5 + idx) % 7) * 1.0;
+                else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
+                activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 200 + idx, desc: `${p.name} to score` });
+            });
+        }
+        if (match.subs) {
+            if (match.subs.home) {
+                match.subs.home.forEach((name, idx) => {
+                    let oddsVal = 4.00 + ((name.length * 6 + idx) % 9) * 0.5;
+                    activeOdds.push({ label: `${name} (Sub)`, value: oddsVal, outcomeId: 300 + idx, desc: `${name} to score` });
+                });
+            }
+            if (match.subs.away) {
+                match.subs.away.forEach((name, idx) => {
+                    let oddsVal = 4.00 + ((name.length * 6 + idx) % 9) * 0.5;
+                    activeOdds.push({ label: `${name} (Sub)`, value: oddsVal, outcomeId: 400 + idx, desc: `${name} to score` });
+                });
+            }
+        }
+        const found = activeOdds.find(o => o.outcomeId === outcomeId);
+        if (found) {
+            label = found.desc;
+            odds = found.value;
+        } else {
+            showToast("Goalscorer selection not found.", "error");
+            return;
+        }
+    } else if (outcomeId >= 50 && outcomeId < 100) {
+        const scoreTemplates = [
+            { label: "1 - 0", value: 7.00, outcomeId: 50, desc: "1 - 0" },
+            { label: "2 - 0", value: 9.00, outcomeId: 51, desc: "2 - 0" },
+            { label: "2 - 1", value: 8.50, outcomeId: 52, desc: "2 - 1" },
+            { label: "3 - 1", value: 15.00, outcomeId: 53, desc: "3 - 1" },
+            { label: "0 - 0", value: 8.00, outcomeId: 54, desc: "0 - 0" },
+            { label: "1 - 1", value: 6.00, outcomeId: 55, desc: "1 - 1" },
+            { label: "2 - 2", value: 12.00, outcomeId: 56, desc: "2 - 2" },
+            { label: "0 - 1", value: 9.50, outcomeId: 57, desc: "0 - 1" },
+            { label: "0 - 2", value: 14.00, outcomeId: 58, desc: "0 - 2" },
+            { label: "1 - 2", value: 11.00, outcomeId: 59, desc: "1 - 2" }
+        ];
+        const found = scoreTemplates.find(o => o.outcomeId === outcomeId);
+        if (found) {
+            label = found.desc;
+            odds = found.value;
+        } else {
+            showToast("Correct score selection not found.", "error");
+            return;
+        }
+    } else {
+        const markets = MATCH_MARKETS[gameId] || {};
+        let found = null;
+        for (const mKey in markets) {
+            found = markets[mKey].find(o => o.outcomeId === outcomeId);
+            if (found) break;
+        }
+        if (found) {
+            label = found.desc;
+            odds = found.value;
+        } else {
+            if (outcomeId === 0) { label = `${match.homeTeam} Win`; odds = 2.00; }
+            else if (outcomeId === 1) { label = `${match.awayTeam} Win`; odds = 3.00; }
+            else if (outcomeId === 2) { label = "Draw"; odds = 3.20; }
+            else {
+                showToast("Selection code not recognized.", "error");
+                return;
+            }
+        }
+    }
+
+    selectOdds(gameId, outcomeId, odds, label, `${match.homeTeam} vs ${match.awayTeam}`);
     showToast("Betslip code loaded successfully!", "success");
 }
 
@@ -828,28 +1509,368 @@ async function claimWagerOnchain(idx) {
 }
 
 // 8. Cross-Tab State Synchronizer for Sportsbook (Real-time synchronization using localStorage)
+// 8. Cross-Tab State Synchronizer for Sportsbook (Real-time synchronization using localStorage)
+let goalBannerTimeout = null;
+
+function triggerGoalBanner(teamName, side, scorer = "") {
+    const banner = document.getElementById("goal-alert-banner");
+    const container = document.getElementById("goal-alert-container");
+    const teamEl = document.getElementById("goal-alert-team");
+    const scoreEl = document.getElementById("goal-alert-score");
+
+    if (!banner || !container || !teamEl || !scoreEl) return;
+
+    // Reset classes and set theme
+    banner.className = "goal-alert-banner";
+    banner.classList.add(`theme-${side}`);
+
+    // Fetch active match details
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId);
+    const scoreStr = match ? `${match.score.home} - ${match.score.away}` : "Goal Scored!";
+
+    // Populate data
+    teamEl.textContent = `${teamName.toUpperCase()} SCORE!`;
+    
+    // Display scorer details in a professional format
+    const timeDisplay = match ? match.time : "48'";
+    scoreEl.innerHTML = `
+        <div style="font-weight: 700; font-size: 1.1rem; color: #fff; margin-bottom: 0.2rem;">⚽ ${scorer} (${timeDisplay})</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">${match ? match.homeTeam : "Home"} ${scoreStr} ${match ? match.awayTeam : "Away"}</div>
+    `;
+
+    // Make visible and trigger animation
+    container.style.display = "flex";
+    
+    // Force layout reflow
+    void banner.offsetWidth;
+    banner.classList.add("active");
+
+    // Clear previous timeouts if goal event fires in quick succession
+    if (goalBannerTimeout) {
+        clearTimeout(goalBannerTimeout);
+    }
+
+    // Hide banner after 4 seconds
+    goalBannerTimeout = setTimeout(() => {
+        banner.classList.remove("active");
+        setTimeout(() => {
+            if (!banner.classList.contains("active")) {
+                container.style.display = "none";
+            }
+        }, 500);
+    }, 4000);
+}
+
+// Render live match cards dynamically
+function renderLiveMatches() {
+    const container = document.getElementById("content-live-list");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    MATCHES_DATA.forEach(match => {
+        const isActive = (match.id === activeMatchId);
+        const card = document.createElement("div");
+        card.className = `match-card ${isActive ? 'active-match' : ''}`;
+        
+        // Match meta details
+        const isLive = match.status === "LIVE";
+        const statusBadge = isLive 
+            ? `<span style="color: var(--neon-pink); font-weight: 600;">LIVE</span>` 
+            : `<span style="color: var(--text-secondary); font-weight: 600;">UPCOMING</span>`;
+
+        // Render card header
+        let html = `
+            <div class="match-info-top">
+                <span>${match.league}</span>
+                ${statusBadge}
+            </div>
+            <div class="match-teams-score">
+                <div>
+                    <div class="team-row">⚽ ${match.homeTeam}</div>
+                    <div class="team-row" style="margin-top: 0.3rem;">🛡️ ${match.awayTeam}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="score-row" id="match-card-score-${match.id}">
+                        <span id="match-score-home-${match.id}">${match.score.home}</span> - <span id="match-score-away-${match.id}">${match.score.away}</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${match.time}</div>
+                </div>
+            </div>
+        `;
+
+        // Add Market selector tabs
+        const currentMarket = activeMatchMarkets[match.id] || '1x2';
+        html += `
+            <div class="market-tabs">
+                <button class="market-tab-btn ${currentMarket === '1x2' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, '1x2')">Winner (1X2)</button>
+                <button class="market-tab-btn ${currentMarket === 'scorer' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'scorer')">Goalscorer</button>
+                <button class="market-tab-btn ${currentMarket === 'score' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'score')">Correct Score</button>
+            </div>
+        `;
+
+        // Render odds selector grid based on active tab
+        const markets = MATCH_MARKETS[match.id] || {};
+        
+        let activeOdds = [];
+        if (currentMarket === '1x2') {
+            activeOdds = markets['1x2'] || [
+                { label: match.homeTeam, value: 2.00, outcomeId: 0, desc: `${match.homeTeam} Win` },
+                { label: "Draw", value: 3.20, outcomeId: 2, desc: "Draw" },
+                { label: match.awayTeam, value: 3.00, outcomeId: 1, desc: `${match.awayTeam} Win` }
+            ];
+        } else if (currentMarket === 'scorer') {
+            if (match.lineup && match.lineup.home) {
+                // Home starters
+                match.lineup.home.forEach((p, idx) => {
+                    let oddsVal = 3.50;
+                    if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
+                    else if (p.pos === 'MF') oddsVal = 3.00 + ((p.name.length * 4 + idx) % 11) * 0.25;
+                    else if (p.pos === 'DF') oddsVal = 6.00 + ((p.name.length * 5 + idx) % 7) * 1.0;
+                    else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
+                    activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 100 + idx, desc: `${p.name} to score` });
+                });
+                // Away starters
+                match.lineup.away.forEach((p, idx) => {
+                    let oddsVal = 3.50;
+                    if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
+                    else if (p.pos === 'MF') oddsVal = 3.00 + ((p.name.length * 4 + idx) % 11) * 0.25;
+                    else if (p.pos === 'DF') oddsVal = 6.00 + ((p.name.length * 5 + idx) % 7) * 1.0;
+                    else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
+                    activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 200 + idx, desc: `${p.name} to score` });
+                });
+            }
+            if (match.subs) {
+                if (match.subs.home) {
+                    match.subs.home.forEach((name, idx) => {
+                        let oddsVal = 4.00 + ((name.length * 6 + idx) % 9) * 0.5;
+                        activeOdds.push({ label: `${name} (Sub)`, value: oddsVal, outcomeId: 300 + idx, desc: `${name} to score` });
+                    });
+                }
+                if (match.subs.away) {
+                    match.subs.away.forEach((name, idx) => {
+                        let oddsVal = 4.00 + ((name.length * 6 + idx) % 9) * 0.5;
+                        activeOdds.push({ label: `${name} (Sub)`, value: oddsVal, outcomeId: 400 + idx, desc: `${name} to score` });
+                    });
+                }
+            }
+        } else if (currentMarket === 'score') {
+            activeOdds = markets['score'] || [];
+            if (activeOdds.length === 0) {
+                activeOdds = [
+                    { label: "1 - 0", value: 7.00, outcomeId: 50, desc: "1 - 0" },
+                    { label: "2 - 0", value: 9.00, outcomeId: 51, desc: "2 - 0" },
+                    { label: "2 - 1", value: 8.50, outcomeId: 52, desc: "2 - 1" },
+                    { label: "3 - 1", value: 15.00, outcomeId: 53, desc: "3 - 1" },
+                    { label: "0 - 0", value: 8.00, outcomeId: 54, desc: "0 - 0" },
+                    { label: "1 - 1", value: 6.00, outcomeId: 55, desc: "1 - 1" },
+                    { label: "2 - 2", value: 12.00, outcomeId: 56, desc: "2 - 2" },
+                    { label: "0 - 1", value: 9.50, outcomeId: 57, desc: "0 - 1" },
+                    { label: "0 - 2", value: 14.00, outcomeId: 58, desc: "0 - 2" },
+                    { label: "1 - 2", value: 11.00, outcomeId: 59, desc: "1 - 2" }
+                ];
+            }
+        }
+        
+        let oddsGridClass = currentMarket === '1x2' ? 'market-grid-3' : 'market-grid';
+        
+        if (currentMarket === 'scorer') {
+            html += `<div class="goalscorer-odds-container"><div class="${oddsGridClass}">`;
+        } else {
+            html += `<div class="${oddsGridClass}">`;
+        }
+        
+        activeOdds.forEach(odd => {
+            const isSelected = (activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === odd.outcomeId && activeSelection.outcomeLabel === odd.desc);
+            const escapedDesc = odd.desc.replace(/'/g, "\\'");
+            const escapedGameTitle = `${match.homeTeam} vs ${match.awayTeam}`.replace(/'/g, "\\'");
+            html += `
+                <button class="odds-btn ${isSelected ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${odd.outcomeId}, ${odd.value}, '${escapedDesc}', '${escapedGameTitle}')">
+                    <span class="odds-label">${odd.label}</span>
+                    <span class="odds-value">${odd.value.toFixed(2)}</span>
+                </button>
+            `;
+        });
+        
+        if (currentMarket === 'scorer') {
+            html += `</div></div>`;
+        } else {
+            html += `</div>`;
+        }
+
+        // Active match select button
+        if (!isActive) {
+            html += `
+                <button class="match-card-select-btn" onclick="selectActiveMatch(${match.id})">
+                    📺 Stream Match & View Odds
+                </button>
+            `;
+        } else {
+            html += `
+                <button class="match-card-select-btn active">
+                    ⚡ Currently Streaming Live
+                </button>
+            `;
+        }
+
+        card.innerHTML = html;
+        container.appendChild(card);
+    });
+}
+
+function setBettingMarket(matchId, marketKey) {
+    activeMatchMarkets[matchId] = marketKey;
+    renderLiveMatches();
+}
+
+function selectActiveMatch(matchId) {
+    activeMatchId = matchId;
+    const match = MATCHES_DATA.find(m => m.id === matchId);
+    if (!match) return;
+    
+    // Update live player scoreboard
+    const liveScoreEl = document.getElementById("player-live-score");
+    if (liveScoreEl) {
+        liveScoreEl.innerHTML = `${match.homeTeam} <span id="player-score-home">${match.score.home}</span> - <span id="player-score-away">${match.score.away}</span> ${match.awayTeam}`;
+    }
+    
+    const liveTimeEl = document.getElementById("player-live-time");
+    if (liveTimeEl) {
+        liveTimeEl.textContent = match.time + (match.status === 'LIVE' && match.time !== 'Upcoming' ? ':00' : '');
+    }
+    
+    document.getElementById("stream-title").textContent = `${match.homeTeam} vs ${match.awayTeam} - Routed Feed`;
+    
+    updateStreamProvidersForMatch(match);
+    renderLiveMatches();
+    
+    // Update match center tabs (Lineups and Timeline)
+    renderMatchLineups();
+    renderMatchTimeline();
+}
+
+function updateStreamProvidersForMatch(match) {
+    updateStreamProviders();
+}
+
 window.addEventListener('storage', (e) => {
     if (e.key === "solplay_match_score" && e.newValue) {
         try {
             const data = JSON.parse(e.newValue);
-            matchScore.home = data.home;
-            matchScore.away = data.away;
-            const scoreStr = `${matchScore.home} - ${matchScore.away}`;
+            const targetGameId = data.gameId || activeMatchId;
+            const match = MATCHES_DATA.find(m => m.id === targetGameId);
             
-            const liveScore = document.getElementById("player-live-score");
-            const cardScore = document.getElementById("match-card-score");
-            if (liveScore) liveScore.textContent = `Arsenal ${scoreStr} Chelsea`;
-            if (cardScore) cardScore.textContent = scoreStr;
-            
-            if (data.home === 0 && data.away === 0) {
-                const liveTime = document.getElementById("player-live-time");
-                const cardTime = document.getElementById("match-card-time");
-                if (liveTime) liveTime.textContent = "45:00";
-                if (cardTime) cardTime.textContent = "45'";
-                showToast("Match state reset to 45th min 0-0", "info");
-            } else {
-                showToast(`⚽ GOAL! Match state updated to ${scoreStr}`, "info");
-                appendChatMessage("System", `⚽ GOAL! Score is now Arsenal ${scoreStr} Chelsea. Odds adjusting...`, true);
+            if (match) {
+                const prevHome = match.score.home;
+                const prevAway = match.score.away;
+                
+                match.score.home = data.home;
+                match.score.away = data.away;
+                const scoreStr = `${data.home} - ${data.away}`;
+                
+                let isReset = (data.home === 0 && data.away === 0);
+                
+                // Real-time timeline log synchronizer
+                if (isReset) {
+                    match.timeline = [
+                        { time: "0'", type: "start", desc: "Match started", icon: "🏁" }
+                    ];
+                    if (targetGameId === activeMatchId) {
+                        renderMatchTimeline();
+                    }
+                } else {
+                    let homeScored = (data.home > prevHome);
+                    let awayScored = (data.away > prevAway);
+                    let currentMin = match.time || "45'";
+                    if (!currentMin.endsWith("'") && currentMin !== 'Upcoming') {
+                        currentMin += "'";
+                    }
+                    
+                    if (homeScored) {
+                        match.timeline.push({
+                            time: currentMin,
+                            type: "goal",
+                            desc: `GOAL! ${match.homeTeam} scored by ${data.scorer}`,
+                            icon: "⚽"
+                        });
+                    }
+                    if (awayScored) {
+                        match.timeline.push({
+                            time: currentMin,
+                            type: "goal",
+                            desc: `GOAL! ${match.awayTeam} scored by ${data.scorer}`,
+                            icon: "⚽"
+                        });
+                    }
+                    if (targetGameId === activeMatchId && (homeScored || awayScored)) {
+                        renderMatchTimeline();
+                    }
+                }
+                
+                // If it's the currently active match, trigger live animations
+                if (targetGameId === activeMatchId) {
+                    const playHomeEl = document.getElementById("player-score-home");
+                    const playAwayEl = document.getElementById("player-score-away");
+                    const cardHomeEl = document.getElementById(`match-score-home-${targetGameId}`);
+                    const cardAwayEl = document.getElementById(`match-score-away-${targetGameId}`);
+                    
+                    function animateScoreElement(el, newScore) {
+                        if (!el) return;
+                        el.classList.remove("score-pop");
+                        void el.offsetWidth;
+                        el.classList.add("score-pop");
+                        
+                        setTimeout(() => {
+                            el.textContent = newScore;
+                        }, 150);
+                        
+                        el.addEventListener("animationend", () => {
+                            el.classList.remove("score-pop");
+                        }, { once: true });
+                    }
+                    
+                    if (isReset) {
+                        if (playHomeEl) playHomeEl.textContent = "0";
+                        if (playAwayEl) playAwayEl.textContent = "0";
+                        if (cardHomeEl) cardHomeEl.textContent = "0";
+                        if (cardAwayEl) cardAwayEl.textContent = "0";
+                        
+                        const liveTime = document.getElementById("player-live-time");
+                        if (liveTime) liveTime.textContent = match.time;
+                        showToast("Match score reset to 0-0", "info");
+                    } else {
+                        let homeScored = (data.home > prevHome);
+                        let awayScored = (data.away > prevAway);
+                        
+                        if (homeScored) {
+                            animateScoreElement(playHomeEl, data.home);
+                            animateScoreElement(cardHomeEl, data.home);
+                            triggerGoalBanner(match.homeTeam, "home", data.scorer);
+                        } else {
+                            if (playHomeEl) playHomeEl.textContent = data.home;
+                            if (cardHomeEl) cardHomeEl.textContent = data.home;
+                        }
+                        
+                        if (awayScored) {
+                            animateScoreElement(playAwayEl, data.away);
+                            animateScoreElement(cardAwayEl, data.away);
+                            triggerGoalBanner(match.awayTeam, "away", data.scorer);
+                        } else {
+                            if (playAwayEl) playAwayEl.textContent = data.away;
+                            if (cardAwayEl) cardAwayEl.textContent = data.away;
+                        }
+                        
+                        showToast(`⚽ GOAL! Score updated to ${scoreStr}`, "info");
+                        appendChatMessage("System", `⚽ GOAL! Score is now ${match.homeTeam} ${scoreStr} ${match.awayTeam}. Scored by ${data.scorer}!`, true);
+                    }
+                } else {
+                    const cardHomeEl = document.getElementById(`match-score-home-${targetGameId}`);
+                    const cardAwayEl = document.getElementById(`match-score-away-${targetGameId}`);
+                    if (cardHomeEl) cardHomeEl.textContent = data.home;
+                    if (cardAwayEl) cardAwayEl.textContent = data.away;
+                }
+                
+                renderLiveMatches();
             }
         } catch (err) {
             console.error("Failed to parse cross-tab score update", err);
@@ -863,9 +1884,37 @@ window.addEventListener('storage', (e) => {
     if (e.key === "solplay_resolution_trigger" && e.newValue) {
         try {
             const data = JSON.parse(e.newValue);
+            const match = MATCHES_DATA.find(m => m.id === data.gameId);
+            
             localWagers.forEach(w => {
                 if (w.gameId === data.gameId) {
-                    w.status = (w.outcomeId === data.outcome) ? "WON" : "LOST";
+                    if (w.outcomeId >= 100 && w.outcomeId < 500) {
+                        // Dynamic Anytime Goalscorer bet
+                        const player = w.outcomeLabel.replace(" to score", "").replace(" (Sub)", "").replace(/ \([A-Z]{2}\)/, "").trim();
+                        const scored = match && match.timeline.some(ev => ev.type === "goal" && ev.desc.includes(player));
+                        w.status = scored ? "WON" : "LOST";
+                    } else if (w.outcomeId >= 50 && w.outcomeId < 100) {
+                        // Dynamic Correct Score bet
+                        const finalScoreStr = match ? `${match.score.home} - ${match.score.away}` : "0 - 0";
+                        w.status = (w.outcomeLabel.trim() === finalScoreStr.trim()) ? "WON" : "LOST";
+                    } else if (w.outcomeId >= 20 && w.outcomeId < 25) {
+                        // Hardcoded Correct Score bet
+                        const finalScoreStr = match ? `${match.score.home}-${match.score.away}` : "0-0";
+                        const cleanLabel = w.outcomeLabel.replace(/\s+/g, "").toLowerCase();
+                        let matchesFinal = false;
+                        if (cleanLabel.includes(finalScoreStr)) {
+                            matchesFinal = true;
+                        } else if (cleanLabel.includes("draw") && match && match.score.home === match.score.away) {
+                            const scorePart = cleanLabel.replace("draw", "");
+                            if (scorePart === finalScoreStr) {
+                                matchesFinal = true;
+                            }
+                        }
+                        w.status = matchesFinal ? "WON" : "LOST";
+                    } else {
+                        // Standard 1X2 bet (outcomeId 0, 1, or 2)
+                        w.status = (w.outcomeId === data.outcome) ? "WON" : "LOST";
+                    }
                 }
             });
             renderActiveWagers();
@@ -881,9 +1930,17 @@ window.addEventListener('storage', (e) => {
 
 // 9. Victory Memecoin Launch & Chart
 function launchVictoryMemecoin(outcomeId) {
-    let name = "$CANNONBLAST (Arsenal Win)";
-    if (outcomeId === 1) name = "$BLUELION (Chelsea Win)";
-    if (outcomeId === 2) name = "$COINSDRAW (Draw)";
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId) || { homeTeam: "Arsenal", awayTeam: "Chelsea" };
+    let tokenTicker = `$${match.homeTeam.substring(0, 4).toUpperCase()}WIN`;
+    let name = `${tokenTicker} (${match.homeTeam} Win)`;
+    
+    if (outcomeId === 1) {
+        tokenTicker = `$${match.awayTeam.substring(0, 4).toUpperCase()}WIN`;
+        name = `${tokenTicker} (${match.awayTeam} Win)`;
+    } else if (outcomeId === 2) {
+        tokenTicker = `$${match.homeTeam.substring(0, 2).toUpperCase()}${match.awayTeam.substring(0, 2).toUpperCase()}DRAW`;
+        name = `${tokenTicker} (Draw)`;
+    }
 
     // Hide placeholder and show launcher card
     const placeholder = document.getElementById("meme-launcher-placeholder");
@@ -1078,17 +2135,148 @@ function loadWagersFromStorage() {
 }
 
 function switchExchangeTab(tabId) {
-    const tabs = ["sports", "slip", "wagers", "memes"];
-    tabs.forEach(t => {
-        const btn = document.getElementById(`btn-tab-${t}`);
-        const panel = document.getElementById(`panel-${t}`);
-        if (btn) btn.classList.toggle("active", t === tabId);
-        if (panel) panel.style.display = (t === tabId) ? "flex" : "none";
-    });
-    if (tabId === "slip") {
-        const badge = document.getElementById("tab-slip-badge");
-        if (badge) badge.style.display = "none";
+    try {
+        const tabs = ["sports", "slip", "wagers", "memes"];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`btn-tab-${t}`);
+            const panel = document.getElementById(`panel-${t}`);
+            if (btn) btn.classList.toggle("active", t === tabId);
+            if (panel) panel.style.display = (t === tabId) ? "flex" : "none";
+        });
+        if (tabId === "slip") {
+            const badge = document.getElementById("tab-slip-badge");
+            if (badge) badge.style.display = "none";
+        }
+    } catch (e) {
+        console.error("Error inside switchExchangeTab:", e);
+        showToast("Exchange tab error: " + e.message, "error");
     }
+}
+
+function switchMatchTab(tabId) {
+    try {
+        const panels = ["panel-match-chat", "panel-match-lineups", "panel-match-timeline"];
+        const btns = ["btn-match-chat", "btn-match-lineups", "btn-match-timeline"];
+
+        panels.forEach(p => {
+            const el = document.getElementById(p);
+            if (el) el.style.display = "none";
+        });
+        btns.forEach(b => {
+            const el = document.getElementById(b);
+            if (el) el.classList.remove("active");
+        });
+
+        const activePanel = document.getElementById(`panel-match-${tabId}`);
+        const activeBtn = document.getElementById(`btn-match-${tabId}`);
+
+        if (activePanel) activePanel.style.display = "flex";
+        if (activeBtn) activeBtn.classList.add("active");
+
+        if (tabId === 'lineups') {
+            renderMatchLineups();
+        } else if (tabId === 'timeline') {
+            renderMatchTimeline();
+        }
+    } catch (e) {
+        console.error("Error inside switchMatchTab:", e);
+        showToast("Match center tab error: " + e.message, "error");
+    }
+}
+
+function renderMatchLineups() {
+    const container = document.getElementById("lineups-scroll-container");
+    if (!container) return;
+    
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId);
+    if (!match) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">Select a match to view lineups</div>`;
+        return;
+    }
+    
+    if (!match.lineup || !match.lineup.home) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">Lineups not available for this match</div>`;
+        return;
+    }
+    
+    let html = `
+        <div class="lineup-formation-badge">
+            ${match.homeTeam} (${match.formation.home}) vs ${match.awayTeam} (${match.formation.away})
+        </div>
+        <div class="lineups-row">
+            <div class="lineups-team-side">
+                <div class="lineups-team-name">${match.homeTeam} XI</div>
+                <div class="lineup-players-list">
+                    ${match.lineup.home.map(p => `
+                        <div class="lineup-player-item">
+                            <div>
+                                <span class="lineup-player-num">${p.num}</span>
+                                <span>${p.name}</span>
+                            </div>
+                            <span style="color: var(--neon-purple); font-weight: 600; font-size: 0.75rem;">${p.pos}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="lineups-team-side">
+                <div class="lineups-team-name">${match.awayTeam} XI</div>
+                <div class="lineup-players-list">
+                    ${match.lineup.away.map(p => `
+                        <div class="lineup-player-item">
+                            <div>
+                                <span class="lineup-player-num">${p.num}</span>
+                                <span>${p.name}</span>
+                            </div>
+                            <span style="color: var(--neon-purple); font-weight: 600; font-size: 0.75rem;">${p.pos}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        <div class="lineups-substitutes">
+            <div class="lineups-subs-title">Substitutes</div>
+            <div class="lineups-subs-list">
+                <div>
+                    <div style="font-weight: 700; margin-bottom: 0.3rem; color: var(--text-primary); font-size: 0.75rem;">${match.homeTeam} Subs</div>
+                    ${match.subs.home.map(name => `<div style="padding: 0.15rem 0;">${name}</div>`).join('')}
+                </div>
+                <div>
+                    <div style="font-weight: 700; margin-bottom: 0.3rem; color: var(--text-primary); font-size: 0.75rem;">${match.awayTeam} Subs</div>
+                    ${match.subs.away.map(name => `<div style="padding: 0.15rem 0;">${name}</div>`).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    container.innerHTML = html;
+}
+
+function renderMatchTimeline() {
+    const container = document.getElementById("timeline-scroll-container");
+    if (!container) return;
+    
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId);
+    if (!match) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">Select a match to view timeline</div>`;
+        return;
+    }
+    
+    if (!match.timeline || match.timeline.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">No events recorded yet</div>`;
+        return;
+    }
+    
+    let html = match.timeline.map(ev => `
+        <div class="timeline-event">
+            <div class="timeline-event-time">${ev.time}</div>
+            <div class="timeline-event-marker">${ev.icon || "⚽"}</div>
+            <div class="timeline-event-detail">
+                <div style="font-weight: 600;">${ev.type === 'goal' ? '⚽ GOAL!' : ev.type === 'card' ? '🟨 Card' : '📢 Match Event'}</div>
+                <div class="timeline-event-desc">${ev.desc}</div>
+            </div>
+        </div>
+    `).join('');
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
 }
 
 async function switchNetwork() {

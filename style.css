@@ -984,3 +984,401 @@ main {
     from { opacity: 0; transform: translateX(50px); }
     to { opacity: 1; transform: translateX(0); }
 }
+
+/* --- Goal Alert & Scoreboard Animations --- */
+
+@keyframes scoreBounce {
+    0% { transform: scale(1); filter: drop-shadow(0 0 0px transparent); }
+    30% { transform: scale(1.6) rotate(4deg); filter: drop-shadow(0 0 10px currentColor); }
+    70% { transform: scale(1.6) rotate(-4deg); filter: drop-shadow(0 0 10px currentColor); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0px transparent); }
+}
+
+.score-pop {
+    display: inline-block;
+    animation: scoreBounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* Goal Alert Banner Overlay */
+.goal-alert-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 10vh;
+}
+
+.goal-alert-banner {
+    position: relative;
+    background: rgba(15, 15, 25, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem 3rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.goal-alert-banner.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.goal-banner-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
+    animation: rotateGlow 8s infinite linear;
+}
+
+/* Home (Arsenal) Goal theme color overrides */
+.goal-alert-banner.theme-home {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.3), 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.goal-alert-banner.theme-home .goal-banner-glow {
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, rgba(0,0,0,0) 70%);
+}
+
+.goal-alert-banner.theme-home .goal-team {
+    color: var(--neon-pink);
+    text-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+}
+
+/* Away (Chelsea) Goal theme color overrides */
+.goal-alert-banner.theme-away {
+    border-color: var(--neon-teal);
+    box-shadow: 0 0 30px rgba(20, 184, 166, 0.3), 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.goal-alert-banner.theme-away .goal-banner-glow {
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.2) 0%, rgba(0,0,0,0) 70%);
+}
+
+.goal-alert-banner.theme-away .goal-team {
+    color: var(--neon-teal);
+    text-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
+}
+
+.goal-banner-content {
+    position: relative;
+    z-index: 2;
+}
+
+.goal-announcement {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--text-secondary);
+    margin-bottom: 0.3rem;
+    animation: pulse 1.5s infinite;
+}
+
+.goal-team {
+    font-size: 2.2rem;
+    font-weight: 800;
+    font-family: var(--font-outfit);
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.goal-details {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    display: inline-block;
+    border: 1px solid var(--border-color);
+}
+
+/* --- Multi-League Betting Styles --- */
+.market-tabs {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.8rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.4rem;
+}
+
+.market-tab-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: var(--font-outfit);
+    transition: all 0.2s;
+}
+
+.market-tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.market-tab-btn.active {
+    color: var(--neon-teal);
+    border-color: var(--neon-teal);
+    background: rgba(20, 184, 166, 0.1);
+    box-shadow: 0 0 8px rgba(20, 184, 166, 0.2);
+}
+
+.market-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+}
+
+.market-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+}
+
+.match-card.active-match {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
+    background: rgba(168, 85, 247, 0.02);
+}
+
+.match-card-select-btn {
+    width: 100%;
+    margin-top: 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-outfit);
+    padding: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.match-card-select-btn:hover {
+    background: var(--neon-purple);
+    color: white;
+    border-color: var(--neon-purple);
+}
+
+.match-card-select-btn.active {
+    background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+    color: white;
+    border-color: var(--neon-purple);
+    box-shadow: var(--glow-purple);
+}
+
+/* --- Match Center Tabs --- */
+.match-center-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.match-center-tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.8rem 0.5rem;
+    cursor: pointer;
+    font-family: var(--font-outfit);
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.match-center-tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.match-center-tab-btn.active {
+    color: var(--neon-teal);
+    border-bottom-color: var(--neon-teal);
+    background: rgba(20, 184, 166, 0.05);
+    text-shadow: 0 0 10px rgba(20, 184, 166, 0.2);
+}
+
+.match-center-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* --- Lineups Styles --- */
+.lineups-scroll-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+}
+
+.lineup-formation-badge {
+    align-self: center;
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--neon-purple);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.lineups-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.lineups-team-side {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.8rem;
+}
+
+.lineups-team-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.lineup-player-item {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 0.25rem 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.lineup-player-num {
+    color: var(--neon-teal);
+    font-weight: 600;
+    margin-right: 0.4rem;
+}
+
+.lineups-substitutes {
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.8rem;
+}
+
+.lineups-subs-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+}
+
+.lineups-subs-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.3rem 1rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* --- Live Timeline Styles --- */
+.timeline-scroll-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding-left: 0.5rem;
+    border-left: 2px dashed rgba(255, 255, 255, 0.05);
+    margin-left: 0.5rem;
+    height: 100%;
+}
+
+.timeline-event {
+    position: relative;
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    animation: slideUp 0.3s ease-out;
+}
+
+.timeline-event-time {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--neon-pink);
+    min-width: 28px;
+    text-align: right;
+}
+
+.timeline-event-marker {
+    background: #07070a;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    z-index: 2;
+}
+
+.timeline-event-detail {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.timeline-event-desc {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    margin-top: 0.1rem;
+}
+
+/* Scrollable Anytime Goalscorer list styling */
+.goalscorer-odds-container {
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.4rem;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+

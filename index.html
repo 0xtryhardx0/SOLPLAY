@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SolPlay | On-Chain Sports Streaming & Betting Exchange</title>
     <meta name="description" content="Decentralized sports streaming and peer-to-peer prediction markets on the Solana blockchain. Accountless, high liquidity, best odds.">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.1">
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
 </head>
 <body>
@@ -72,7 +72,7 @@
                     <div class="mock-player" id="mock-video-player" style="display: none;">
                         <div class="player-match-details">
                             <span class="player-status-badge">LIVE STREAM</span>
-                            <div class="player-score" id="player-live-score">Arsenal 0 - 0 Chelsea</div>
+                            <div class="player-score" id="player-live-score">Arsenal <span id="player-score-home">0</span> - <span id="player-score-away">0</span> Chelsea</div>
                             <div id="player-live-time" style="font-size: 0.9rem; color: var(--text-secondary);">45:00</div>
                         </div>
                         <div class="stream-controls">
@@ -97,18 +97,37 @@
                 </div>
             </div>
 
-            <!-- Live Chat -->
-            <div class="chat-panel glass">
-                <div style="padding: 0.6rem 1rem; border-bottom: 1px solid var(--border-color); font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
-                    <span>Live Fan Chat</span>
-                    <span style="font-size: 0.75rem; color: var(--text-secondary);" id="chat-users-count">241 users online</span>
+            <!-- Match Engagement Center (Chat, Lineups, Timeline) -->
+            <div class="match-center-panel chat-panel glass">
+                <div class="match-center-tabs">
+                    <button class="match-center-tab-btn active" id="btn-match-chat" onclick="switchMatchTab('chat')">💬 Live Chat</button>
+                    <button class="match-center-tab-btn" id="btn-match-lineups" onclick="switchMatchTab('lineups')">📋 Lineups</button>
+                    <button class="match-center-tab-btn" id="btn-match-timeline" onclick="switchMatchTab('timeline')">⏳ Timeline</button>
                 </div>
-                <div class="chat-messages" id="chat-messages-container">
-                    <!-- Messages populated dynamically -->
+                
+                <!-- Panel 1: Live Chat -->
+                <div class="match-center-content" id="panel-match-chat" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                    <div class="chat-messages" id="chat-messages-container">
+                        <!-- Messages populated dynamically -->
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chat-msg-input" placeholder="Type a message or betslip code..." onkeydown="handleChatKey(event)">
+                        <button class="btn-primary" onclick="sendChatMessage()" style="padding: 0.6rem 1rem;">Send</button>
+                    </div>
                 </div>
-                <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="chat-msg-input" placeholder="Type a message or betslip code..." onkeydown="handleChatKey(event)">
-                    <button class="btn-primary" onclick="sendChatMessage()" style="padding: 0.6rem 1rem;">Send</button>
+
+                <!-- Panel 2: Lineups & Formation -->
+                <div class="match-center-content" id="panel-match-lineups" style="display: none; padding: 1rem; overflow-y: auto; flex: 1; flex-direction: column;">
+                    <div class="lineups-scroll-container" id="lineups-scroll-container">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+                </div>
+
+                <!-- Panel 3: Live Timeline -->
+                <div class="match-center-content" id="panel-match-timeline" style="display: none; padding: 1rem; overflow-y: auto; flex: 1; flex-direction: column;">
+                    <div class="timeline-scroll-container" id="timeline-scroll-container">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -133,35 +152,8 @@
                     <div class="panel-content">
                         <!-- Live Matches -->
                         <div id="content-live">
-                            <div class="match-card">
-                                <div class="match-info-top">
-                                    <span>Premier League • Matchday 35</span>
-                                    <span style="color: var(--neon-pink); font-weight: 600;">LIVE</span>
-                                </div>
-                                <div class="match-teams-score">
-                                    <div>
-                                        <div class="team-row">⚽ Arsenal</div>
-                                        <div class="team-row" style="margin-top: 0.3rem;">🛡️ Chelsea</div>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div class="score-row" id="match-card-score">0 - 0</div>
-                                        <div id="match-card-time" style="font-size: 0.75rem; color: var(--text-secondary);">45'</div>
-                                    </div>
-                                </div>
-                                <div class="match-odds-row">
-                                    <button class="odds-btn" id="odds-home" onclick="selectOdds(999, 0, 2.05, 'Arsenal Win')">
-                                        <span class="odds-label">Arsenal</span>
-                                        <span class="odds-value odds-boosted" id="odds-val-home">2.25</span>
-                                    </button>
-                                    <button class="odds-btn" id="odds-draw" onclick="selectOdds(999, 2, 3.20, 'Draw')">
-                                        <span class="odds-label">Draw</span>
-                                        <span class="odds-value" id="odds-val-draw">3.20</span>
-                                    </button>
-                                    <button class="odds-btn" id="odds-away" onclick="selectOdds(999, 1, 3.50, 'Chelsea Win')">
-                                        <span class="odds-label">Chelsea</span>
-                                        <span class="odds-value" id="odds-val-away">3.50</span>
-                                    </button>
-                                </div>
+                            <div id="content-live-list">
+                                <!-- Rendered dynamically by app.js -->
                             </div>
                         </div>
 
@@ -338,6 +330,18 @@
     <!-- Toast Notifications Area -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="app.js"></script>
+    <!-- Goal Alert Banner Overlay -->
+    <div id="goal-alert-container" class="goal-alert-container">
+        <div id="goal-alert-banner" class="goal-alert-banner">
+            <div class="goal-banner-glow"></div>
+            <div class="goal-banner-content">
+                <div class="goal-announcement">⚽ GOOOOOAL!</div>
+                <div class="goal-team" id="goal-alert-team">ARSENAL SCORE!</div>
+                <div class="goal-details" id="goal-alert-score">Score is now: Arsenal 1 - 0 Chelsea</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=1.1"></script>
 </body>
 </html>

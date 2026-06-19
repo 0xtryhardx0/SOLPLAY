@@ -6,7 +6,7 @@
     <title>SolPlay Operations Control Room</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.1">
     <!-- Solana Web3.js SDK -->
     <script src="https://unpkg.com/@solana/web3.js@1.73.0/dist/index.iife.js"></script>
     <style>
@@ -151,6 +151,8 @@
             <!-- Column 3: Live Score Control -->
             <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
                 <div class="admin-title">Live Score Control</div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Goalscorer Name (Optional):</label>
+                <input type="text" class="admin-input" id="admin-goalscorer" placeholder="e.g. Saka" style="margin-bottom: 0.3rem;">
                 <div style="display: flex; gap: 0.3rem;">
                     <button class="btn-admin" onclick="simulateAdminGoal(0)" style="flex: 1;">Goal Home (+1)</button>
                     <button class="btn-admin" onclick="simulateAdminGoal(1)" style="flex: 1;">Goal Away (+1)</button>
@@ -203,6 +205,6 @@
     <!-- Toast Notifications Area -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="admin.js"></script>
+    <script src="admin.js?v=1.1"></script>
 </body>
 </html>
