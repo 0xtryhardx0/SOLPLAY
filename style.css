@@ -1381,4 +1381,149 @@ main {
     background: rgba(0, 0, 0, 0.2);
 }
 
+/* --- Social Wager Cards inside Live Chat --- */
+.chat-betslip-card {
+    position: relative;
+    margin-top: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    background: rgba(168, 85, 247, 0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.chat-betslip-card:hover {
+    border-color: var(--neon-purple);
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.15);
+}
+
+.chat-betslip-card-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.chat-betslip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.chat-betslip-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--neon-purple);
+    letter-spacing: 1px;
+}
+
+.chat-betslip-odds-badge {
+    background: var(--neon-purple);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    box-shadow: var(--glow-purple);
+}
+
+.chat-betslip-fixture {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    position: relative;
+    z-index: 2;
+}
+
+.chat-betslip-option {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    position: relative;
+    z-index: 2;
+}
+
+.chat-betslip-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.3rem;
+    position: relative;
+    z-index: 2;
+}
+
+.chat-betslip-stake {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.chat-betslip-clone-btn {
+    background: linear-gradient(135deg, var(--neon-teal), #0d9488);
+    border: none;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: var(--glow-teal);
+    transition: all 0.2s;
+    font-family: var(--font-outfit);
+}
+
+.chat-betslip-clone-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.4);
+}
+
+.chat-betslip-clone-btn:active {
+    transform: translateY(0);
+}
+
+/* --- P2P CDN Accelerator Styles --- */
+.cdn-status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.cdn-status-dot.green {
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+}
+
+.cdn-status-dot.yellow {
+    background: #3b82f6;
+    box-shadow: 0 0 6px #3b82f6;
+}
+
+.cdn-status-dot.red {
+    background: #ef4444;
+    box-shadow: 0 0 6px #ef4444;
+}
+
+.cdn-status-dot.testing {
+    background: #eab308;
+    box-shadow: 0 0 6px #eab308;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
 

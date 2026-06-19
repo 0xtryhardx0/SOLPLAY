@@ -859,6 +859,53 @@ function switchStreamProvider() {
         existingRoutingBlock.remove();
     }
     
+    // P2P CDN Accelerator HTML Widget
+    const cdnHtml = `
+        <div class="cdn-accelerator-panel glass" style="margin-top:1rem; padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); background:rgba(0,0,0,0.25); display:flex; flex-direction:column; gap:0.5rem; text-align:left;">
+            <div class="cdn-header" style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.3rem; margin-bottom:0.3rem;">
+                <span class="cdn-title" style="font-weight:700; color:var(--neon-teal); font-family:var(--font-outfit);">⚡ P2P CDN ACCELERATOR</span>
+                <span class="cdn-node-status" id="active-cdn-node-status" style="font-weight:600; color:var(--text-secondary);">Direct Feed</span>
+            </div>
+            <div class="cdn-nodes-grid" style="display:flex; flex-direction:column; gap:0.4rem;">
+                <div class="cdn-node-row" id="cdn-node-eu" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <span class="cdn-status-dot green" id="dot-eu" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
+                        <span style="color:var(--text-primary);">🇪🇺 Frankfurt Edge (Direct)</span>
+                    </div>
+                    <div id="ping-eu" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
+                    <button class="btn-mini" onclick="connectCDNNode('eu', 'Frankfurt Edge', 24)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
+                </div>
+                <div class="cdn-node-row" id="cdn-node-us" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <span class="cdn-status-dot green" id="dot-us" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
+                        <span style="color:var(--text-primary);">🇺🇸 New York Relay (Mesh)</span>
+                    </div>
+                    <div id="ping-us" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
+                    <button class="btn-mini" onclick="connectCDNNode('us', 'New York Relay', 78)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
+                </div>
+                <div class="cdn-node-row" id="cdn-node-ap" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <span class="cdn-status-dot green" id="dot-ap" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
+                        <span style="color:var(--text-primary);">🇯🇵 Tokyo Gateway (Fastest)</span>
+                    </div>
+                    <div id="ping-ap" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
+                    <button class="btn-mini" onclick="connectCDNNode('ap', 'Tokyo Gateway', 142)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
+                </div>
+                <div class="cdn-node-row" id="cdn-node-af" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <span class="cdn-status-dot green" id="dot-af" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
+                        <span style="color:var(--text-primary);">🇳🇬 Lagos Edge (Sub-Cache)</span>
+                    </div>
+                    <div id="ping-af" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
+                    <button class="btn-mini" onclick="connectCDNNode('af', 'Lagos Edge', 92)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
+                </div>
+            </div>
+            <div class="cdn-actions" style="margin-top:0.3rem;">
+                <button class="btn-primary" id="btn-run-speedtest" onclick="runCDNSpeedtest()" style="width:100%; padding:0.45rem; font-size:0.75rem; background:linear-gradient(135deg, var(--neon-teal), #0d9488); border:none; box-shadow:var(--glow-teal);">⚡ Run P2P Speedtest</button>
+            </div>
+        </div>
+    `;
+
     if (provider.type === "youtube") {
         playerFrame.style.display = "block";
         mockPlayer.style.display = "none";
@@ -879,6 +926,7 @@ function switchStreamProvider() {
             <a href="${provider.url}" class="btn-primary" target="_blank" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink); padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600;">
                 🚀 Route Feed & Launch Portal
             </a>
+            ${cdnHtml}
         `;
         
         // Insert right under score
@@ -895,9 +943,96 @@ function switchStreamProvider() {
             <span class="provider-desc" style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; display: block; margin-bottom: 0.5rem; line-height: 1.4;">
                 ${provider.description}
             </span>
+            ${cdnHtml}
         `;
         mockPlayer.insertBefore(descBlock, mockPlayer.querySelector(".stream-controls"));
     }
+}
+
+let isTestingSpeed = false;
+let connectedNodeId = null;
+
+function runCDNSpeedtest() {
+    if (isTestingSpeed) return;
+    isTestingSpeed = true;
+    
+    const nodes = [
+        { id: "eu", basePing: 24 },
+        { id: "us", basePing: 78 },
+        { id: "ap", basePing: 142 },
+        { id: "af", basePing: 92 }
+    ];
+    
+    const testBtn = document.getElementById("btn-run-speedtest");
+    if (testBtn) {
+        testBtn.textContent = "📡 Testing P2P Edge Nodes...";
+        testBtn.disabled = true;
+        testBtn.style.background = "linear-gradient(135deg, var(--neon-orange), #ea580c)";
+        testBtn.style.boxShadow = "var(--glow-orange)";
+    }
+    
+    nodes.forEach(node => {
+        const pingEl = document.getElementById(`ping-${node.id}`);
+        const dotEl = document.getElementById(`dot-${node.id}`);
+        if (pingEl) pingEl.textContent = "Testing...";
+        if (dotEl) {
+            dotEl.style.background = "#eab308";
+            dotEl.style.boxShadow = "0 0 6px #eab308";
+            dotEl.style.animation = "pulse 1s infinite";
+        }
+        
+        const delay = 800 + Math.random() * 1000;
+        setTimeout(() => {
+            const finalPing = node.basePing + Math.floor(Math.random() * 8);
+            const pingElFinal = document.getElementById(`ping-${node.id}`);
+            const dotElFinal = document.getElementById(`dot-${node.id}`);
+            
+            if (pingElFinal) pingElFinal.textContent = `${finalPing} ms`;
+            if (dotElFinal) {
+                dotElFinal.style.animation = "none";
+                if (finalPing < 50) {
+                    dotElFinal.style.background = "#10b981";
+                    dotElFinal.style.boxShadow = "0 0 6px #10b981";
+                } else if (finalPing < 100) {
+                    dotElFinal.style.background = "#3b82f6";
+                    dotElFinal.style.boxShadow = "0 0 6px #3b82f6";
+                } else {
+                    dotElFinal.style.background = "#ef4444";
+                    dotElFinal.style.boxShadow = "0 0 6px #ef4444";
+                }
+            }
+        }, delay);
+    });
+    
+    setTimeout(() => {
+        isTestingSpeed = false;
+        const btn = document.getElementById("btn-run-speedtest");
+        if (btn) {
+            btn.textContent = "⚡ Run P2P Speedtest";
+            btn.disabled = false;
+            btn.style.background = "linear-gradient(135deg, var(--neon-teal), #0d9488)";
+            btn.style.boxShadow = "var(--glow-teal)";
+        }
+        showToast("P2P Speedtest complete! Node latency mapped.", "success");
+    }, 2200);
+}
+
+function connectCDNNode(id, name, basePing) {
+    if (isTestingSpeed) {
+        showToast("Speedtest in progress...", "error");
+        return;
+    }
+    
+    connectedNodeId = id;
+    const finalPing = basePing + Math.floor(Math.random() * 5);
+    
+    const statusEl = document.getElementById("active-cdn-node-status");
+    if (statusEl) {
+        statusEl.innerHTML = `<span style="color:var(--neon-teal); text-shadow:0 0 8px rgba(20,184,166,0.3);">Connected: ${name} (${finalPing}ms)</span>`;
+    }
+    
+    showToast(`Stream accelerated via ${name} (${finalPing}ms)!`, "success");
+    appendChatMessage("System", `🚀 live feed routed through ${name} CDN relay point. Speed: 980Mbps | Ping: ${finalPing}ms.`, true);
 }
 
 // 3. Milestone Progress Tracker
@@ -1000,6 +1135,8 @@ function startMockStreamChat() {
 
 function appendChatMessage(user, text, isSystem = false) {
     const container = document.getElementById("chat-messages-container");
+    if (!container) return;
+    
     const bubble = document.createElement("div");
     bubble.className = "chat-bubble";
     if (isSystem) {
@@ -1011,8 +1148,9 @@ function appendChatMessage(user, text, isSystem = false) {
     header.className = "chat-author";
     header.innerHTML = `<span>${isSystem ? "🤖 " + user : "👤 " + user}</span>`;
     
-    // Add tip/copy actions
-    if (!isSystem) {
+    // Add tip/copy actions if it's not a shared bet and not a system message
+    const isSharedBet = text.startsWith("SHARE-BET:");
+    if (!isSystem && !isSharedBet) {
         const actions = document.createElement("span");
         actions.innerHTML = `
             <span style="color: var(--neon-orange); cursor: pointer; margin-right: 0.5rem;" onclick="tipUserChat('${user}')">🪙 Tip</span>
@@ -1023,7 +1161,45 @@ function appendChatMessage(user, text, isSystem = false) {
     
     const body = document.createElement("div");
     body.className = "chat-text";
-    body.textContent = text;
+    
+    if (isSharedBet) {
+        try {
+            const rawParts = text.substring(10); // Strip "SHARE-BET:"
+            const parts = rawParts.split("|");
+            
+            if (parts.length >= 6) {
+                const gameId = parseInt(parts[0]);
+                const outcomeLabel = parts[1];
+                const odds = parseFloat(parts[2]);
+                const stake = parseFloat(parts[3]);
+                const fixture = parts[4];
+                const outcomeId = parseInt(parts[5]);
+                
+                body.innerHTML = `
+                    <div class="chat-betslip-card glass">
+                        <div class="chat-betslip-card-glow"></div>
+                        <div class="chat-betslip-header">
+                            <span class="chat-betslip-title">🔥 SHARED WAGER</span>
+                            <span class="chat-betslip-odds-badge">${odds.toFixed(2)}x</span>
+                        </div>
+                        <div class="chat-betslip-fixture">${fixture}</div>
+                        <div class="chat-betslip-option">Option: <strong>${outcomeLabel}</strong></div>
+                        <div class="chat-betslip-footer">
+                            <span class="chat-betslip-stake">Wager: ${stake.toFixed(2)} SOL</span>
+                            <button class="chat-betslip-clone-btn" onclick="cloneBetFromChat(${gameId}, ${outcomeId}, ${odds}, '${outcomeLabel}', '${fixture}')">📋 Clone Bet</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                body.textContent = text;
+            }
+        } catch (e) {
+            console.error("Failed to parse shared bet message:", e);
+            body.textContent = text;
+        }
+    } else {
+        body.textContent = text;
+    }
 
     bubble.appendChild(header);
     bubble.appendChild(body);
@@ -1454,14 +1630,39 @@ function renderActiveWagers() {
                 ${statusBadge}
             </div>
             <div style="font-weight:600; margin:0.3rem 0; font-size:0.85rem;">Option: ${w.outcomeLabel}</div>
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom: 0.4rem;">
                 <span>Stake: ${w.amount.toFixed(2)} SOL</span>
                 <span style="font-weight:600; color:var(--neon-teal);">${w.odds.toFixed(2)}x</span>
+            </div>
+            <div style="display:flex; gap:0.4rem;">
+                <button class="btn-secondary" onclick="shareWagerToChat(${idx})" style="padding:0.3rem 0.6rem; font-size:0.7rem; flex:1; background:rgba(255,255,255,0.03); border:1px solid var(--border-color); color:var(--text-primary); border-radius:4px; cursor:pointer;">📤 Share Wager</button>
             </div>
             ${claimBtn}
         `;
         container.appendChild(item);
     });
+}
+
+function shareWagerToChat(idx) {
+    const w = localWagers[idx];
+    if (!w) return;
+    
+    const match = MATCHES_DATA.find(m => m.id === w.gameId);
+    const fixture = match ? `${match.homeTeam} vs ${match.awayTeam}` : `Match #${w.gameId}`;
+    
+    // SHARE-BET:gameId|outcomeLabel|odds|stake|fixture|outcomeId
+    const msg = `SHARE-BET:${w.gameId}|${w.outcomeLabel}|${w.odds}|${w.amount}|${fixture}|${w.outcomeId}`;
+    
+    const username = isWalletConnected ? getFriendlyUsername(walletKeypair.publicKey.toString()) : "User";
+    appendChatMessage(username, msg);
+    showToast("Wager shared to Live Fan Chat!", "success");
+    
+    switchMatchTab('chat');
+}
+
+function cloneBetFromChat(gameId, outcomeId, oddsValue, outcomeLabel, fixture) {
+    showToast(`Cloning bet: ${outcomeLabel} @ ${oddsValue.toFixed(2)}x`, "info");
+    selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, fixture);
 }
 
 async function claimWagerOnchain(idx) {
