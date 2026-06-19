@@ -52,7 +52,7 @@ window.addEventListener('load', () => {
     currentProgramId = new solanaWeb3.PublicKey(savedProgramId);
 
     // Populate stream providers
-    updateStreamProviders();
+    initStreams();
     
     // Load and render persistent wagers
     loadWagersFromStorage();
@@ -131,7 +131,7 @@ async function requestAirdrop() {
 }
 
 // 2. Video Player Server Switching and Regional Routing
-const REGIONAL_STREAMS = {
+const DEFAULT_REGIONAL_STREAMS = {
     "uk_eu": [
         { name: "VIPLeague Feed (UK/EU)", url: "https://www.vipleague.pm/football-schedule-streaming-links", description: "Regional favorite for UK Premier League & La Liga. Clean HD feeds.", type: "external" },
         { name: "FootyBite Live", url: "https://footybite.to/", description: "Excellent multi-source football aggregator.", type: "external" },
@@ -157,6 +157,86 @@ const REGIONAL_STREAMS = {
     ]
 };
 
+let activeStreams = {};
+
+function initStreams() {
+    activeStreams = JSON.parse(JSON.stringify(DEFAULT_REGIONAL_STREAMS));
+    fetchOnchainStreams().then(() => {
+        updateStreamProviders();
+    }).catch(err => {
+        console.error("Failed to load on-chain streams:", err);
+        updateStreamProviders();
+    });
+}
+
+async function fetchOnchainStreams() {
+    if (!connection || !currentProgramId) return;
+    try {
+        const accounts = await connection.getProgramAccounts(currentProgramId, {
+            filters: [
+                { dataSize: 185 }
+            ]
+        });
+
+        accounts.forEach(acc => {
+            const data = acc.account.data;
+            const parsed = parseStreamAccount(data);
+            if (parsed && parsed.isActive) {
+                if (!activeStreams[parsed.region]) {
+                    activeStreams[parsed.region] = [];
+                }
+                const existingIdx = activeStreams[parsed.region].findIndex(s => s.id === parsed.id);
+                if (existingIdx !== -1) {
+                    activeStreams[parsed.region][existingIdx] = parsed;
+                } else {
+                    activeStreams[parsed.region].push(parsed);
+                }
+            }
+        });
+    } catch (e) {
+        console.error("fetchOnchainStreams failed:", e);
+    }
+}
+
+function parseStreamAccount(data) {
+    if (data.length < 185) return null;
+    
+    // Read u64 stream_id
+    let id = 0n;
+    for (let i = 0; i < 8; i++) {
+        id |= BigInt(data[i]) << BigInt(i * 8);
+    }
+    
+    const decoder = new TextDecoder();
+    
+    // Read name (offset 8..40)
+    const nameBytes = data.slice(8, 40);
+    const nameEnd = nameBytes.indexOf(0);
+    const name = decoder.decode(nameBytes.slice(0, nameEnd !== -1 ? nameEnd : 32)).trim();
+    
+    // Read url (offset 40..168)
+    const urlBytes = data.slice(40, 168);
+    const urlEnd = urlBytes.indexOf(0);
+    const url = decoder.decode(urlBytes.slice(0, urlEnd !== -1 ? urlEnd : 128)).trim();
+    
+    // Read region (offset 168..184)
+    const regionBytes = data.slice(168, 184);
+    const regionEnd = regionBytes.indexOf(0);
+    const region = decoder.decode(regionBytes.slice(0, regionEnd !== -1 ? regionEnd : 16)).trim();
+    
+    const isActive = data[184] === 1;
+    
+    return {
+        id: Number(id),
+        name: name,
+        url: url,
+        region: region,
+        description: "On-Chain stream mirror feed.",
+        type: url.includes("youtube.com") ? "youtube" : "external",
+        isActive: isActive
+    };
+}
+
 function updateStreamProviders() {
     const regionSelect = document.getElementById("stream-region-select");
     const providerSelect = document.getElementById("stream-provider-select");
@@ -167,7 +247,7 @@ function updateStreamProviders() {
     providerSelect.innerHTML = "";
     
     // Populate new options
-    const providers = REGIONAL_STREAMS[selectedRegion];
+    const providers = activeStreams[selectedRegion] || [];
     providers.forEach((prov, idx) => {
         const opt = document.createElement("option");
         opt.value = idx;
@@ -185,7 +265,11 @@ function switchStreamProvider() {
     const selectedRegion = regionSelect.value;
     const providerIdx = parseInt(providerSelect.value);
     
-    const provider = REGIONAL_STREAMS[selectedRegion][providerIdx];
+    if (isNaN(providerIdx)) return;
+    
+    const provider = activeStreams[selectedRegion] ? activeStreams[selectedRegion][providerIdx] : null;
+    if (!provider) return;
+    
     const playerFrame = document.getElementById("video-iframe-player");
     const mockPlayer = document.getElementById("mock-video-player");
     
@@ -1154,6 +1238,7 @@ async function switchNetwork() {
         status.textContent = "Solana Devnet";
     }
     await updateWalletBalance();
+    initStreams();
     showToast("Network switched successfully!", "success");
 }
 
@@ -1206,5 +1291,154 @@ async function sendConfirmAndVerifyTransaction(tx, signers) {
         }
         throw e;
     }
+}
+
+// Stream Administration functions (On-Chain)
+async function registerStreamOnchain() {
+    if (!isWalletConnected || !currentProgramId) {
+        showToast("Connect wallet and load Program ID first.", "error");
+        return;
+    }
+
+    const id = parseInt(document.getElementById("admin-stream-id").value);
+    const region = document.getElementById("admin-stream-region").value;
+    const name = document.getElementById("admin-stream-name").value.trim();
+    const url = document.getElementById("admin-stream-url").value.trim();
+
+    if (!id || !name || !url) {
+        showToast("Please enter a valid Stream ID, Name, and URL.", "error");
+        return;
+    }
+
+    showToast(`Registering Stream ID #${id} on-chain...`, "info");
+
+    try {
+        const streamKp = getOrCreateAccountKeypair("stream_" + id);
+        const platformStateKp = getOrCreateAccountKeypair("platform_state");
+
+        // Allocate and fund account on localnet
+        await createLocalAccount(streamKp, 185);
+
+        // Instruction 6 + 185 bytes of stream data
+        const data = new Uint8Array(186);
+        data[0] = 6; // Type 6
+        writeU64(data, 1, id);
+        writeStringN(data, 9, name, 32);
+        writeStringN(data, 41, url, 128);
+        writeStringN(data, 169, region, 16);
+        data[185] = 1; // is_active = 1
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: streamKp.publicKey, isSigner: false, isWritable: true },
+                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
+
+        showToast("Success! Stream registered on-chain.", "success");
+        initStreams();
+    } catch (e) {
+        console.error(e);
+        showToast("Stream registration failed: " + e.message, "error");
+    }
+}
+
+async function updateStreamUrlOnchain() {
+    if (!isWalletConnected || !currentProgramId) {
+        showToast("Connect wallet and load Program ID first.", "error");
+        return;
+    }
+
+    const id = parseInt(document.getElementById("admin-stream-id").value);
+    const url = document.getElementById("admin-stream-url").value.trim();
+
+    if (!id || !url) {
+        showToast("Please enter a valid Stream ID and URL.", "error");
+        return;
+    }
+
+    showToast(`Updating Mirror URL for Stream #${id}...`, "info");
+
+    try {
+        const streamKp = getOrCreateAccountKeypair("stream_" + id);
+        const platformStateKp = getOrCreateAccountKeypair("platform_state");
+
+        // Instruction 7: Update URL
+        const data = new Uint8Array(137);
+        data[0] = 7; // Type 7
+        writeU64(data, 1, id);
+        writeStringN(data, 9, url, 128);
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: streamKp.publicKey, isSigner: false, isWritable: true },
+                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
+
+        showToast("Success! Stream URL updated.", "success");
+        initStreams();
+    } catch (e) {
+        console.error(e);
+        showToast("Update failed: " + e.message, "error");
+    }
+}
+
+async function toggleStreamOnchain(status) {
+    if (!isWalletConnected || !currentProgramId) {
+        showToast("Connect wallet and load Program ID first.", "error");
+        return;
+    }
+
+    const id = parseInt(document.getElementById("admin-stream-id").value);
+    showToast(`${status === 1 ? 'Activating' : 'Deactivating'} Stream #${id}...`, "info");
+
+    try {
+        const streamKp = getOrCreateAccountKeypair("stream_" + id);
+        const platformStateKp = getOrCreateAccountKeypair("platform_state");
+
+        // Instruction 8: Toggle Status
+        const data = new Uint8Array(10);
+        data[0] = 8; // Type 8
+        writeU64(data, 1, id);
+        data[9] = status;
+
+        const ix = new solanaWeb3.TransactionInstruction({
+            keys: [
+                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: streamKp.publicKey, isSigner: false, isWritable: true },
+                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
+            ],
+            programId: currentProgramId,
+            data: data
+        });
+
+        const tx = new solanaWeb3.Transaction().add(ix);
+        await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
+
+        showToast(`Success! Stream ${status === 1 ? 'Activated' : 'Deactivated'}.`, "success");
+        initStreams();
+    } catch (e) {
+        console.error(e);
+        showToast("Toggle failed: " + e.message, "error");
+    }
+}
+
+function writeStringN(buf, offset, str, maxLen) {
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(str.slice(0, maxLen));
+    buf.set(encoded, offset);
 }
 

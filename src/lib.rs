@@ -43,6 +43,14 @@ pub struct MilestoneAccount {
     pub watch_time_seconds: u32,
 }
 
+pub struct StreamAccount {
+    pub stream_id: u64,
+    pub name: [u8; 32],
+    pub url: [u8; 128],
+    pub region: [u8; 16],
+    pub is_active: u8,
+}
+
 // Entrypoint Registration
 entrypoint!(process_instruction);
 
@@ -63,6 +71,9 @@ pub fn process_instruction(
         3 => resolve_market(program_id, accounts, &instruction_data[1..]),
         4 => claim_winnings(program_id, accounts, &instruction_data[1..]),
         5 => record_milestone(program_id, accounts, &instruction_data[1..]),
+        6 => register_stream(program_id, accounts, &instruction_data[1..]),
+        7 => update_stream_url(program_id, accounts, &instruction_data[1..]),
+        8 => toggle_stream_status(program_id, accounts, &instruction_data[1..]),
         _ => {
             msg!("Error: Unknown instruction type");
             Err(ProgramError::InvalidInstructionData)
@@ -504,3 +515,148 @@ fn record_milestone(
     msg!("Viewer milestone registered. ID: {}, Seconds: {}", milestone_id, watch_time_seconds);
     Ok(())
 }
+
+// 6. Register Stream
+fn register_stream(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    data: &[u8],
+) -> ProgramResult {
+    msg!("Instruction: Register Stream");
+    let accounts_iter = &mut accounts.iter();
+    let admin = next_account_info(accounts_iter)?;
+    let stream_account = next_account_info(accounts_iter)?;
+    let platform_state_account = next_account_info(accounts_iter)?;
+
+    if !admin.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    // Verify Admin matches Platform State
+    let state_data = platform_state_account.try_borrow_data()?;
+    if state_data.len() < 66 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    let mut admin_bytes = [0u8; 32];
+    admin_bytes.copy_from_slice(&state_data[0..32]);
+    let state_admin = Pubkey::new_from_array(admin_bytes);
+
+    if state_admin != *admin.key {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    if data.len() < 185 {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let mut stream_data = stream_account.try_borrow_mut_data()?;
+    if stream_data.len() < 185 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+
+    stream_data[0..185].copy_from_slice(&data[0..185]);
+    msg!("Stream registered successfully. ID: {}", u64::from_le_bytes(data[0..8].try_into().unwrap()));
+    Ok(())
+}
+
+// 7. Update Stream URL
+fn update_stream_url(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    data: &[u8],
+) -> ProgramResult {
+    msg!("Instruction: Update Stream URL");
+    let accounts_iter = &mut accounts.iter();
+    let admin = next_account_info(accounts_iter)?;
+    let stream_account = next_account_info(accounts_iter)?;
+    let platform_state_account = next_account_info(accounts_iter)?;
+
+    if !admin.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    // Verify Admin matches Platform State
+    let state_data = platform_state_account.try_borrow_data()?;
+    if state_data.len() < 66 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    let mut admin_bytes = [0u8; 32];
+    admin_bytes.copy_from_slice(&state_data[0..32]);
+    let state_admin = Pubkey::new_from_array(admin_bytes);
+
+    if state_admin != *admin.key {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    if data.len() < 136 { // 8 (id) + 128 (url)
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let stream_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let mut stream_data = stream_account.try_borrow_mut_data()?;
+    if stream_data.len() < 185 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+
+    let current_id = u64::from_le_bytes(stream_data[0..8].try_into().unwrap());
+    if current_id != stream_id {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Copy new URL into stream state (offset 40 to 168)
+    stream_data[40..168].copy_from_slice(&data[8..136]);
+    msg!("Stream URL updated successfully for ID: {}", stream_id);
+    Ok(())
+}
+
+// 8. Toggle Stream Status
+fn toggle_stream_status(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    data: &[u8],
+) -> ProgramResult {
+    msg!("Instruction: Toggle Stream Status");
+    let accounts_iter = &mut accounts.iter();
+    let admin = next_account_info(accounts_iter)?;
+    let stream_account = next_account_info(accounts_iter)?;
+    let platform_state_account = next_account_info(accounts_iter)?;
+
+    if !admin.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    // Verify Admin matches Platform State
+    let state_data = platform_state_account.try_borrow_data()?;
+    if state_data.len() < 66 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    let mut admin_bytes = [0u8; 32];
+    admin_bytes.copy_from_slice(&state_data[0..32]);
+    let state_admin = Pubkey::new_from_array(admin_bytes);
+
+    if state_admin != *admin.key {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    if data.len() < 9 { // 8 (id) + 1 (is_active)
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let stream_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let is_active = data[8];
+    let mut stream_data = stream_account.try_borrow_mut_data()?;
+    if stream_data.len() < 185 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+
+    let current_id = u64::from_le_bytes(stream_data[0..8].try_into().unwrap());
+    if current_id != stream_id {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Copy new active status (offset 184)
+    stream_data[184] = is_active;
+    msg!("Stream status toggled successfully to: {} for ID: {}", is_active, stream_id);
+    Ok(())
+}
+

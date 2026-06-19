@@ -385,6 +385,33 @@
                 </select>
                 <button class="btn-admin" onclick="resolveMarketOnchain()" style="margin-top: 0.5rem; background: linear-gradient(135deg, var(--neon-pink), #db2777); font-weight: 700;">Resolve & Mint Meme Token</button>
             </div>
+
+            <!-- Admin Section 5: Manage Streams -->
+            <div class="admin-col">
+                <div class="admin-title">Manage Live Streams</div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Stream ID / Region:</label>
+                <div style="display: flex; gap: 0.3rem;">
+                    <input type="number" class="admin-input" id="admin-stream-id" value="1" style="width: 40%;">
+                    <select class="admin-input" id="admin-stream-region" style="flex: 1;">
+                        <option value="uk_eu">UK / EU</option>
+                        <option value="us_am">US / AM</option>
+                        <option value="africa">Africa</option>
+                        <option value="asia_in">Asia</option>
+                    </select>
+                </div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Stream Name:</label>
+                <input type="text" class="admin-input" id="admin-stream-name" value="Live Feed Mirror">
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Mirror URL (Max 128 chars):</label>
+                <input type="text" class="admin-input" id="admin-stream-url" value="https://www.youtube.com/embed/dQw4w9WgXcQ">
+                <div style="display: flex; gap: 0.3rem; margin-top: 0.2rem;">
+                    <button class="btn-admin" onclick="registerStreamOnchain()" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem;">Register</button>
+                    <button class="btn-admin" onclick="updateStreamUrlOnchain()" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem;">Update URL</button>
+                </div>
+                <div style="display: flex; gap: 0.3rem;">
+                    <button class="btn-admin" onclick="toggleStreamOnchain(1)" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem; background: #059669;">Activate</button>
+                    <button class="btn-admin" onclick="toggleStreamOnchain(0)" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem; background: #dc2626;">Deactivate</button>
+                </div>
+            </div>
         </div>
     </div>
 
