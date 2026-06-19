@@ -679,7 +679,7 @@ const DEFAULT_REGIONAL_STREAMS = {
     ],
     "mock": [
         { name: "Server 1 (YouTube Live)", url: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1", description: "Direct YouTube embed stream test.", type: "youtube" },
-        { name: "Server 2 (HLS Direct)", url: "", description: "Direct HLS live feed simulator.", type: "mock_hls" },
+        { name: "Server 2 (HLS Direct Feed)", url: "https://stream.mux.com/v69El17P02tUkUg1sQeT293m38ZFO02581J/medium.m3u8", description: "Real-time HD HLS direct livestream test.", type: "hls" },
         { name: "Server 3 (E-Sports Mock)", url: "", description: "Interactive simulated e-sports screen.", type: "mock_esports" }
     ]
 };
@@ -909,11 +909,23 @@ function switchStreamProvider() {
     if (provider.type === "youtube") {
         playerFrame.style.display = "block";
         mockPlayer.style.display = "none";
+        document.getElementById("hls-video-player").style.display = "none";
         playerFrame.src = provider.url;
+        destroyHlsPlayer();
+    } else if (provider.type === "hls") {
+        // Real-time HLS Video streaming
+        playerFrame.style.display = "none";
+        mockPlayer.style.display = "none";
+        const video = document.getElementById("hls-video-player");
+        video.style.display = "block";
+        
+        initHlsPlayer(video, provider.url);
     } else if (provider.type === "external") {
         // Show Live Graphical Tracker and Open Link Button
         playerFrame.style.display = "none";
         mockPlayer.style.display = "flex";
+        document.getElementById("hls-video-player").style.display = "none";
+        destroyHlsPlayer();
         
         // Add open link button info block to mock player
         const routingBlock = document.createElement("div");
@@ -935,6 +947,8 @@ function switchStreamProvider() {
         // Mock HLS or E-Sports Mock
         playerFrame.style.display = "none";
         mockPlayer.style.display = "flex";
+        document.getElementById("hls-video-player").style.display = "none";
+        destroyHlsPlayer();
         
         const descBlock = document.createElement("div");
         descBlock.id = "routing-info-block";
@@ -1033,6 +1047,60 @@ function connectCDNNode(id, name, basePing) {
     
     showToast(`Stream accelerated via ${name} (${finalPing}ms)!`, "success");
     appendChatMessage("System", `🚀 live feed routed through ${name} CDN relay point. Speed: 980Mbps | Ping: ${finalPing}ms.`, true);
+}
+
+let hlsPlayerInstance = null;
+
+function initHlsPlayer(videoElement, streamUrl) {
+    destroyHlsPlayer();
+    
+    if (Hls.isSupported()) {
+        hlsPlayerInstance = new Hls({
+            maxBufferSize: 30 * 1000 * 1000,
+            maxBufferLength: 15,
+            liveSyncDuration: 3
+        });
+        hlsPlayerInstance.loadSource(streamUrl);
+        hlsPlayerInstance.attachMedia(videoElement);
+        hlsPlayerInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+            videoElement.play().catch(e => console.warn("Autoplay block:", e));
+        });
+        hlsPlayerInstance.on(Hls.Events.ERROR, function(event, data) {
+            if (data.fatal) {
+                switch(data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        console.warn("HLS network error, trying to recover...", data);
+                        hlsPlayerInstance.startLoad();
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        console.warn("HLS media error, trying to recover...", data);
+                        hlsPlayerInstance.recoverMediaError();
+                        break;
+                    default:
+                        destroyHlsPlayer();
+                        break;
+                }
+            }
+        });
+    } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native fallback (Safari)
+        videoElement.src = streamUrl;
+        videoElement.addEventListener('loadedmetadata', function() {
+            videoElement.play().catch(e => console.warn("Autoplay block:", e));
+        });
+    }
+}
+
+function destroyHlsPlayer() {
+    if (hlsPlayerInstance) {
+        hlsPlayerInstance.destroy();
+        hlsPlayerInstance = null;
+    }
+    const video = document.getElementById("hls-video-player");
+    if (video) {
+        video.src = "";
+        video.load();
+    }
 }
 
 // 3. Milestone Progress Tracker
