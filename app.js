@@ -827,169 +827,57 @@ async function claimWagerOnchain(idx) {
     }
 }
 
-// 8. Admin Operations Room
-function toggleAdminPanel() {
-    const body = document.getElementById("admin-panel-body");
-    const arrow = document.getElementById("admin-arrow");
-    const isOpen = body.style.display !== 'none';
-
-    body.style.display = isOpen ? 'none' : 'grid';
-    arrow.textContent = isOpen ? '▼' : '▲';
-}
-
-function loadProgramId() {
-    const val = document.getElementById("admin-program-id").value.trim();
-    if (!val) {
-        showToast("Enter a program ID.", "error");
-        return;
-    }
-    try {
-        currentProgramId = new solanaWeb3.PublicKey(val);
-        localStorage.setItem("solplay_program_id", val);
-        showToast("Program ID Loaded successfully!", "success");
-    } catch (e) {
-        showToast("Invalid Program ID format.", "error");
-    }
-}
-
-async function initializePlatformOnchain() {
-    if (!isWalletConnected || !currentProgramId) {
-        showToast("Connect wallet and load Program ID first.", "error");
-        return;
-    }
-
-    showToast("Initializing Platform Config PDA...", "info");
-
-    try {
-        const platformStateKp = getOrCreateAccountKeypair("platform_state");
-        const treasuryKp = getOrCreateAccountKeypair("treasury");
-
-        // Create platform state account on localnet
-        await createLocalAccount(platformStateKp, 66);
-
-        // Instruction 0 + Rake 150 (1.5%) u16
-        const data = new Uint8Array(3);
-        data[0] = 0; // Type 0
-        data[1] = 150 & 0xff;
-        data[2] = (150 >> 8) & 0xff;
-
-        const ix = new solanaWeb3.TransactionInstruction({
-            keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
-                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: true },
-                { pubkey: treasuryKp.publicKey, isSigner: false, isWritable: false },
-            ],
-            programId: currentProgramId,
-            data: data
-        });
-
-        const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
-
-        showToast("Success! Platform state initialized.", "success");
-    } catch (e) {
-        console.error(e);
-        showToast("Init failed: " + e.message, "error");
-    }
-}
-
-async function createMarketOnchain() {
-    if (!isWalletConnected || !currentProgramId) {
-        showToast("Connect wallet and load Program ID first.", "error");
-        return;
-    }
-
-    const gameId = parseInt(document.getElementById("admin-game-id").value);
-    const home = document.getElementById("admin-team-home").value.trim();
-    const away = document.getElementById("admin-team-away").value.trim();
-
-    showToast(`Creating Market for Game #${gameId}...`, "info");
-
-    try {
-        const marketKp = getOrCreateAccountKeypair("market_999");
-        const platformStateKp = getOrCreateAccountKeypair("platform_state");
-
-        // Create market state account on-chain
-        await createLocalAccount(marketKp, 66);
-
-        // Instruction 1
-        const data = new Uint8Array(41);
-        data[0] = 1; // Type 1
-        writeU64(data, 1, gameId);
-        writeString16(data, 9, home);
-        writeString16(data, 25, away);
-
-        const ix = new solanaWeb3.TransactionInstruction({
-            keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
-                { pubkey: marketKp.publicKey, isSigner: false, isWritable: true },
-                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
-            ],
-            programId: currentProgramId,
-            data: data
-        });
-
-        const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
-
-        showToast("Success! Market registered on-chain.", "success");
-    } catch (e) {
-        console.error(e);
-        showToast("Market creation failed: " + e.message, "error");
-    }
-}
-
-async function resolveMarketOnchain() {
-    if (!isWalletConnected || !currentProgramId) {
-        showToast("Connect wallet and load Program ID first.", "error");
-        return;
-    }
-
-    const gameId = parseInt(document.getElementById("admin-game-id").value);
-    const outcome = parseInt(document.getElementById("admin-outcome-select").value);
-
-    showToast(`Resolving Game #${gameId}...`, "info");
-
-    try {
-        const marketKp = getOrCreateAccountKeypair("market_999");
-        const platformStateKp = getOrCreateAccountKeypair("platform_state");
-
-        // Instruction 3
-        const data = new Uint8Array(9);
-        data[0] = 3; // Type 3
-        writeU64(data, 1, gameId);
-        data[8] = outcome;
-
-        const ix = new solanaWeb3.TransactionInstruction({
-            keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
-                { pubkey: marketKp.publicKey, isSigner: false, isWritable: true },
-                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
-            ],
-            programId: currentProgramId,
-            data: data
-        });
-
-        const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
-
-        showToast("Success! Game Resolved.", "success");
-
-        // Update local wagers status
-        localWagers.forEach(w => {
-            if (w.gameId === gameId) {
-                w.status = (w.outcomeId === outcome) ? "WON" : "LOST";
+// 8. Cross-Tab State Synchronizer for Sportsbook (Real-time synchronization using localStorage)
+window.addEventListener('storage', (e) => {
+    if (e.key === "solplay_match_score" && e.newValue) {
+        try {
+            const data = JSON.parse(e.newValue);
+            matchScore.home = data.home;
+            matchScore.away = data.away;
+            const scoreStr = `${matchScore.home} - ${matchScore.away}`;
+            
+            const liveScore = document.getElementById("player-live-score");
+            const cardScore = document.getElementById("match-card-score");
+            if (liveScore) liveScore.textContent = `Arsenal ${scoreStr} Chelsea`;
+            if (cardScore) cardScore.textContent = scoreStr;
+            
+            if (data.home === 0 && data.away === 0) {
+                const liveTime = document.getElementById("player-live-time");
+                const cardTime = document.getElementById("match-card-time");
+                if (liveTime) liveTime.textContent = "45:00";
+                if (cardTime) cardTime.textContent = "45'";
+                showToast("Match state reset to 45th min 0-0", "info");
+            } else {
+                showToast(`⚽ GOAL! Match state updated to ${scoreStr}`, "info");
+                appendChatMessage("System", `⚽ GOAL! Score is now Arsenal ${scoreStr} Chelsea. Odds adjusting...`, true);
             }
-        });
-        renderActiveWagers();
-
-        // Launch victory memecoin
-        launchVictoryMemecoin(outcome);
-    } catch (e) {
-        console.error(e);
-        showToast("Resolution failed: " + e.message, "error");
+        } catch (err) {
+            console.error("Failed to parse cross-tab score update", err);
+        }
     }
-}
+
+    if (e.key === "solplay_streams_sync") {
+        initStreams();
+    }
+
+    if (e.key === "solplay_resolution_trigger" && e.newValue) {
+        try {
+            const data = JSON.parse(e.newValue);
+            localWagers.forEach(w => {
+                if (w.gameId === data.gameId) {
+                    w.status = (w.outcomeId === data.outcome) ? "WON" : "LOST";
+                }
+            });
+            renderActiveWagers();
+            saveWagersToStorage();
+            
+            // Launch victory memecoin
+            launchVictoryMemecoin(data.outcome);
+        } catch (err) {
+            console.error("Failed to parse resolution trigger", err);
+        }
+    }
+});
 
 // 9. Victory Memecoin Launch & Chart
 function launchVictoryMemecoin(outcomeId) {
@@ -1074,29 +962,6 @@ function startMatchTimer() {
     }, 5000); // Ticks fast for local testing
 }
 
-function simulateAdminGoal(teamId) {
-    if (teamId === 0) matchScore.home++;
-    else matchScore.away++;
-
-    const scoreStr = `${matchScore.home} - ${matchScore.away}`;
-    document.getElementById("player-live-score").textContent = `Arsenal ${scoreStr} Chelsea`;
-    document.getElementById("match-card-score").textContent = scoreStr;
-    
-    showToast(`⚽ GOAL! Match state updated to ${scoreStr}`, "info");
-    appendChatMessage("System", `⚽ GOAL! Score is now Arsenal ${scoreStr} Chelsea. Odds adjusting...`, true);
-}
-
-function resetScore() {
-    matchScore = { home: 0, away: 0 };
-    matchTime = 45;
-    const scoreStr = "0 - 0";
-    document.getElementById("player-live-score").textContent = `Arsenal ${scoreStr} Chelsea`;
-    document.getElementById("match-card-score").textContent = scoreStr;
-    document.getElementById("player-live-time").textContent = "45:00";
-    document.getElementById("match-card-time").textContent = "45'";
-    
-    showToast("Match state reset to 45th min 0-0", "info");
-}
 
 function mockPlayPause() {
     showToast("Stream paused/resumed.", "info");
@@ -1292,153 +1157,3 @@ async function sendConfirmAndVerifyTransaction(tx, signers) {
         throw e;
     }
 }
-
-// Stream Administration functions (On-Chain)
-async function registerStreamOnchain() {
-    if (!isWalletConnected || !currentProgramId) {
-        showToast("Connect wallet and load Program ID first.", "error");
-        return;
-    }
-
-    const id = parseInt(document.getElementById("admin-stream-id").value);
-    const region = document.getElementById("admin-stream-region").value;
-    const name = document.getElementById("admin-stream-name").value.trim();
-    const url = document.getElementById("admin-stream-url").value.trim();
-
-    if (!id || !name || !url) {
-        showToast("Please enter a valid Stream ID, Name, and URL.", "error");
-        return;
-    }
-
-    showToast(`Registering Stream ID #${id} on-chain...`, "info");
-
-    try {
-        const streamKp = getOrCreateAccountKeypair("stream_" + id);
-        const platformStateKp = getOrCreateAccountKeypair("platform_state");
-
-        // Allocate and fund account on localnet
-        await createLocalAccount(streamKp, 185);
-
-        // Instruction 6 + 185 bytes of stream data
-        const data = new Uint8Array(186);
-        data[0] = 6; // Type 6
-        writeU64(data, 1, id);
-        writeStringN(data, 9, name, 32);
-        writeStringN(data, 41, url, 128);
-        writeStringN(data, 169, region, 16);
-        data[185] = 1; // is_active = 1
-
-        const ix = new solanaWeb3.TransactionInstruction({
-            keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
-                { pubkey: streamKp.publicKey, isSigner: false, isWritable: true },
-                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
-            ],
-            programId: currentProgramId,
-            data: data
-        });
-
-        const tx = new solanaWeb3.Transaction().add(ix);
-        await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
-
-        showToast("Success! Stream registered on-chain.", "success");
-        initStreams();
-    } catch (e) {
-        console.error(e);
-        showToast("Stream registration failed: " + e.message, "error");
-    }
-}
-
-async function updateStreamUrlOnchain() {
-    if (!isWalletConnected || !currentProgramId) {
-        showToast("Connect wallet and load Program ID first.", "error");
-        return;
-    }
-
-    const id = parseInt(document.getElementById("admin-stream-id").value);
-    const url = document.getElementById("admin-stream-url").value.trim();
-
-    if (!id || !url) {
-        showToast("Please enter a valid Stream ID and URL.", "error");
-        return;
-    }
-
-    showToast(`Updating Mirror URL for Stream #${id}...`, "info");
-
-    try {
-        const streamKp = getOrCreateAccountKeypair("stream_" + id);
-        const platformStateKp = getOrCreateAccountKeypair("platform_state");
-
-        // Instruction 7: Update URL
-        const data = new Uint8Array(137);
-        data[0] = 7; // Type 7
-        writeU64(data, 1, id);
-        writeStringN(data, 9, url, 128);
-
-        const ix = new solanaWeb3.TransactionInstruction({
-            keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
-                { pubkey: streamKp.publicKey, isSigner: false, isWritable: true },
-                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
-            ],
-            programId: currentProgramId,
-            data: data
-        });
-
-        const tx = new solanaWeb3.Transaction().add(ix);
-        await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
-
-        showToast("Success! Stream URL updated.", "success");
-        initStreams();
-    } catch (e) {
-        console.error(e);
-        showToast("Update failed: " + e.message, "error");
-    }
-}
-
-async function toggleStreamOnchain(status) {
-    if (!isWalletConnected || !currentProgramId) {
-        showToast("Connect wallet and load Program ID first.", "error");
-        return;
-    }
-
-    const id = parseInt(document.getElementById("admin-stream-id").value);
-    showToast(`${status === 1 ? 'Activating' : 'Deactivating'} Stream #${id}...`, "info");
-
-    try {
-        const streamKp = getOrCreateAccountKeypair("stream_" + id);
-        const platformStateKp = getOrCreateAccountKeypair("platform_state");
-
-        // Instruction 8: Toggle Status
-        const data = new Uint8Array(10);
-        data[0] = 8; // Type 8
-        writeU64(data, 1, id);
-        data[9] = status;
-
-        const ix = new solanaWeb3.TransactionInstruction({
-            keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
-                { pubkey: streamKp.publicKey, isSigner: false, isWritable: true },
-                { pubkey: platformStateKp.publicKey, isSigner: false, isWritable: false }
-            ],
-            programId: currentProgramId,
-            data: data
-        });
-
-        const tx = new solanaWeb3.Transaction().add(ix);
-        await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
-
-        showToast(`Success! Stream ${status === 1 ? 'Activated' : 'Deactivated'}.`, "success");
-        initStreams();
-    } catch (e) {
-        console.error(e);
-        showToast("Toggle failed: " + e.message, "error");
-    }
-}
-
-function writeStringN(buf, offset, str, maxLen) {
-    const encoder = new TextEncoder();
-    const encoded = encoder.encode(str.slice(0, maxLen));
-    buf.set(encoded, offset);
-}
-

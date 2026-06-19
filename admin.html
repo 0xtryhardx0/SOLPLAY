@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolPlay Operations Control Room</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Solana Web3.js SDK -->
+    <script src="https://unpkg.com/@solana/web3.js@1.73.0/dist/index.iife.js"></script>
+    <style>
+        body {
+            background: radial-gradient(circle at top, #1e1b4b, #0f0f1a);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .admin-page-container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(15, 15, 25, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+        }
+        .admin-page-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .admin-page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .access-denied-panel {
+            padding: 4rem 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .access-denied-icon {
+            font-size: 4rem;
+            animation: pulse 2s infinite;
+        }
+        .access-denied-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            color: var(--neon-pink);
+            font-weight: 700;
+        }
+        .access-denied-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 450px;
+            line-height: 1.6;
+        }
+        .admin-grid-layout {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-page-container">
+        <!-- Header -->
+        <div class="admin-page-header">
+            <div class="admin-page-title">
+                ⚙️ SolPlay Operations Control Room
+            </div>
+            <div style="display: flex; gap: 0.8rem; align-items: center;">
+                <span id="wallet-status-badge" style="font-size: 0.8rem; padding: 0.3rem 0.8rem; border-radius: 12px; background: rgba(220, 38, 38, 0.15); color: var(--neon-pink); border: 1px solid rgba(220, 38, 38, 0.3);">
+                    Disconnected
+                </span>
+                <button class="btn-primary" id="btn-connect-admin" onclick="connectAdminWallet()" style="padding: 0.4rem 1rem; font-size: 0.8rem;">
+                    Connect Wallet
+                </button>
+            </div>
+        </div>
+
+        <!-- Access Denied Screen -->
+        <div id="access-denied-screen" class="access-denied-panel">
+            <div class="access-denied-icon">🔒</div>
+            <div class="access-denied-title">Restricted Access Area</div>
+            <div class="access-denied-desc">
+                This console is whitelisted for SolPlay founders and admins only. Please connect an authorized wallet to view controls and sign transactions.
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 0.8rem 1.2rem; border-radius: 8px; font-size: 0.8rem; color: var(--text-secondary); max-width: 500px; line-height: 1.5;">
+                <strong>Developer Quick Access:</strong> Whitelisted addresses include:<br>
+                <code style="color: var(--neon-teal); display: block; margin-top: 0.3rem; word-break: break-all;">DirmZaAX8CuoHyvwick6wjnvfDWxnyZyTSf1yoSME2hT</code>
+                <code style="color: var(--neon-teal); display: block; margin-top: 0.1rem; word-break: break-all;">GnjgbeuLcmy1tUNRSzwAM5yPmsmKJvvP7H33H6vMoAm9</code>
+                <button class="btn-mini" onclick="bypassWhitelistForDev()" style="margin-top: 0.8rem; background: var(--neon-purple);">Bypass Whitelist (Dev Mode)</button>
+            </div>
+        </div>
+
+        <!-- Authorized Admin Panel Grid -->
+        <div id="admin-panel-grid" class="admin-grid-layout" style="display: none;">
+            
+            <!-- Column 1: Setup & Deploy -->
+            <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="admin-title">Program Deploys</div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Program ID (Target):</label>
+                <input type="text" class="admin-input" id="admin-program-id" placeholder="Copy from deploy command" value="GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va">
+                <button class="btn-admin" onclick="loadProgramId()" style="margin-top: 0.3rem;">Load Program</button>
+                <button class="btn-admin" onclick="initializePlatformOnchain()" style="margin-top: 0.3rem; background: #ea580c;">Init Platform</button>
+                
+                <div style="border-top: 1px solid var(--border-color); padding-top: 0.8rem; margin-top: 0.5rem;">
+                    <label style="font-size: 0.75rem; color: var(--text-secondary);">Wallet Balance:</label>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--neon-teal);"><span id="admin-wallet-balance">0.0000</span> SOL</div>
+                    <button class="btn-admin" onclick="requestAirdrop()" style="margin-top: 0.3rem; background: #374151;">Request 1 SOL Airdrop</button>
+                </div>
+            </div>
+
+            <!-- Column 2: Create Market -->
+            <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="admin-title">Create Match Market</div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Game ID:</label>
+                <input type="number" class="admin-input" id="admin-game-id" value="999">
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Home vs Away Team:</label>
+                <div style="display: flex; gap: 0.3rem;">
+                    <input type="text" class="admin-input" id="admin-team-home" value="Arsenal" style="width: 50%;">
+                    <input type="text" class="admin-input" id="admin-team-away" value="Chelsea" style="width: 50%;">
+                </div>
+                <button class="btn-admin" onclick="createMarketOnchain()" style="margin-top: 0.3rem;">Create Market</button>
+            </div>
+
+            <!-- Column 3: Live Score Control -->
+            <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="admin-title">Live Score Control</div>
+                <div style="display: flex; gap: 0.3rem;">
+                    <button class="btn-admin" onclick="simulateAdminGoal(0)" style="flex: 1;">Goal Home (+1)</button>
+                    <button class="btn-admin" onclick="simulateAdminGoal(1)" style="flex: 1;">Goal Away (+1)</button>
+                </div>
+                <button class="btn-admin" onclick="resetScore()" style="margin-top: 0.3rem; background: #374151;">Reset Match Score</button>
+            </div>
+
+            <!-- Column 4: Oracle Resolution -->
+            <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="admin-title">Oracle Resolution</div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Match Outcome:</label>
+                <select class="admin-input" id="admin-outcome-select">
+                    <option value="0">Home Win (Arsenal)</option>
+                    <option value="1">Away Win (Chelsea)</option>
+                    <option value="2">Draw (Tie)</option>
+                </select>
+                <button class="btn-admin" onclick="resolveMarketOnchain()" style="margin-top: 0.5rem; background: linear-gradient(135deg, var(--neon-pink), #db2777); font-weight: 700;">Resolve & Mint Meme Token</button>
+            </div>
+
+            <!-- Column 5: Manage Live Streams -->
+            <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="admin-title">Manage Live Streams</div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Stream ID / Region:</label>
+                <div style="display: flex; gap: 0.3rem;">
+                    <input type="number" class="admin-input" id="admin-stream-id" value="1" style="width: 40%;">
+                    <select class="admin-input" id="admin-stream-region" style="flex: 1;">
+                        <option value="uk_eu">UK / EU</option>
+                        <option value="us_am">US / AM</option>
+                        <option value="africa">Africa</option>
+                        <option value="asia_in">Asia</option>
+                    </select>
+                </div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Stream Name:</label>
+                <input type="text" class="admin-input" id="admin-stream-name" value="Live Feed Mirror">
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Mirror URL (Max 128 chars):</label>
+                <input type="text" class="admin-input" id="admin-stream-url" value="https://www.youtube.com/embed/dQw4w9WgXcQ">
+                <div style="display: flex; gap: 0.3rem; margin-top: 0.2rem;">
+                    <button class="btn-admin" onclick="registerStreamOnchain()" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem;">Register</button>
+                    <button class="btn-admin" onclick="updateStreamUrlOnchain()" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem;">Update URL</button>
+                </div>
+                <div style="display: flex; gap: 0.3rem;">
+                    <button class="btn-admin" onclick="toggleStreamOnchain(1)" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem; background: #059669;">Activate</button>
+                    <button class="btn-admin" onclick="toggleStreamOnchain(0)" style="flex: 1; font-size: 0.7rem; padding: 0.4rem 0.2rem; background: #dc2626;">Deactivate</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast Notifications Area -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
