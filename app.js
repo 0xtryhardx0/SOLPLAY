@@ -52,6 +52,8 @@ if (typeof solanaWeb3 === 'undefined') {
 // SolPlay Client Application Logic
 let connection;
 let walletKeypair = null;
+let activeWalletType = 'sandbox'; // 'sandbox' or 'phantom'
+let activePublicKey = null;
 let currentProgramId = new solanaWeb3.PublicKey("GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va");
 let activeSelection = null;
 let milestoneProgress = 0;
@@ -603,6 +605,31 @@ function loadOrCreateWallet() {
             console.error("Failed to generate developer fallback keypair", e);
         }
     }
+
+    if (walletKeypair && activeWalletType === 'sandbox') {
+        activePublicKey = walletKeypair.publicKey;
+    }
+}
+
+function changeWalletType() {
+    const typeSelect = document.getElementById("wallet-type-select");
+    const connectBtn = document.getElementById("btn-connect-wallet");
+    if (!typeSelect || !connectBtn) return;
+
+    if (isWalletConnected) {
+        // Disconnect first to reset state
+        toggleWallet();
+    }
+
+    activeWalletType = typeSelect.value;
+    if (activeWalletType === 'sandbox') {
+        connectBtn.textContent = "Connect Sandbox Wallet";
+        activePublicKey = walletKeypair ? walletKeypair.publicKey : null;
+    } else if (activeWalletType === 'phantom') {
+        connectBtn.textContent = "Connect Phantom Wallet";
+        activePublicKey = null;
+    }
+    document.getElementById("btn-airdrop").style.display = "none";
 }
 
 async function toggleWallet() {
@@ -611,32 +638,86 @@ async function toggleWallet() {
     const airdropBtn = document.getElementById("btn-airdrop");
 
     if (!isWalletConnected) {
-        isWalletConnected = true;
-        connectBtn.textContent = walletKeypair.publicKey.toString().slice(0, 6) + "..." + walletKeypair.publicKey.toString().slice(-4);
-        connectBtn.style.background = "linear-gradient(135deg, var(--neon-teal), #0d9488)";
-        connectBtn.style.boxShadow = "var(--glow-teal)";
-        balanceContainer.style.display = "block";
-        airdropBtn.style.display = "block";
-        
-        showToast("Sandbox Wallet Connected!", "success");
-        await updateWalletBalance();
-        startWatchMilestone();
+        if (activeWalletType === 'sandbox') {
+            isWalletConnected = true;
+            activePublicKey = walletKeypair.publicKey;
+            connectBtn.textContent = activePublicKey.toString().slice(0, 6) + "..." + activePublicKey.toString().slice(-4);
+            connectBtn.style.background = "linear-gradient(135deg, var(--neon-teal), #0d9488)";
+            connectBtn.style.boxShadow = "var(--glow-teal)";
+            balanceContainer.style.display = "block";
+            airdropBtn.style.display = "block";
+            
+            showToast("Sandbox Wallet Connected!", "success");
+            await updateWalletBalance();
+            startWatchMilestone();
+        } else if (activeWalletType === 'phantom') {
+            if (!window.solana) {
+                showToast("Phantom extension not detected! Please install it first.", "error");
+                return;
+            }
+            try {
+                showToast("Requesting Phantom Wallet connection...", "info");
+                const response = await window.solana.connect();
+                activePublicKey = response.publicKey;
+                isWalletConnected = true;
+                
+                connectBtn.textContent = activePublicKey.toString().slice(0, 6) + "..." + activePublicKey.toString().slice(-4);
+                connectBtn.style.background = "linear-gradient(135deg, #ab9ff2, #512da8)";
+                connectBtn.style.boxShadow = "0 0 15px rgba(81, 45, 168, 0.4)";
+                balanceContainer.style.display = "block";
+                airdropBtn.style.display = "none";
+                
+                showToast("Phantom Wallet Connected!", "success");
+                await updateWalletBalance();
+                startWatchMilestone();
+                
+                window.solana.on('disconnect', handlePhantomDisconnect);
+            } catch (err) {
+                showToast("Failed to connect Phantom: " + err.message, "error");
+                console.error(err);
+            }
+        }
     } else {
         isWalletConnected = false;
-        connectBtn.textContent = "Connect Developer Sandbox Wallet";
+        if (activeWalletType === 'phantom' && window.solana) {
+            try {
+                window.solana.disconnect();
+            } catch (err) {}
+            window.solana.removeListener('disconnect', handlePhantomDisconnect);
+        }
+        activePublicKey = activeWalletType === 'sandbox' && walletKeypair ? walletKeypair.publicKey : null;
+        
+        connectBtn.textContent = activeWalletType === 'sandbox' ? "Connect Sandbox Wallet" : "Connect Phantom Wallet";
         connectBtn.style.background = "linear-gradient(135deg, var(--neon-purple), #7c3aed)";
         connectBtn.style.boxShadow = "var(--glow-purple)";
         balanceContainer.style.display = "none";
         airdropBtn.style.display = "none";
         
         stopWatchMilestone();
+        showToast("Wallet Disconnected", "info");
     }
 }
 
+function handlePhantomDisconnect() {
+    isWalletConnected = false;
+    activePublicKey = null;
+    const connectBtn = document.getElementById("btn-connect-wallet");
+    const balanceContainer = document.getElementById("sol-balance-container");
+    const airdropBtn = document.getElementById("btn-airdrop");
+    if (connectBtn) {
+        connectBtn.textContent = "Connect Phantom Wallet";
+        connectBtn.style.background = "linear-gradient(135deg, var(--neon-purple), #7c3aed)";
+        connectBtn.style.boxShadow = "var(--glow-purple)";
+    }
+    if (balanceContainer) balanceContainer.style.display = "none";
+    if (airdropBtn) airdropBtn.style.display = "none";
+    stopWatchMilestone();
+}
+
 async function updateWalletBalance() {
-    if (!walletKeypair || !connection) return;
+    if (!activePublicKey || !connection) return;
     try {
-        const balance = await connection.getBalance(walletKeypair.publicKey);
+        const balance = await connection.getBalance(activePublicKey);
         const solVal = balance / solanaWeb3.LAMPORTS_PER_SOL;
         document.getElementById("wallet-balance").textContent = solVal.toFixed(4);
     } catch (e) {
@@ -645,10 +726,14 @@ async function updateWalletBalance() {
 }
 
 async function requestAirdrop() {
+    if (activeWalletType !== 'sandbox') {
+        showToast("Airdrops are only supported for Developer Sandbox Wallet.", "error");
+        return;
+    }
     if (!walletKeypair || !connection) return;
     showToast("Requesting airdrop of 1 SOL...", "info");
     try {
-        const sig = await connection.requestAirdrop(walletKeypair.publicKey, solanaWeb3.LAMPORTS_PER_SOL);
+        const sig = await connection.requestAirdrop(activePublicKey, solanaWeb3.LAMPORTS_PER_SOL);
         await connection.confirmTransaction(sig);
         showToast("Airdrop confirmed!", "success");
         await updateWalletBalance();
@@ -1158,7 +1243,7 @@ async function claimMilestone() {
 
         const ix = new solanaWeb3.TransactionInstruction({
             keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: activePublicKey, isSigner: true, isWritable: false },
                 { pubkey: milestoneKeypair.publicKey, isSigner: false, isWritable: true }
             ],
             programId: currentProgramId,
@@ -1288,7 +1373,7 @@ function sendChatMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    const username = isWalletConnected ? getFriendlyUsername(walletKeypair.publicKey.toString()) : "Anonymous User";
+    const username = isWalletConnected ? getFriendlyUsername(activePublicKey.toString()) : "Anonymous User";
     appendChatMessage(username, text, false);
     input.value = "";
 }
@@ -1318,7 +1403,7 @@ async function tipUserChat(user) {
         const targetWallet = solanaWeb3.Keypair.generate().publicKey; // simulate target key
         const tx = new solanaWeb3.Transaction().add(
             solanaWeb3.SystemProgram.transfer({
-                fromPubkey: walletKeypair.publicKey,
+                fromPubkey: activePublicKey,
                 toPubkey: targetWallet,
                 lamports: 0.05 * solanaWeb3.LAMPORTS_PER_SOL
             })
@@ -1427,7 +1512,7 @@ function copyGeneratedCode() {
     showToast(`Betslip Code Copied: ${code}`, "success");
     
     // Post to chat automatically
-    const username = isWalletConnected ? getFriendlyUsername(walletKeypair.publicKey.toString()) : "User";
+    const username = isWalletConnected ? getFriendlyUsername(activePublicKey.toString()) : "User";
     appendChatMessage(username, `Check out my prediction code: ${code} 🔥`);
 }
 
@@ -1628,7 +1713,7 @@ async function placeBet() {
 
         const ix = new solanaWeb3.TransactionInstruction({
             keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: activePublicKey, isSigner: true, isWritable: false },
                 { pubkey: marketAccountPubkey, isSigner: false, isWritable: true },
                 { pubkey: wagerAccountKeypair.publicKey, isSigner: false, isWritable: true },
                 { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false }
@@ -1721,7 +1806,7 @@ function shareWagerToChat(idx) {
     // SHARE-BET:gameId|outcomeLabel|odds|stake|fixture|outcomeId
     const msg = `SHARE-BET:${w.gameId}|${w.outcomeLabel}|${w.odds}|${w.amount}|${fixture}|${w.outcomeId}`;
     
-    const username = isWalletConnected ? getFriendlyUsername(walletKeypair.publicKey.toString()) : "User";
+    const username = isWalletConnected ? getFriendlyUsername(activePublicKey.toString()) : "User";
     appendChatMessage(username, msg);
     showToast("Wager shared to Live Fan Chat!", "success");
     
@@ -1753,7 +1838,7 @@ async function claimWagerOnchain(idx) {
 
         const ix = new solanaWeb3.TransactionInstruction({
             keys: [
-                { pubkey: walletKeypair.publicKey, isSigner: true, isWritable: false },
+                { pubkey: activePublicKey, isSigner: true, isWritable: false },
                 { pubkey: marketAccountPubkey, isSigner: false, isWritable: true },
                 { pubkey: w.wagerPubkey, isSigner: false, isWritable: true },
                 { pubkey: platformStatePubkey, isSigner: false, isWritable: false },
@@ -2315,7 +2400,7 @@ async function createLocalAccount(newAccountKeypair, space) {
     const rent = await connection.getMinimumBalanceForRentExemption(space);
     const tx = new solanaWeb3.Transaction().add(
         solanaWeb3.SystemProgram.createAccount({
-            fromPubkey: walletKeypair.publicKey,
+            fromPubkey: activePublicKey,
             newAccountPubkey: newAccountKeypair.publicKey,
             lamports: rent,
             space: space,
@@ -2567,7 +2652,27 @@ async function switchNetwork() {
 // Unified robust transaction sender & confirmation checker
 async function sendConfirmAndVerifyTransaction(tx, signers) {
     try {
-        const sig = await connection.sendTransaction(tx, signers, { skipPreflight: true });
+        let sig;
+        if (activeWalletType === 'phantom') {
+            if (!window.solana) {
+                throw new Error("Phantom Wallet extension is not available.");
+            }
+            showToast("Please sign the transaction in your Phantom Wallet...", "info");
+            
+            tx.feePayer = activePublicKey;
+            const { blockhash } = await connection.getLatestBlockhash();
+            tx.recentBlockhash = blockhash;
+            
+            const otherSigners = signers.filter(s => s !== walletKeypair);
+            if (otherSigners.length > 0) {
+                tx.partialSign(...otherSigners);
+            }
+            
+            const signedTx = await window.solana.signTransaction(tx);
+            sig = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: true });
+        } else {
+            sig = await connection.sendTransaction(tx, signers, { skipPreflight: true });
+        }
         await connection.confirmTransaction(sig);
         
         // Verify on-chain success by fetching status

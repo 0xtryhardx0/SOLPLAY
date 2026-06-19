@@ -31,7 +31,11 @@
             <div class="sol-balance" id="sol-balance-container" style="display: none;">
                 Wallet: <span class="sol-amount" id="wallet-balance">0.0000</span> SOL
             </div>
-            <button class="btn-primary" id="btn-connect-wallet" onclick="toggleWallet()">Connect Developer Sandbox Wallet</button>
+            <select class="wallet-select" id="wallet-type-select" onchange="changeWalletType()">
+                <option value="sandbox" selected>💻 Developer Sandbox</option>
+                <option value="phantom">👻 Phantom Wallet</option>
+            </select>
+            <button class="btn-primary" id="btn-connect-wallet" onclick="toggleWallet()">Connect Sandbox Wallet</button>
             <button class="btn-secondary" id="btn-airdrop" onclick="requestAirdrop()" style="display: none;">Airdrop 1 SOL</button>
         </div>
     </header>
