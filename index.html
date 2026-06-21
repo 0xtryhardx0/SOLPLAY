@@ -1,362 +1,1031 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SolPlay | On-Chain Sports Streaming & Betting Exchange</title>
-    <meta name="description" content="Decentralized sports streaming and peer-to-peer prediction markets on the Solana blockchain. Accountless, high liquidity, best odds.">
-    <link rel="stylesheet" href="style.css?v=1.1">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>SolPlay | Liquid Glass Master Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
     <!-- HLS player library for live streaming feeds -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="style.css?v=1.2"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-variant": "#353534",
+                        "on-primary-fixed-variant": "#6300bb",
+                        "on-error": "#690005",
+                        "on-surface": "#e5e2e1",
+                        "on-tertiary": "#2f3131",
+                        "on-error-container": "#ffdad6",
+                        "secondary-container": "#00ec91",
+                        "on-secondary": "#00391f",
+                        "tertiary-fixed": "#e2e2e2",
+                        "secondary": "#a0ffc3",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface": "#131313",
+                        "inverse-primary": "#7f21e5",
+                        "surface-container": "#201f1f",
+                        "secondary-fixed": "#56ffa8",
+                        "on-primary": "#450086",
+                        "tertiary": "#c6c6c7",
+                        "primary-fixed": "#eddcff",
+                        "surface-dim": "#131313",
+                        "primary-container": "#9945ff",
+                        "tertiary-container": "#757777",
+                        "error": "#ffb4ab",
+                        "on-primary-container": "#ffffff",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-secondary-fixed": "#002110",
+                        "inverse-surface": "#e5e2e1",
+                        "outline-variant": "#4c4355",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-background": "#e5e2e1",
+                        "primary-fixed-dim": "#d8b9ff",
+                        "surface-tint": "#d8b9ff",
+                        "on-secondary-fixed-variant": "#00522f",
+                        "inverse-on-surface": "#313030",
+                        "secondary-fixed-dim": "#00e38b",
+                        "on-tertiary-container": "#ffffff",
+                        "background": "#07070a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary": "#d8b9ff",
+                        "outline": "#978da1",
+                        "on-primary-fixed": "#290055",
+                        "surface-container-low": "#1c1b1b",
+                        "on-secondary-container": "#00653b",
+                        "surface-bright": "#3a3939",
+                        "surface-container-highest": "#353534",
+                        "surface-container-high": "#2a2a2a",
+                        "on-surface-variant": "#cec2d8"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "20px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "64px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Outfit"],
+                        "body-lg": ["Outfit"],
+                        "label-md": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "label-sm": ["Outfit"],
+                        "headline-xl": ["Outfit"],
+                        "body-md": ["Outfit"]
+                    },
+                    fontSize: {
+                        "headline-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-xl": ["64px", {"lineHeight": "72px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #07070a;
+            color: #e5e2e1;
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(60px);
+            -webkit-backdrop-filter: blur(60px);
+            border: 0.5px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-shine {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.08),
+                transparent
+            );
+            transform: rotate(45deg);
+            transition: 0.7s;
+            pointer-events: none;
+        }
+
+        .glass-shine:hover::after {
+            left: 100%;
+            top: 100%;
+        }
+
+        .iridescent-gradient {
+            background: linear-gradient(135deg, #a855f7 0%, #14b8a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .liquid-button {
+            background: linear-gradient(135deg, rgba(153, 69, 255, 0.2) 0%, rgba(0, 236, 145, 0.1) 100%);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .liquid-button:hover {
+            background: linear-gradient(135deg, rgba(153, 69, 255, 0.4) 0%, rgba(0, 236, 145, 0.2) 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        @keyframes pulse-dot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 236, 145, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 236, 145, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 236, 145, 0); }
+        }
+
+        .pulse-green {
+            animation: pulse-dot 2s infinite;
+        }
+
+        .liquid-progress {
+            background: linear-gradient(90deg, #9945ff, #00ec91);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .liquid-progress::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: wave-animation 2s linear infinite;
+        }
+
+        @keyframes wave-animation {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        #tab-transition-overlay {
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Match Engagement tab active override */
+        #btn-match-chat.active, #btn-match-lineups.active, #btn-match-timeline.active {
+            color: #d8b9ff;
+            border-bottom: 2px solid #d8b9ff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Sports sub-tab active overrides */
+        #tab-live.active, #tab-custom.active, #tab-tournaments.active {
+            color: #00ec91;
+            border-bottom: 2px solid #00ec91;
+        }
+    </style>
 </head>
-<body>
-    <!-- Header -->
-    <header class="glass">
-        <div class="logo-section">
-            <div class="logo-icon">⚡</div>
-            <div class="logo-text">SolPlay</div>
-        </div>
+<body class="min-h-screen">
+<!-- Transition Overlay -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center" id="tab-transition-overlay">
+<!-- STITCH_SHADER_START:ANIMATION_24 class="absolute inset-0 w-full h-full" -->
+<div class="absolute inset-0 w-full h-full" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_24" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_24');
 
-        <div class="network-badge" id="network-badge">
-            <div class="badge-dot"></div>
-            <span id="network-status-text">Solana Localnet</span>
-            <select class="network-select" id="network-rpc-select" onchange="switchNetwork()" style="background: none; border: none; color: var(--neon-teal); font-family: var(--font-outfit); font-size: 0.75rem; margin-left: 0.5rem; cursor: pointer; outline: none; font-weight: 600;">
-                <option value="localnet" selected>💻 Localnet</option>
-                <option value="devnet">🚀 Devnet</option>
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+varying vec2 v_texCoord;
+
+// Simplex 2D noise
+vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+float snoise(vec2 v) {
+  const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+  vec2 i1;
+  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+  i = mod(i, 289.0);
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m*m ;
+  m = m*m ;
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+
+void main() {
+    vec2 uv = v_texCoord;
+    vec2 mouse = u_mouse / u_resolution;
+    
+    // Liquid glass transition ripple
+    float dist = length(uv - 0.5);
+    float ripple = sin(dist * 20.0 - u_time * 5.0) * 0.05;
+    
+    // Organic liquid movement
+    float n1 = snoise(uv * 1.5 + u_time * 0.1);
+    float n2 = snoise(uv * 2.5 - u_time * 0.15 + mouse * 0.1);
+    vec2 distort = vec2(n1, n2) * (0.1 + ripple);
+    
+    // Solana Brand Palette
+    vec3 obsidian = vec3(0.02, 0.02, 0.04);
+    vec3 neonPurple = vec3(0.658, 0.333, 0.968); // #a855f7
+    vec3 electricCyan = vec3(0.078, 0.721, 0.650); // #14b8a6
+    
+    // Base gradient
+    vec3 color = mix(obsidian, neonPurple * 0.15, uv.y + distort.y);
+    color = mix(color, electricCyan * 0.1, uv.x + distort.x);
+    
+    // Refractive "Glass" highlights
+    float l1 = abs(snoise(uv * 3.0 + distort + u_time * 0.2));
+    float caustic = pow(1.0 - l1, 8.0) * 0.4;
+    color += mix(neonPurple, electricCyan, distort.x + 0.5) * caustic;
+    
+    // Central "Loading" Pulse
+    float pulse = smoothstep(0.2, 0.0, abs(dist - 0.15 - ripple * 0.5));
+    color += electricCyan * pulse * 0.5;
+    
+    // Vignette
+    float d = length(uv - 0.5);
+    color *= smoothstep(1.3, 0.4, d);
+    
+    gl_FragColor = vec4(color, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_24 -->
+<div class="relative z-10 text-white font-black text-headline-xl tracking-tighter animate-pulse">
+    SOLPLAY
+</div>
+</div>
+
+<!-- Goal Alert Banner Overlay with WebGL Shader Background -->
+<div id="goal-alert-container" class="fixed inset-0 z-[110] flex items-center justify-center pointer-events-none" style="display: none;">
+    <!-- STITCH_SHADER_START:ANIMATION_25 class="absolute inset-0 w-full h-full" -->
+    <div class="absolute inset-0 w-full h-full" style="display:block;">
+        <canvas id="shader-canvas-ANIMATION_25" style="display:block;width:100%;height:100%"></canvas>
+        <script>
+        (function() {
+          const canvas = document.getElementById('shader-canvas-ANIMATION_25');
+
+          // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+          // This fires on initial layout and whenever the element is resized.
+          function syncSize() {
+            const w = canvas.clientWidth  || window.innerWidth;
+            const h = canvas.clientHeight || window.innerHeight;
+            if (canvas.width !== w || canvas.height !== h) {
+              canvas.width  = w;
+              canvas.height = h;
+            }
+          }
+          if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(syncSize).observe(canvas);
+          }
+          syncSize();
+
+          const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+          if (!gl) return;
+          const vs = `attribute vec2 a_position;
+        varying vec2 v_texCoord;
+        void main() {
+          v_texCoord = a_position * 0.5 + 0.5;
+          gl_Position = vec4(a_position, 0.0, 1.0);
+        }`;
+          const fs = `precision highp float;
+        uniform float u_time;
+        uniform vec2 u_resolution;
+        uniform vec2 u_mouse;
+        varying vec2 v_texCoord;
+
+        // Simplex 2D noise
+        vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+        float snoise(vec2 v) {
+          const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+          vec2 i  = floor(v + dot(v, C.yy) );
+          vec2 x0 = v -   i + dot(i, C.xx);
+          vec2 i1;
+          i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+          vec4 x12 = x0.xyxy + C.xxzz;
+          x12.xy -= i1;
+          i = mod(i, 289.0);
+          vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+          vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+          m = m*m ;
+          m = m*m ;
+          vec3 x = 2.0 * fract(p * C.www) - 1.0;
+          vec3 h = abs(x) - 0.5;
+          vec3 ox = floor(x + 0.5);
+          vec3 a0 = x - ox;
+          m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+          vec3 g;
+          g.x  = a0.x  * x0.x  + h.x  * x0.y;
+          g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+          return 130.0 * dot(m, g);
+        }
+
+        void main() {
+            vec2 uv = v_texCoord;
+            vec2 centered_uv = (uv - 0.5) * 2.0;
+            centered_uv.x *= u_resolution.x / u_resolution.y;
+            
+            // Exploding goal celebration motion
+            float dist = length(centered_uv);
+            float burst = smoothstep(0.8, 0.0, dist - fract(u_time * 0.8) * 1.5);
+            
+            float n = snoise(uv * 3.0 + u_time * 0.2);
+            vec2 distort = vec2(n) * 0.1;
+            
+            // Solana Colors
+            vec3 gold = vec3(1.0, 0.84, 0.0);
+            vec3 electricCyan = vec3(0.078, 0.721, 0.650);
+            vec3 neonPurple = vec3(0.658, 0.333, 0.968);
+            
+            vec3 color = mix(vec3(0.0), neonPurple * 0.2, uv.y);
+            
+            // Goal "Waves"
+            float wave = sin(dist * 15.0 - u_time * 10.0) * 0.5 + 0.5;
+            color += electricCyan * wave * burst * 0.3;
+            
+            // Sparkling particles
+            float sparks = pow(abs(snoise(uv * 40.0 + u_time * 0.5)), 20.0);
+            color += gold * sparks * burst;
+            
+            // Text illumination
+            float textLight = smoothstep(0.4, 0.0, abs(centered_uv.y));
+            color += gold * textLight * 0.1 * burst;
+            
+            gl_FragColor = vec4(color, burst * 0.8);
+        }`;
+          function cs(type, src) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            return s;
+          }
+          const prog = gl.createProgram();
+          gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+          gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+          gl.linkProgram(prog);
+          gl.useProgram(prog);
+          const buf = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+          const pos = gl.getAttribLocation(prog, 'a_position');
+          gl.enableVertexAttribArray(pos);
+          gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+          const uTime = gl.getUniformLocation(prog, 'u_time');
+          const uRes = gl.getUniformLocation(prog, 'u_resolution');
+          const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+          // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+          // Shaders that need normalized coords should use: u_mouse / u_resolution.
+          let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+          window.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            if (rect.width && rect.height) {
+              const nx = (event.clientX - rect.left) / rect.width;
+              const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+              mouse.x = nx * canvas.width;
+              mouse.y = ny * canvas.height;
+            }
+          });
+
+          function render(t) {
+            if (typeof ResizeObserver === 'undefined') syncSize();
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            if (uTime) gl.uniform1f(uTime, t * 0.001);
+            if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+            if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            requestAnimationFrame(render);
+          }
+          render(0);
+        })();
+        </script>
+    </div>
+    <!-- STITCH_SHADER_END:ANIMATION_25 -->
+
+    <!-- SolPlay Liquid Glass Banner Container -->
+    <div id="goal-alert-banner" class="goal-alert-banner pointer-events-auto">
+        <div class="goal-banner-glow"></div>
+        <div class="goal-banner-content">
+            <div class="goal-announcement">⚽ GOOOOOAL!</div>
+            <div class="goal-team" id="goal-alert-team">ARSENAL SCORE!</div>
+            <div class="goal-details" id="goal-alert-score">Score is now: Arsenal 1 - 0 Chelsea</div>
+        </div>
+    </div>
+</div>
+
+<!-- Immersive Background Gradient -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#07070a]/50 to-[#07070a]"></div>
+</div>
+
+<!-- Header Navigation -->
+<header class="sticky top-0 z-50 w-full glass-panel border-b border-white/5 backdrop-blur-3xl px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+        <h1 class="text-headline-md font-black tracking-tighter cursor-pointer" onclick="location.reload()">
+            <span class="iridescent-gradient">⚡ SolPlay</span>
+        </h1>
+        <div class="flex items-center gap-2 px-3 py-1.5 glass-panel rounded-full cursor-pointer hover:bg-white/5 transition-colors">
+            <span class="w-2 h-2 rounded-full bg-secondary pulse-green"></span>
+            <select id="network-rpc-select" onchange="switchNetwork()" class="bg-transparent border-none focus:ring-0 text-label-sm uppercase tracking-widest text-secondary/80 font-bold cursor-pointer outline-none py-0 pl-1 pr-6">
+                <option value="localnet" class="bg-surface text-white">💻 Localnet</option>
+                <option value="devnet" class="bg-surface text-white">🚀 Devnet</option>
             </select>
         </div>
-
-        <div class="wallet-connector">
-            <div class="sol-balance" id="sol-balance-container" style="display: none;">
-                Wallet: <span class="sol-amount" id="wallet-balance">0.0000</span> SOL
+    </div>
+    <div class="flex items-center gap-4">
+        <!-- Balance Display -->
+        <div class="hidden md:flex items-center gap-3 px-4 py-2 glass-panel rounded-xl" id="sol-balance-container" style="display: none;">
+            <div class="flex flex-col items-end">
+                <span class="text-label-sm text-on-surface/50 leading-none">Wallet Balance</span>
+                <span class="text-label-md font-bold text-secondary"><span id="wallet-balance">0.0000</span> SOL</span>
             </div>
-            <select class="wallet-select" id="wallet-type-select" onchange="changeWalletType()">
-                <option value="sandbox" selected>💻 Developer Sandbox</option>
-                <option value="phantom">👻 Phantom Wallet</option>
-            </select>
-            <button class="btn-primary" id="btn-connect-wallet" onclick="toggleWallet()">Connect Sandbox Wallet</button>
-            <button class="btn-secondary" id="btn-airdrop" onclick="requestAirdrop()" style="display: none;">Airdrop 1 SOL</button>
+            <div class="w-[1px] h-6 bg-white/10"></div>
+            <button class="text-label-sm text-primary hover:text-white transition-colors" id="btn-airdrop" onclick="requestAirdrop()">Faucet</button>
         </div>
-    </header>
 
-    <!-- Main Dashboard Grid -->
-    <main>
-        <!-- Left Pane: Live Stream & Engagement -->
-        <div class="left-pane col">
-            <!-- Aggregated Video Player -->
-            <div class="stream-panel glass">
-                <div class="stream-header">
-                    <span class="stream-title-text" id="stream-title">Arsenal vs Chelsea - Live Stream</span>
-                    <div class="stream-controls-header">
-                        <div class="select-wrapper">
-                            <span class="select-label">Region:</span>
-                            <select class="stream-select" id="stream-region-select" onchange="updateStreamProviders()">
-                                <option value="uk_eu">🇪🇺 UK & Europe</option>
-                                <option value="us_am">🇺🇸 US & Americas</option>
-                                <option value="africa">🌍 Africa</option>
-                                <option value="asia_in">🌏 Asia & India</option>
-                                <option value="mock" selected>⚡ Developer Mocks</option>
-                            </select>
-                        </div>
-                        <div class="select-wrapper">
-                            <span class="select-label">Free Stream:</span>
-                            <select class="stream-select" id="stream-provider-select" onchange="switchStreamProvider()">
-                                <option value="0">Server 1 (YouTube Live)</option>
-                                <option value="1">Server 2 (HLS Direct)</option>
-                                <option value="2">Server 3 (E-Sports Mock)</option>
-                            </select>
-                        </div>
+        <!-- Wallet Type Selector -->
+        <div class="flex items-center gap-3 px-4 py-2 glass-panel rounded-xl">
+            <select id="wallet-type-select" onchange="changeWalletType()" class="bg-transparent border-none focus:ring-0 text-label-sm text-primary font-bold cursor-pointer outline-none">
+                <option value="sandbox" class="bg-surface text-white">💻 Sandbox</option>
+                <option value="phantom" class="bg-surface text-white">👻 Phantom</option>
+            </select>
+        </div>
+
+        <button class="liquid-button px-6 py-2.5 rounded-xl text-label-md font-bold text-white glass-shine flex items-center gap-2" id="btn-connect-wallet" onclick="toggleWallet()">
+            <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+            Connect Wallet
+        </button>
+
+        <div class="w-10 h-10 rounded-full border border-white/10 glass-panel flex items-center justify-center overflow-hidden">
+            <img class="w-full h-full object-cover" alt="Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD84NlTGN-rzIHqUCFHEqifyhL8Dn-FszPA-cKItpU16y4Ul5b8CYNLsjNbZCdaOSKFbx0UKq42abqe6guIbCFfOFDGbNKInyY-xSbSEbDO67356DxBWPatY1iwDOah76qoWsKnyqWIxzBQhDHajD5Igkx7YZTbe5tx6KzPXbdKoPPBi2HxJXmy4IzIsv5D-m7n-39j2dctCwUlqJiaspdrmimRpzzvnjcVJcnaco0ug-N0YMso31lIjvlfqzaToskQ2fTeBOUeSYGa"/>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-[1800px] mx-auto p-6 lg:p-8">
+    <div class="grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] gap-8">
+        <!-- Left Pane: Streaming & Engagement -->
+        <div class="flex flex-col gap-8">
+            <!-- Streaming Panel -->
+            <section class="glass-panel rounded-2xl overflow-hidden flex flex-col glass-shine">
+                <div class="p-6 flex items-center justify-between border-b border-white/5">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-error/20 text-error text-[10px] font-bold px-2 py-0.5 rounded border border-error/30 animate-pulse">LIVE</div>
+                        <h2 class="text-headline-md font-bold text-white" id="stream-title">Arsenal vs Chelsea - Live Stream</h2>
+                    </div>
+                    <div class="flex gap-2">
+                        <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-region-select" onchange="updateStreamProviders()">
+                            <option value="uk_eu">🇪🇺 UK & Europe</option>
+                            <option value="us_am">🇺🇸 US & Americas</option>
+                            <option value="africa">🌍 Africa</option>
+                            <option value="asia_in">🌏 Asia & India</option>
+                            <option value="mock" selected>⚡ Developer Mocks</option>
+                        </select>
+                        <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-provider-select" onchange="switchStreamProvider()">
+                            <option value="0">Server 1 (YouTube Live)</option>
+                            <option value="1">Server 2 (HLS Direct)</option>
+                            <option value="2">Server 3 (E-Sports Mock)</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="video-container">
+                <!-- Video Players -->
+                <div class="aspect-video relative bg-black/40 group overflow-hidden">
                     <!-- YouTube Embed (Server 1) -->
-                    <iframe class="video-iframe" id="video-iframe-player" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    <iframe class="w-full h-full border-none" id="video-iframe-player" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                     
                     <!-- Native HLS Video Stream Element (Server 2) -->
-                    <video class="video-iframe" id="hls-video-player" controls autoplay muted style="display: none; width: 100%; height: 100%; object-fit: cover; background: #000;"></video>
+                    <video class="w-full h-full object-cover" id="hls-video-player" controls autoplay muted style="display: none;"></video>
                     
                     <!-- HLS / Animated Canvas Mock (Server 3) -->
-                    <div class="mock-player" id="mock-video-player" style="display: none;">
-                        <div class="player-match-details">
-                            <span class="player-status-badge">LIVE STREAM</span>
-                            <div class="player-score" id="player-live-score">Arsenal <span id="player-score-home">0</span> - <span id="player-score-away">0</span> Chelsea</div>
-                            <div id="player-live-time" style="font-size: 0.9rem; color: var(--text-secondary);">45:00</div>
+                    <div class="absolute inset-0 flex flex-col justify-center items-center bg-gradient-to-br from-indigo-950 to-slate-950 text-center" id="mock-video-player" style="display: none;">
+                        <div class="z-10 p-4">
+                            <span class="bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse uppercase">LIVE STREAM</span>
+                            <div class="text-4xl lg:text-5xl font-black tracking-widest text-white my-4 drop-shadow-md" id="player-live-score">Arsenal <span id="player-score-home">0</span> - <span id="player-score-away">0</span> Chelsea</div>
+                            <div id="player-live-time" class="text-sm text-on-surface/60 font-medium">45:00</div>
                         </div>
-                        <div class="stream-controls">
-                            <button class="btn-mini" onclick="mockPlayPause()">⏸ Pause</button>
-                            <span style="font-size: 0.75rem; color: var(--neon-teal); font-weight: 600;">Stream Health: Excellent</span>
+                        <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-between items-center">
+                            <button class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-label-sm" onclick="mockPlayPause()">⏸ Pause</button>
+                            <span class="text-label-sm text-secondary font-bold">Stream Health: Excellent</span>
+                        </div>
+                    </div>
+
+                    <!-- Overlay UI Controls -->
+                    <div class="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between">
+                        <div class="flex items-center gap-6">
+                            <button class="material-symbols-outlined text-white text-[32px]">play_circle</button>
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-white text-[20px]">volume_up</span>
+                                <div class="w-24 h-1 bg-white/20 rounded-full overflow-hidden">
+                                    <div class="w-3/4 h-full bg-primary"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Engagement Viewer Milestones -->
-                <div style="padding: 0.8rem 1rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                    <div style="flex: 1; margin-right: 1rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.3rem;">
-                            <span>Viewer Badge Engagement:</span>
-                            <span id="milestone-percentage">0% (0s / 15s)</span>
+                <!-- Milestone Progress -->
+                <div class="p-6 bg-white/[0.02]">
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <span class="text-label-sm text-on-surface/50 block mb-1">Watch 15s to claim badge</span>
+                            <span class="text-body-md font-bold text-white">Stream Milestone Rewards</span>
                         </div>
-                        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
-                            <div id="milestone-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(to right, var(--neon-purple), var(--neon-teal)); transition: width 0.3s;"></div>
+                        <div class="text-right">
+                            <span class="text-headline-md font-black text-secondary" id="milestone-percentage">0% (0s / 15s)</span>
                         </div>
                     </div>
-                    <button class="btn-secondary" id="btn-claim-milestone" onclick="claimMilestone()" disabled style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">Claim Viewer Badge</button>
+                    <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden mb-4 p-0.5">
+                        <div class="h-full liquid-progress rounded-full shadow-[0_0_15px_rgba(0,236,145,0.4)]" id="milestone-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <button class="w-full py-3 rounded-xl liquid-button text-label-md font-bold text-white glass-shine cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" id="btn-claim-milestone" onclick="claimMilestone()" disabled>
+                        Claim Viewer Badge
+                    </button>
                 </div>
-            </div>
+            </section>
 
-            <!-- Match Engagement Center (Chat, Lineups, Timeline) -->
-            <div class="match-center-panel chat-panel glass">
-                <div class="match-center-tabs">
-                    <button class="match-center-tab-btn active" id="btn-match-chat" onclick="switchMatchTab('chat')">💬 Live Chat</button>
-                    <button class="match-center-tab-btn" id="btn-match-lineups" onclick="switchMatchTab('lineups')">📋 Lineups</button>
-                    <button class="match-center-tab-btn" id="btn-match-timeline" onclick="switchMatchTab('timeline')">⏳ Timeline</button>
+            <!-- Engagement Center -->
+            <section class="glass-panel rounded-2xl flex flex-col h-[500px]">
+                <div class="flex border-b border-white/5">
+                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-chat" onclick="switchMatchTab('chat')">CHATS</button>
+                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-lineups" onclick="switchMatchTab('lineups')">LINEUPS</button>
+                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-timeline" onclick="switchMatchTab('timeline')">TIMELINE</button>
                 </div>
-                
-                <!-- Panel 1: Live Chat -->
-                <div class="match-center-content" id="panel-match-chat" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                    <div class="chat-messages" id="chat-messages-container">
+
+                <!-- Chat Panel -->
+                <div class="flex-1 flex flex-col min-h-0" id="panel-match-chat">
+                    <div class="flex-1 overflow-y-auto p-6 space-y-4" id="chat-messages-container">
                         <!-- Messages populated dynamically -->
                     </div>
-                    <div class="chat-input-area">
-                        <input type="text" class="chat-input" id="chat-msg-input" placeholder="Type a message or betslip code..." onkeydown="handleChatKey(event)">
-                        <button class="btn-primary" onclick="sendChatMessage()" style="padding: 0.6rem 1rem;">Send</button>
+                    <div class="p-4 bg-white/5 border-t border-white/5">
+                        <div class="flex items-center gap-3 glass-panel px-4 py-2 rounded-xl focus-within:border-primary/50 transition-colors">
+                            <input class="flex-1 bg-transparent border-none focus:ring-0 text-body-md text-white" id="chat-msg-input" placeholder="Type your message or share code..." type="text" onkeydown="handleChatKey(event)"/>
+                            <button class="material-symbols-outlined text-primary hover:scale-110 transition-transform" onclick="sendChatMessage()">send</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Panel 2: Lineups & Formation -->
-                <div class="match-center-content" id="panel-match-lineups" style="display: none; padding: 1rem; overflow-y: auto; flex: 1; flex-direction: column;">
-                    <div class="lineups-scroll-container" id="lineups-scroll-container">
-                        <!-- Populated dynamically by app.js -->
-                    </div>
+                <!-- Lineups Panel -->
+                <div class="flex-1 overflow-y-auto p-6" id="panel-match-lineups" style="display: none;">
+                    <div id="lineups-scroll-container" class="space-y-4"></div>
                 </div>
 
-                <!-- Panel 3: Live Timeline -->
-                <div class="match-center-content" id="panel-match-timeline" style="display: none; padding: 1rem; overflow-y: auto; flex: 1; flex-direction: column;">
-                    <div class="timeline-scroll-container" id="timeline-scroll-container">
-                        <!-- Populated dynamically by app.js -->
-                    </div>
+                <!-- Timeline Panel -->
+                <div class="flex-1 overflow-y-auto p-6" id="panel-match-timeline" style="display: none;">
+                    <div id="timeline-scroll-container" class="space-y-4"></div>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <!-- Right Pane: Sportsbook Exchange & Wallet Hub -->
-        <div class="right-pane glass">
-            <!-- Navigation Tabs -->
-            <div class="exchange-tabs">
-                <button class="exch-tab-btn active" id="btn-tab-sports" onclick="switchExchangeTab('sports')">🏆 Sports Book</button>
-                <button class="exch-tab-btn" id="btn-tab-slip" onclick="switchExchangeTab('slip')">🎫 Betslip <span class="tab-badge" id="tab-slip-badge" style="display:none;">1</span></button>
-                <button class="exch-tab-btn" id="btn-tab-wagers" onclick="switchExchangeTab('wagers')">🛡️ Wagers & LP</button>
-                <button class="exch-tab-btn" id="btn-tab-memes" onclick="switchExchangeTab('memes')">🚀 Victory Coins</button>
+        <!-- Right Pane: Exchange / Sportsbook -->
+        <div class="flex flex-col gap-8">
+            <!-- Main Exchange Tabs -->
+            <div class="flex gap-2 glass-panel p-1.5 rounded-2xl">
+                <button class="flex-1 py-3 rounded-xl bg-white/10 text-white shadow-xl text-label-md font-bold" id="btn-tab-sports" onclick="switchTab('sports')">Sportsbook</button>
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-1.5" id="btn-tab-slip" onclick="switchTab('slip')">
+                    Betslip <span class="tab-badge bg-error text-white text-[10px] px-2 py-0.5 rounded-full" id="tab-slip-badge" style="display:none;">0</span>
+                </button>
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors" id="btn-tab-wagers" onclick="switchTab('wagers')">My Wagers</button>
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-2" id="btn-tab-memes" onclick="switchTab('memes')">
+                    <span class="material-symbols-outlined text-[18px] text-secondary">trending_up</span>
+                    Memes
+                </button>
             </div>
 
-            <!-- Tab Content 1: Sports Book -->
-            <div class="tab-panel-content" id="panel-sports">
-                <div class="betting-panel">
-                    <div class="panel-tabs">
-                        <button class="tab-btn active" id="tab-live" onclick="switchBettingTab('live')">Live Matches</button>
-                        <button class="tab-btn" id="tab-custom" onclick="switchBettingTab('custom')">Polymarket Pools</button>
-                        <button class="tab-btn" id="tab-tournaments" onclick="switchBettingTab('tournaments')">🎮 Tournaments</button>
+            <!-- Tab Panels Container -->
+            <div id="tab-content-container" class="flex flex-col gap-6">
+                <!-- Sportsbook Panel -->
+                <div class="flex flex-col gap-6 tab-panel" id="panel-sports">
+                    <div class="flex items-center gap-4 border-b border-white/5 pb-2">
+                        <button id="tab-live" onclick="switchBettingTab('live')" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1 active">Live Matches</button>
+                        <button id="tab-custom" onclick="switchBettingTab('custom')" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1">Custom Pools</button>
+                        <button id="tab-tournaments" onclick="switchBettingTab('tournaments')" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1">🎮 Tournaments</button>
                     </div>
-                    <div class="panel-content">
-                        <!-- Live Matches -->
-                        <div id="content-live">
-                            <div id="content-live-list">
-                                <!-- Rendered dynamically by app.js -->
-                            </div>
-                        </div>
 
-                        <!-- Tournaments Section -->
-                        <div id="content-tournaments" style="display: none;">
-                            <!-- Rendered dynamically by app.js -->
+                    <!-- Live matches -->
+                    <div id="content-live">
+                        <div class="space-y-4" id="content-live-list">
+                            <!-- Live matches populated dynamically by app.js -->
                         </div>
+                    </div>
 
-                        <!-- Custom Pools -->
-                        <div id="content-custom" style="display: none;">
-                            <div class="match-card">
-                                <div class="match-info-top">
-                                    <span>Streamer Showdown • FIFA 26</span>
-                                    <span style="color: var(--neon-pink); font-weight: 600;">UPCOMING</span>
-                                </div>
-                                <div style="font-weight: 600; margin: 0.5rem 0; font-size: 0.95rem;">
-                                    Will Kai Cenat defeat IShowSpeed in FIFA?
-                                </div>
-                                <div class="match-odds-row" style="grid-template-columns: repeat(2, 1fr);">
-                                    <button class="odds-btn" onclick="selectOdds(888, 0, 2.10, 'Yes (Kai Wins)')">
-                                        <span class="odds-label">Yes</span>
-                                        <span class="odds-value">2.10</span>
-                                    </button>
-                                    <button class="odds-btn" onclick="selectOdds(888, 1, 1.80, 'No (Speed Wins)')">
-                                        <span class="odds-label">No</span>
-                                        <span class="odds-value">1.80</span>
-                                    </button>
-                                </div>
+                    <!-- Custom Pools -->
+                    <div id="content-custom" style="display: none;" class="space-y-4">
+                        <div class="glass-panel rounded-2xl p-5 hover:border-primary/40 transition-all cursor-pointer group glass-shine">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-label-sm text-on-surface/40">Streamer Showdown • FIFA 26</span>
+                                <span class="text-label-sm text-secondary font-bold">UPCOMING</span>
                             </div>
-                            <div class="match-card">
-                                <div class="match-info-top">
-                                    <span>Ronaldo Career Milestones</span>
-                                    <span style="color: var(--text-secondary);">LONG TERM</span>
-                                </div>
-                                <div style="font-weight: 600; margin: 0.5rem 0; font-size: 0.95rem;">
-                                    Will Cristiano Ronaldo score his 1000th goal this year?
-                                </div>
-                                <div class="match-odds-row" style="grid-template-columns: repeat(2, 1fr);">
-                                    <button class="odds-btn" onclick="selectOdds(777, 0, 4.50, 'Yes (1000 Goals)')">
-                                        <span class="odds-label">Yes</span>
-                                        <span class="odds-value">4.50</span>
-                                    </button>
-                                    <button class="odds-btn" onclick="selectOdds(777, 1, 1.15, 'No')">
-                                        <span class="odds-label">No</span>
-                                        <span class="odds-value">1.15</span>
-                                    </button>
-                                </div>
+                            <div class="text-label-md font-bold text-white mb-4">Will Kai Cenat defeat IShowSpeed in FIFA?</div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="selectOdds(888, 0, 2.10, 'Yes (Kai Wins)')" class="flex items-center justify-between glass-panel p-3 rounded-xl hover:bg-white/5">
+                                    <span class="text-label-sm text-on-surface/50">Yes</span>
+                                    <span class="text-label-md font-black text-secondary">2.10</span>
+                                </button>
+                                <button onclick="selectOdds(888, 1, 1.80, 'No (Speed Wins)')" class="flex items-center justify-between glass-panel p-3 rounded-xl hover:bg-white/5">
+                                    <span class="text-label-sm text-on-surface/50">No</span>
+                                    <span class="text-label-md font-black text-secondary">1.80</span>
+                                </button>
                             </div>
                         </div>
+                        <div class="glass-panel rounded-2xl p-5 hover:border-primary/40 transition-all cursor-pointer group glass-shine">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-label-sm text-on-surface/40">Ronaldo Career Milestones</span>
+                                <span class="text-label-sm text-on-surface/40">LONG TERM</span>
+                            </div>
+                            <div class="text-label-md font-bold text-white mb-4">Will Cristiano Ronaldo score his 1000th goal this year?</div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="selectOdds(777, 0, 4.50, 'Yes (1000 Goals)')" class="flex items-center justify-between glass-panel p-3 rounded-xl hover:bg-white/5">
+                                    <span class="text-label-sm text-on-surface/50">Yes</span>
+                                    <span class="text-label-md font-black text-secondary">4.50</span>
+                                </button>
+                                <button onclick="selectOdds(777, 1, 1.15, 'No')" class="flex items-center justify-between glass-panel p-3 rounded-xl hover:bg-white/5">
+                                    <span class="text-label-sm text-on-surface/50">No</span>
+                                    <span class="text-label-md font-black text-secondary">1.15</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tournaments Section -->
+                    <div id="content-tournaments" style="display: none;" class="space-y-4">
+                        <!-- Renders dynamically from app.js -->
                     </div>
                 </div>
-            </div>
 
-            <!-- Tab Content 2: My Betslip -->
-            <div class="tab-panel-content" id="panel-slip" style="display:none;">
-                <div class="betslip-panel">
-                    <div class="betslip-header">
-                        <span>Active Betting Slip</span>
-                        <span style="font-size: 0.75rem; background: rgba(168, 85, 247, 0.15); color: var(--neon-purple); padding: 0.1rem 0.5rem; border-radius: 4px;" id="slip-count-badge">0 Selection</span>
-                    </div>
-                    <div class="betslip-body">
-                        <div id="betslip-items-container">
-                            <div class="betslip-empty" id="betslip-empty-text">Select odds from matches to build your slip</div>
+                <!-- Betslip Panel -->
+                <div class="flex flex-col gap-6 tab-panel" id="panel-slip" style="display: none;">
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col gap-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-headline-md font-bold text-white flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">shopping_bag</span>
+                                Betslip
+                            </h3>
+                            <span class="text-label-sm bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20" id="slip-count-badge">0 Selection</span>
                         </div>
-                        <div class="betslip-stake-calculator" id="betslip-calc" style="display: none;">
-                            <div class="stake-input-row">
-                                <span class="stake-label">Stake Amount:</span>
-                                <div class="stake-input-container">
-                                    <input type="number" step="0.1" class="stake-input" id="stake-amount" value="1.0" oninput="calculatePayout()">
-                                    <span class="stake-unit">SOL</span>
+
+                        <!-- Betslip Selections -->
+                        <div id="betslip-items-container" class="space-y-3">
+                            <div class="text-center py-6 text-on-surface/40 text-label-md" id="betslip-empty-text">Select odds from matches to build your slip</div>
+                        </div>
+
+                        <!-- Stake Calculator -->
+                        <div class="space-y-4 pt-4 border-t border-white/10" id="betslip-calc" style="display: none;">
+                            <div class="flex items-center justify-between">
+                                <span class="text-label-md text-on-surface/60">Stake Amount</span>
+                                <div class="flex items-center gap-2">
+                                    <input class="w-24 bg-black/40 border-white/10 rounded-lg text-right text-label-md font-bold text-secondary focus:ring-secondary focus:border-secondary text-white" id="stake-amount" type="number" step="0.1" value="1.0" oninput="calculatePayout()"/>
+                                    <span class="text-label-sm font-bold text-on-surface/40">SOL</span>
                                 </div>
                             </div>
-                            <div class="betslip-summary-row" style="margin-top: 0.3rem;">
+                            <div class="flex justify-between text-label-sm text-on-surface/50">
                                 <span>Combined Odds:</span>
-                                <span class="betslip-summary-value" id="slip-odds-multiplier">2.25x</span>
+                                <span class="font-bold text-white" id="slip-odds-multiplier">1.00x</span>
                             </div>
-                            <div class="betslip-summary-row">
+                            <div class="flex justify-between text-label-sm text-on-surface/50">
                                 <span>DeFi Routing Fee (1.0%):</span>
-                                <span class="betslip-summary-value" id="slip-routing-fee">0.0100 SOL</span>
+                                <span class="font-bold text-white" id="slip-routing-fee">0.0000 SOL</span>
                             </div>
-                            <div class="betslip-summary-row" style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.2rem;">
-                                <span style="font-weight: 600; color: var(--text-primary);">Potential Return:</span>
-                                <span class="betslip-payout-value" id="slip-potential-payout">2.2500 SOL</span>
+                            <div class="flex justify-between items-center text-label-md border-t border-white/5 pt-3">
+                                <span class="font-bold text-white">Potential Return:</span>
+                                <span class="text-headline-md font-black text-secondary" id="slip-potential-payout">0.0000 SOL</span>
                             </div>
-                            <button class="btn-primary" style="margin-top: 0.5rem;" onclick="placeBet()">Place Wager On-Chain</button>
-                            <div class="betslip-code-area">
-                                <div class="betslip-code-title">Share Betslip Code</div>
-                                <div class="betslip-code-row">
-                                    <span class="betslip-code-text" id="generated-slip-code">BET-SLIP-WAIT</span>
-                                    <button class="btn-mini" onclick="copyGeneratedCode()">Copy</button>
+                            <button class="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white font-black tracking-widest text-label-md shadow-[0_0_30px_rgba(153,69,255,0.4)] glass-shine uppercase" onclick="placeBet()">
+                                Place Wager On-Chain
+                            </button>
+
+                            <!-- Share Slip Code -->
+                            <div class="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-left space-y-2 mt-4">
+                                <span class="text-[10px] text-on-surface/40 uppercase font-bold tracking-wider block">Share Betslip Code</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-label-sm font-bold text-white font-mono" id="generated-slip-code">BET-SLIP-WAIT</span>
+                                    <button class="text-label-sm text-primary hover:text-white" onclick="copyGeneratedCode()">Copy</button>
                                 </div>
                             </div>
                         </div>
-                        <div class="betslip-code-area" style="margin-top: auto; padding-top: 1rem;">
-                            <div class="betslip-code-title">Load SportyBet Code</div>
-                            <div class="betslip-code-row">
-                                <input type="text" class="betslip-code-input" id="import-code-input" placeholder="e.g. BET-ARS-99">
-                                <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="importBetslipCode()">Load Slip</button>
+
+                        <!-- Load Slip Code -->
+                        <div class="p-4 bg-white/[0.02] border border-white/5 rounded-xl text-left space-y-3 mt-auto">
+                            <span class="text-[10px] text-on-surface/40 uppercase font-bold tracking-wider block">Load SportyBet Code</span>
+                            <div class="flex gap-2">
+                                <input class="flex-1 bg-black/40 border-white/10 rounded-lg text-label-sm px-3 py-1.5 focus:ring-primary focus:border-primary text-white" id="import-code-input" placeholder="e.g. BET-ARS-99" type="text"/>
+                                <button class="px-4 py-1.5 rounded-lg liquid-button text-label-sm font-bold text-white" onclick="importBetslipCode()">Load</button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Tab Content 3: Claims & Vault -->
-            <div class="tab-panel-content" id="panel-wagers" style="display:none;">
-                <!-- My Wagers -->
-                <div style="display: flex; flex-direction: column; height: 100%;">
-                    <div style="font-weight: 600; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 0.8rem;">
-                        My Wagers & Claims
-                    </div>
-                    <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; max-height: 250px; margin-bottom: 1.5rem;" id="active-wagers-container">
-                        <div class="betslip-empty" id="active-wagers-empty-text">No active wagers found</div>
-                    </div>
-
-                    <!-- LP Portal -->
-                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: rgba(0,0,0,0.25); margin-top: auto;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                            <span style="font-weight: 600;">SolPlay LP Vault</span>
-                            <span style="font-size: 0.8rem; background: rgba(20, 184, 166, 0.15); color: var(--neon-teal); padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600;">24.5% APY</span>
+                <!-- Wagers & LP Vault Panel -->
+                <div class="hidden flex flex-col gap-6 tab-panel" id="panel-wagers" style="display: none;">
+                    <!-- Active Yield Card -->
+                    <div class="glass-panel rounded-2xl p-8 glass-shine border-secondary/30 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-6">
+                            <span class="text-label-sm text-secondary font-black uppercase tracking-widest px-3 py-1 glass-panel rounded-full border-secondary/20">Active Yielding</span>
                         </div>
-                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
-                            Deposit SOL into the public vault to provide liquidity for wagers on localnet. You earn yield from losing wagers.
-                        </p>
-                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                            <input type="number" class="chat-input" id="lp-deposit-amount" placeholder="SOL amount" style="width: 50%;">
-                            <button class="btn-primary" onclick="depositLP()" style="flex: 1; padding: 0.5rem;">Be the House</button>
-                        </div>
-                        <div style="border-top: 1px solid var(--border-color); padding-top: 0.8rem; display: flex; justify-content: space-between; font-size: 0.85rem;">
-                            <span style="color: var(--text-secondary);">Your Deposited Value:</span>
-                            <span id="lp-deposited-sol" style="font-weight: 600; color: var(--neon-teal);">0.00 SOL</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab Content 4: Victory Coins -->
-            <div class="tab-panel-content" id="panel-memes" style="display:none;">
-                <div style="display: flex; flex-direction: column; gap: 1rem; height: 100%;">
-                    <div style="font-weight: 600; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
-                        Victory Memecoin Factory
-                    </div>
-                    <!-- Empty placeholder if not launched -->
-                    <div id="meme-launcher-placeholder" style="text-align: center; color: var(--text-secondary); padding: 2rem 1rem;">
-                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🚀</div>
-                        <div>A waiting match resolution will auto-trigger the deployment of the Victory Memecoin to troll the losing fans.</div>
-                    </div>
-                    
-                    <!-- Victory Memecoin Launcher Card (Displayed on Resolve) -->
-                    <div class="match-card meme-launcher-card glass" id="meme-launcher-card" style="display: none; animation: slideUp 0.5s ease; margin-bottom: 0;">
-                        <div class="meme-title">🚀 Victory Token Deployed!</div>
-                        <div class="meme-image-container">
-                            <canvas class="meme-canvas" id="meme-chart-canvas"></canvas>
-                        </div>
-                        <div style="text-align: center; margin-bottom: 0.8rem;">
-                            <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);" id="meme-token-name">$CANNONBLAST (Arsenal Win)</div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Troll the losers live on X!</div>
-                        </div>
-                        <div class="meme-token-stats">
+                        <h3 class="text-headline-lg font-black text-white mb-2">My Wagers & LP Vault</h3>
+                        <p class="text-label-md text-on-surface/50 mb-8">Participate in on-chain wagers and liquidity vault pools.</p>
+                        <div class="grid grid-cols-2 gap-8 mb-8">
                             <div>
-                                <span class="meme-stat-label">Price:</span>
-                                <span class="meme-stat-value" id="meme-price">0.00014 SOL</span>
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Total LP Stake</span>
+                                <span class="text-headline-md font-black text-white"><span id="lp-deposited-sol">0.00</span> <span class="text-secondary text-label-md">SOL</span></span>
                             </div>
-                            <div>
-                                <span class="meme-stat-label">Market Cap:</span>
-                                <span class="meme-stat-value" id="meme-mcap">140 SOL</span>
+                            <div class="text-right">
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Vault APY</span>
+                                <span class="text-headline-md font-black text-secondary">24.5% <span class="text-label-md">APY</span></span>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn-primary" onclick="buyMemeToken(0.1)" style="flex: 1; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink);">Buy 0.1 SOL</button>
-                            <button class="btn-primary" onclick="buyMemeToken(0.5)" style="flex: 1; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink);">Buy 0.5 SOL</button>
+                        <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-2">
+                            <div class="h-full liquid-progress" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Predictions/Wagers List -->
+                    <div class="space-y-4">
+                        <h4 class="text-label-md font-bold text-white px-1">Active Predictions & Claims</h4>
+                        <div class="space-y-4" id="active-wagers-container">
+                            <div class="text-center py-6 text-on-surface/40 text-label-md" id="active-wagers-empty-text">No active wagers found</div>
+                        </div>
+                    </div>
+
+                    <!-- LP Vault Management Control -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="text-label-md font-bold text-white mb-2">Be the House (LP Vault)</h3>
+                        <p class="text-label-sm text-on-surface/50 mb-4 font-normal">Deposit SOL to provide liquidity for predictions markets and earn yield from losing bets.</p>
+                        <div class="flex gap-3">
+                            <input class="flex-1 bg-black/40 border-white/10 rounded-xl text-label-md px-4 focus:ring-secondary focus:border-secondary transition-all text-white" id="lp-deposit-amount" placeholder="Amount (SOL)" type="number"/>
+                            <button class="px-8 py-3 rounded-xl glass-panel text-label-md font-bold text-secondary hover:bg-secondary/10 transition-colors border-secondary/30 glass-shine" onclick="depositLP()">Deposit</button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </main>
 
-    <!-- Toast Notifications Area -->
-    <div class="toast-container" id="toast-container"></div>
+                <!-- Victory Memecoin Factory Panel -->
+                <div class="hidden flex flex-col gap-6 tab-panel" id="panel-memes" style="display: none;">
+                    <!-- Empty placeholder state -->
+                    <div id="meme-launcher-placeholder" class="glass-panel rounded-2xl p-8 text-center text-on-surface/40 space-y-4">
+                        <div class="text-5xl">🚀</div>
+                        <div class="text-label-md">Victory Memecoin Factory is ready. A resolved match will automatically deploy a memecoin to troll the losing fans.</div>
+                    </div>
 
-    <!-- Goal Alert Banner Overlay -->
-    <div id="goal-alert-container" class="goal-alert-container">
-        <div id="goal-alert-banner" class="goal-alert-banner">
-            <div class="goal-banner-glow"></div>
-            <div class="goal-banner-content">
-                <div class="goal-announcement">⚽ GOOOOOAL!</div>
-                <div class="goal-team" id="goal-alert-team">ARSENAL SCORE!</div>
-                <div class="goal-details" id="goal-alert-score">Score is now: Arsenal 1 - 0 Chelsea</div>
+                    <!-- Victory Memecoin Launcher Card -->
+                    <div class="glass-panel rounded-2xl p-8 glass-shine border-primary/30 relative overflow-hidden" id="meme-launcher-card" style="display: none;">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-headline-md font-black text-white italic tracking-tighter" id="meme-token-name">$CANNONBLAST (Arsenal Win)</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                                <span class="text-label-sm text-secondary font-bold">LIVE CHART</span>
+                            </div>
+                        </div>
+                        <div class="relative h-64 w-full mb-8 border border-white/5 rounded-xl overflow-hidden">
+                            <canvas class="w-full h-full rounded-xl" id="meme-chart-canvas"></canvas>
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#07070a]/80 via-transparent to-transparent pointer-events-none"></div>
+                            <!-- Floating Price Label -->
+                            <div class="absolute top-4 right-4 glass-panel px-4 py-2 rounded-lg border-primary/40 backdrop-blur-md">
+                                <span class="text-label-sm text-on-surface/50 block">Current Dominance</span>
+                                <span class="text-label-md font-black text-white" id="meme-price">0.00014 SOL</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8 mb-8 bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                            <div>
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Token Price</span>
+                                <span class="text-label-md font-black text-secondary" id="meme-price-val">0.00014 SOL</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Market Cap</span>
+                                <span class="text-label-md font-black text-white" id="meme-mcap">140 SOL</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="w-full py-3 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 font-bold text-label-sm hover:bg-secondary hover:text-on-secondary transition-all glass-shine" onclick="buyMemeToken(0.1)">BUY 0.1 SOL</button>
+                            <button class="w-full py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-label-sm hover:bg-primary hover:text-on-primary transition-all glass-shine" onclick="buyMemeToken(0.5)">BUY 0.5 SOL</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</main>
 
-    <script src="app.js?v=1.1"></script>
+<footer class="max-w-[1800px] mx-auto px-8 py-12 mt-12 border-t border-white/5">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="flex flex-col gap-2">
+            <span class="text-headline-md font-black tracking-tighter iridescent-gradient">SolPlay</span>
+            <span class="text-label-sm text-on-surface/40">The next-gen Web3 Streaming &amp; Exchange platform on Solana.</span>
+        </div>
+        <div class="flex gap-8">
+            <a class="text-label-md text-on-surface/50 hover:text-white transition-colors" href="#">Documentation</a>
+            <a class="text-label-md text-on-surface/50 hover:text-white transition-colors" href="#">Security Audit</a>
+        </div>
+        <div class="flex gap-4">
+            <button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-[20px]">public</span>
+            </button>
+        </div>
+    </div>
+</footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Meme Chart Initialization
+        const canvas = document.getElementById('meme-chart-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const parent = canvas.parentElement;
+            canvas.width = parent.offsetWidth;
+            canvas.height = parent.offsetHeight;
+            
+            let points = [];
+            for(let i = 0; i < 30; i++) points.push(Math.random() * 100);
+
+            function drawChart() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                ctx.strokeStyle = '#00ec91';
+                ctx.lineWidth = 4;
+                ctx.lineJoin = 'round';
+                
+                const step = canvas.width / (points.length - 1);
+                ctx.moveTo(0, canvas.height - (points[0] / 100 * canvas.height * 0.6) - 50);
+                
+                for (let i = 1; i < points.length; i++) {
+                    const x = i * step;
+                    const y = canvas.height - (points[i] / 100 * canvas.height * 0.6 + Math.sin(Date.now() * 0.002 + i) * 10) - 50;
+                    ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                // Gradient
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(0, canvas.height);
+                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0, 236, 145, 0.2)');
+                grad.addColorStop(1, 'rgba(0, 236, 145, 0)');
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                points.shift();
+                points.push(Math.max(20, Math.min(80, points[points.length-1] + (Math.random() - 0.5) * 5)));
+                
+                requestAnimationFrame(drawChart);
+            }
+            drawChart();
+        }
+    });
+
+    // Integrated Liquid Glass Tab Transition
+    function switchTab(tabId) {
+        const overlay = document.getElementById('tab-transition-overlay');
+        if (!overlay) {
+            switchExchangeTab(tabId);
+            return;
+        }
+
+        // Fade in overlay
+        overlay.style.opacity = '1';
+        overlay.style.pointerEvents = 'auto';
+
+        setTimeout(() => {
+            // Call original switchExchangeTab from app.js to update variables, tabs, and displays
+            switchExchangeTab(tabId);
+
+            // Fade out overlay
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+            }, 600);
+        }, 400);
+    }
+</script>
+
+<script src="app.js?v=1.2"></script>
 </body>
 </html>
