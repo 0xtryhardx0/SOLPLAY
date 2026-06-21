@@ -69,7 +69,9 @@ const ADMIN_MATCHES = {
     996: { home: "Inter Miami", away: "LA Galaxy" },
     995: { home: "Real Madrid", away: "Barcelona" },
     994: { home: "Inter Milan", away: "Juventus" },
-    993: { home: "Bayern Munich", away: "Dortmund" }
+    993: { home: "Bayern Munich", away: "Dortmund" },
+    1001: { home: "phzin", away: "Tekkz" },
+    1002: { home: "SonicFox", away: "Dominique" }
 };
 
 // Initialize on page load

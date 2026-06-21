@@ -157,6 +157,7 @@
                     <div class="panel-tabs">
                         <button class="tab-btn active" id="tab-live" onclick="switchBettingTab('live')">Live Matches</button>
                         <button class="tab-btn" id="tab-custom" onclick="switchBettingTab('custom')">Polymarket Pools</button>
+                        <button class="tab-btn" id="tab-tournaments" onclick="switchBettingTab('tournaments')">🎮 Tournaments</button>
                     </div>
                     <div class="panel-content">
                         <!-- Live Matches -->
@@ -164,6 +165,11 @@
                             <div id="content-live-list">
                                 <!-- Rendered dynamically by app.js -->
                             </div>
+                        </div>
+
+                        <!-- Tournaments Section -->
+                        <div id="content-tournaments" style="display: none;">
+                            <!-- Rendered dynamically by app.js -->
                         </div>
 
                         <!-- Custom Pools -->

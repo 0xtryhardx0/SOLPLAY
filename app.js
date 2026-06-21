@@ -380,6 +380,61 @@ const MATCHES_DATA = [
     }
 ];
 
+const TOURNAMENTS_DATA = [
+    {
+        id: 1001,
+        title: "EA FC 26 Pro Cup • Grand Finals",
+        game: "EA FC 26",
+        status: "UPCOMING",
+        banner: "⚽ PRO TOURNAMENT",
+        playerA: {
+            name: "phzin",
+            country: "BR",
+            rank: 4,
+            winRate: "88%",
+            recentForm: ["W", "W", "W", "W", "D"],
+            avgGoals: "4.2",
+            odds: 1.85
+        },
+        playerB: {
+            name: "Tekkz",
+            country: "UK",
+            rank: 2,
+            winRate: "82%",
+            recentForm: ["W", "W", "L", "W", "W"],
+            avgGoals: "3.6",
+            odds: 1.95
+        },
+        streamUrl: "https://stream.mux.com/v69El17P02tUkUg1sQeT293m38ZFO02581J/medium.m3u8"
+    },
+    {
+        id: 1002,
+        title: "Mortal Kombat 1 Showdown • Pro Series",
+        game: "Mortal Kombat 1",
+        status: "UPCOMING",
+        banner: "🐉 KOMBAT ARENA",
+        playerA: {
+            name: "SonicFox",
+            country: "US",
+            rank: 1,
+            winRate: "94%",
+            recentForm: ["W", "W", "W", "W", "W"],
+            character: "Sindel / Lao",
+            odds: 1.30
+        },
+        playerB: {
+            name: "Dominique",
+            country: "US",
+            rank: 5,
+            winRate: "78%",
+            recentForm: ["W", "L", "W", "W", "L"],
+            character: "Kitana / Mileena",
+            odds: 3.10
+        },
+        streamUrl: "https://stream.mux.com/v69El17P02tUkUg1sQeT293m38ZFO02581J/medium.m3u8"
+    }
+];
+
 const activeMatchMarkets = {
     999: '1x2',
     998: '1x2',
@@ -1424,23 +1479,109 @@ function switchBettingTab(tab) {
         currentBettingTab = tab;
         const tabLive = document.getElementById("tab-live");
         const tabCustom = document.getElementById("tab-custom");
+        const tabTournaments = document.getElementById("tab-tournaments");
         const tabLp = document.getElementById("tab-lp");
 
         if (tabLive) tabLive.classList.toggle("active", tab === 'live');
         if (tabCustom) tabCustom.classList.toggle("active", tab === 'custom');
+        if (tabTournaments) tabTournaments.classList.toggle("active", tab === 'tournaments');
         if (tabLp) tabLp.classList.toggle("active", tab === 'lp');
 
         const contentLive = document.getElementById("content-live");
         const contentCustom = document.getElementById("content-custom");
+        const contentTournaments = document.getElementById("content-tournaments");
         const contentLp = document.getElementById("content-lp");
 
         if (contentLive) contentLive.style.display = tab === 'live' ? 'block' : 'none';
         if (contentCustom) contentCustom.style.display = tab === 'custom' ? 'block' : 'none';
+        if (contentTournaments) contentTournaments.style.display = tab === 'tournaments' ? 'block' : 'none';
         if (contentLp) contentLp.style.display = tab === 'lp' ? 'block' : 'none';
+        
+        if (tab === 'tournaments') {
+            renderTournaments();
+        }
     } catch (e) {
         console.error("Error inside switchBettingTab:", e);
         showToast("Betting tab error: " + e.message, "error");
     }
+}
+
+function selectTournamentOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle) {
+    selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle);
+    switchExchangeTab('slip');
+}
+
+function renderTournaments() {
+    const container = document.getElementById("content-tournaments");
+    if (!container) return;
+    container.innerHTML = "";
+
+    TOURNAMENTS_DATA.forEach(t => {
+        const card = document.createElement("div");
+        card.className = "match-card";
+        card.style.marginBottom = "0.8rem";
+        card.style.cursor = "pointer";
+        card.setAttribute("onclick", `selectActiveMatch(${t.id})`);
+        
+        const isEafc = t.game === "EA FC 26";
+        
+        let statsA = isEafc 
+            ? `Rank: #${t.playerA.rank} | Win Rate: ${t.playerA.winRate} | Form: ${t.playerA.recentForm.join("-")} | Avg Goals: ${t.playerA.avgGoals}`
+            : `Rank: #${t.playerA.rank} | Win Rate: ${t.playerA.winRate} | Form: ${t.playerA.recentForm.join("-")} | Character: ${t.playerA.character}`;
+
+        let statsB = isEafc 
+            ? `Rank: #${t.playerB.rank} | Win Rate: ${t.playerB.winRate} | Form: ${t.playerB.recentForm.join("-")} | Avg Goals: ${t.playerB.avgGoals}`
+            : `Rank: #${t.playerB.rank} | Win Rate: ${t.playerB.winRate} | Form: ${t.playerB.recentForm.join("-")} | Character: ${t.playerB.character}`;
+
+        card.innerHTML = `
+            <div class="match-info-top" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+                <span class="player-status-badge" style="background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">${t.banner}</span>
+                <span style="color: var(--neon-teal); font-size: 0.75rem; font-weight: 600; cursor: pointer;">📺 WATCH STREAM</span>
+            </div>
+            
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.8rem;">
+                ${t.title}
+            </div>
+
+            <!-- Head-to-Head Stats -->
+            <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem;" onclick="event.stopPropagation()">
+                <!-- Player A -->
+                <div class="glass" style="padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); background: rgba(255,255,255,0.01);">
+                    <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.85rem; color: var(--neon-teal);">
+                        <span>🎮 ${t.playerA.name} (${t.playerA.country})</span>
+                        <span>Odds: ${t.playerA.odds.toFixed(2)}x</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.2rem; font-family: monospace;">
+                        ${statsA}
+                    </div>
+                </div>
+                <!-- Player B -->
+                <div class="glass" style="padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); background: rgba(255,255,255,0.01);">
+                    <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.85rem; color: var(--neon-pink);">
+                        <span>🎮 ${t.playerB.name} (${t.playerB.country})</span>
+                        <span>Odds: ${t.playerB.odds.toFixed(2)}x</span>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.2rem; font-family: monospace;">
+                        ${statsB}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staking Odds Buttons -->
+            <div class="match-odds-row" style="grid-template-columns: repeat(2, 1fr); gap: 0.8rem;" onclick="event.stopPropagation()">
+                <button class="odds-btn" onclick="selectTournamentOdds(${t.id}, 0, ${t.playerA.odds}, '${t.playerA.name} Win', '${t.title}')" style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; border-radius: 8px;">
+                    <span class="odds-label" style="font-size: 0.8rem;">${t.playerA.name}</span>
+                    <span class="odds-value" style="color: var(--neon-teal); font-weight: bold;">${t.playerA.odds.toFixed(2)}x</span>
+                </button>
+                <button class="odds-btn" onclick="selectTournamentOdds(${t.id}, 1, ${t.playerB.odds}, '${t.playerB.name} Win', '${t.title}')" style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; border-radius: 8px;">
+                    <span class="odds-label" style="font-size: 0.8rem;">${t.playerB.name}</span>
+                    <span class="odds-value" style="color: var(--neon-pink); font-weight: bold;">${t.playerB.odds.toFixed(2)}x</span>
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
 }
 
 function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle) {
@@ -1777,9 +1918,20 @@ function renderActiveWagers() {
             statusBadge = `<span style="color:var(--neon-pink); font-size:0.75rem;">Lost</span>`;
         }
 
+        let fixtureName = `Game #${w.gameId}`;
+        const match = MATCHES_DATA.find(m => m.id === w.gameId);
+        if (match) {
+            fixtureName = `${match.homeTeam} vs ${match.awayTeam}`;
+        } else {
+            const tournament = TOURNAMENTS_DATA.find(t => t.id === w.gameId);
+            if (tournament) {
+                fixtureName = tournament.title;
+            }
+        }
+
         item.innerHTML = `
             <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-secondary);">
-                <span>Game #${w.gameId}</span>
+                <span>${fixtureName}</span>
                 ${statusBadge}
             </div>
             <div style="font-weight:600; margin:0.3rem 0; font-size:0.85rem;">Option: ${w.outcomeLabel}</div>
@@ -1800,8 +1952,16 @@ function shareWagerToChat(idx) {
     const w = localWagers[idx];
     if (!w) return;
     
+    let fixture = `Match #${w.gameId}`;
     const match = MATCHES_DATA.find(m => m.id === w.gameId);
-    const fixture = match ? `${match.homeTeam} vs ${match.awayTeam}` : `Match #${w.gameId}`;
+    if (match) {
+        fixture = `${match.homeTeam} vs ${match.awayTeam}`;
+    } else {
+        const tournament = TOURNAMENTS_DATA.find(t => t.id === w.gameId);
+        if (tournament) {
+            fixture = tournament.title;
+        }
+    }
     
     // SHARE-BET:gameId|outcomeLabel|odds|stake|fixture|outcomeId
     const msg = `SHARE-BET:${w.gameId}|${w.outcomeLabel}|${w.odds}|${w.amount}|${fixture}|${w.outcomeId}`;
@@ -2079,7 +2239,26 @@ function setBettingMarket(matchId, marketKey) {
 
 function selectActiveMatch(matchId) {
     activeMatchId = matchId;
-    const match = MATCHES_DATA.find(m => m.id === matchId);
+    let match = MATCHES_DATA.find(m => m.id === matchId);
+    let isTournament = false;
+    let tournament = null;
+    
+    if (!match) {
+        tournament = TOURNAMENTS_DATA.find(t => t.id === matchId);
+        if (tournament) {
+            isTournament = true;
+            match = {
+                id: tournament.id,
+                homeTeam: tournament.playerA.name,
+                awayTeam: tournament.playerB.name,
+                time: "Upcoming",
+                status: "UPCOMING",
+                score: { home: 0, away: 0 },
+                league: tournament.game + " Tournament"
+            };
+        }
+    }
+    
     if (!match) return;
     
     // Update live player scoreboard
@@ -2090,12 +2269,29 @@ function selectActiveMatch(matchId) {
     
     const liveTimeEl = document.getElementById("player-live-time");
     if (liveTimeEl) {
-        liveTimeEl.textContent = match.time + (match.status === 'LIVE' && match.time !== 'Upcoming' ? ':00' : '');
+        liveTimeEl.textContent = match.time;
     }
     
     document.getElementById("stream-title").textContent = `${match.homeTeam} vs ${match.awayTeam} - Routed Feed`;
     
-    updateStreamProvidersForMatch(match);
+    if (isTournament && tournament) {
+        // Automatically set player to HLS direct and load the stream
+        const playerFrame = document.getElementById("video-iframe-player");
+        const mockPlayer = document.getElementById("mock-video-player");
+        const video = document.getElementById("hls-video-player");
+        
+        playerFrame.style.display = "none";
+        mockPlayer.style.display = "none";
+        video.style.display = "block";
+        
+        initHlsPlayer(video, tournament.streamUrl);
+        document.getElementById("stream-title").textContent = `${tournament.title} - Active Stream`;
+        
+        showToast(`Watching E-Sports Stream: ${tournament.title}`, "info");
+    } else {
+        updateStreamProvidersForMatch(match);
+    }
+    
     renderLiveMatches();
     
     // Update match center tabs (Lineups and Timeline)
