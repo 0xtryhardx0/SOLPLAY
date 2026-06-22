@@ -596,7 +596,7 @@ let localWagers = [];
 let localLPDeposited = 0;
 
 // Initialize on page load
-window.addEventListener('load', () => {
+function initApp() {
     // Connect to local validator
     try {
         connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
@@ -634,7 +634,13 @@ window.addEventListener('load', () => {
     // Render multi-league matches and select default
     renderLiveMatches();
     selectActiveMatch(999);
-});
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initApp();
+} else {
+    window.addEventListener('load', initApp);
+}
 
 // 1. Wallet Management (Local Sandbox Wallet)
 function loadOrCreateWallet() {
@@ -2563,8 +2569,10 @@ function startMatchTimer() {
                 matchStatus = 'FT';
                 clearInterval(matchTimer);
             }
-            document.getElementById("player-live-time").textContent = `${matchTime}:00`;
-            document.getElementById("match-card-time").textContent = `${matchTime}'`;
+            const plt = document.getElementById("player-live-time");
+            if (plt) plt.textContent = `${matchTime}:00`;
+            const mct = document.getElementById("match-card-time");
+            if (mct) mct.textContent = `${matchTime}'`;
         }
     }, 5000); // Ticks fast for local testing
 }
@@ -2609,6 +2617,10 @@ async function createLocalAccount(newAccountKeypair, space) {
 // Helper: Toast Notifications
 function showToast(message, type = "info") {
     const container = document.getElementById("toast-container");
+    if (!container) {
+        console.log(`[Toast Fallback] [${type}] ${message}`);
+        return;
+    }
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
     
