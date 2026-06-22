@@ -2860,6 +2860,25 @@ async function switchNetwork() {
 // Unified robust transaction sender & confirmation checker
 async function sendConfirmAndVerifyTransaction(tx, signers) {
     try {
+        // Fetch and inject dynamic priority fees and compute budget limit
+        let priorityFee = 1000;
+        try {
+            const fees = await connection.getRecentPrioritizationFees();
+            if (fees && fees.length > 0) {
+                // Get the 75th percentile fee to ensure quick inclusion
+                const sorted = fees.map(f => f.prioritizationFee).sort((a, b) => a - b);
+                const p75 = sorted[Math.floor(sorted.length * 0.75)];
+                priorityFee = Math.max(1000, p75);
+            }
+        } catch (feeError) {
+            console.error("Error fetching priority fees, using fallback:", feeError);
+        }
+
+        // Safe compute budget parameters: set CU limit to 120,000 and dynamic price
+        const limitInstruction = solanaWeb3.ComputeBudgetProgram.setComputeUnitLimit({ limit: 120000 });
+        const priceInstruction = solanaWeb3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityFee });
+        tx.instructions.unshift(limitInstruction, priceInstruction);
+
         let sig;
         if (activeWalletType === 'phantom') {
             if (!window.solana) {
