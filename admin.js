@@ -86,7 +86,7 @@ window.addEventListener('load', () => {
     // Load program ID
     let savedProgramId = localStorage.getItem("solplay_program_id");
     if (!savedProgramId) {
-        savedProgramId = "GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va";
+        savedProgramId = "84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk";
     }
     document.getElementById("admin-program-id").value = savedProgramId;
     currentProgramId = new solanaWeb3.PublicKey(savedProgramId);

@@ -211,6 +211,13 @@ fn place_wager(
     let game_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
     let prediction = data[8]; // 0=Home, 1=Away, 2=Draw
     let amount = u64::from_le_bytes(data[9..17].try_into().unwrap());
+    
+    // Enforce 5 SOL soft-launch wager cap (5,000,000,000 lamports)
+    if amount > 5_000_000_000 {
+        msg!("Error: Wager amount exceeds the soft-launch cap of 5 SOL");
+        return Err(ProgramError::InvalidArgument);
+    }
+    
     let is_routed = data[17]; // 0=Pool, 1=Routed
     let mut copy_creator_bytes = [0u8; 32];
     copy_creator_bytes.copy_from_slice(&data[18..50]);

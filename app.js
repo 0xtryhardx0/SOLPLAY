@@ -54,7 +54,7 @@ let connection;
 let walletKeypair = null;
 let activeWalletType = 'sandbox'; // 'sandbox' or 'phantom'
 let activePublicKey = null;
-let currentProgramId = new solanaWeb3.PublicKey("GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va");
+let currentProgramId = new solanaWeb3.PublicKey("84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk");
 let activeSelection = null;
 let milestoneProgress = 0;
 let watchTimer = null;
@@ -615,7 +615,7 @@ function initApp() {
     // Check if Program ID is stored in localStorage, default to target deployment
     let savedProgramId = localStorage.getItem("solplay_program_id");
     if (!savedProgramId) {
-        savedProgramId = "GdonKLys4qtYAXyvAqGXNxnj3rQ8hCTjtDrSescct7va";
+        savedProgramId = "84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk";
         localStorage.setItem("solplay_program_id", savedProgramId);
     }
     const adminProgIdEl = document.getElementById("admin-program-id");
@@ -1814,6 +1814,13 @@ async function placeBet() {
     const stakeSol = parseFloat(document.getElementById("stake-amount").value);
     if (!stakeSol || stakeSol <= 0) {
         showToast("Enter a valid stake.", "error");
+        return;
+    }
+
+    // Client-side guard for the 5 SOL soft-launch cap
+    const MAX_WAGER_CAP = 5.0;
+    if (stakeSol > MAX_WAGER_CAP) {
+        showToast(`Wager exceeds the soft-launch cap of ${MAX_WAGER_CAP} SOL.`, "error");
         return;
     }
 
