@@ -71,16 +71,24 @@ const ADMIN_MATCHES = {
     994: { home: "Inter Milan", away: "Juventus" },
     993: { home: "Bayern Munich", away: "Dortmund" },
     1001: { home: "phzin", away: "Tekkz" },
-    1002: { home: "SonicFox", away: "Dominique" }
+    1002: { home: "SonicFox", away: "Dominique" },
+    2026: { home: "Portugal", away: "Uzbekistan" }
 };
 
 // Initialize on page load
 window.addEventListener('load', () => {
-    // Connect to local validator
+    // Connect to correct validator/network
     try {
-        connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
+        const savedNetwork = localStorage.getItem("solplay_network");
+        if (savedNetwork === "devnet") {
+            connection = new solanaWeb3.Connection("https://api.devnet.solana.com", "confirmed");
+            console.log("Connected to Solana Devnet");
+        } else {
+            connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
+            console.log("Connected to Solana Localnet");
+        }
     } catch (e) {
-        showToast("Failed to connect to local validator.", "error");
+        showToast("Failed to connect to validator.", "error");
     }
 
     // Load program ID

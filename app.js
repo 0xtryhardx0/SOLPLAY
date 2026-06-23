@@ -62,9 +62,22 @@ let isWalletConnected = false;
 let currentBettingTab = 'live';
 
 // Simulated match state
-let activeMatchId = 999; // Default to World Cup
+let activeMatchId = 2026; // Default to Portugal vs Uzbekistan World Cup Match
 
 const MATCHES_DATA = [
+    {
+        id: 2026,
+        league: "World Cup Group K • Live",
+        homeTeam: "Portugal",
+        awayTeam: "Uzbekistan",
+        time: "10'",
+        status: "LIVE",
+        score: { home: 0, away: 0 },
+        formation: { home: "4-3-3", away: "3-4-3" },
+        timeline: [
+            { time: "0'", type: "start", desc: "Match started", icon: "🏁" }
+        ]
+    },
     {
         id: 999,
         league: "World Cup Tonight • Live",
@@ -595,14 +608,343 @@ const MARKET_KEY = "market_999_account";
 let localWagers = [];
 let localLPDeposited = 0;
 
+// Dynamic squad database & generator
+function getSquadForTeam(teamName) {
+    const cleanName = teamName.trim().toLowerCase();
+    
+    const popularTeams = {
+        portugal: {
+            formation: "4-3-3",
+            lineup: [
+                { num: 1, name: "Diogo Costa", pos: "GK" },
+                { num: 2, name: "Nelson Semedo", pos: "DF" },
+                { num: 3, name: "Pepe", pos: "DF" },
+                { num: 4, name: "Ruben Dias", pos: "DF" },
+                { num: 19, name: "Nuno Mendes", pos: "DF" },
+                { num: 6, name: "Joao Palhinha", pos: "MF" },
+                { num: 8, name: "Bruno Fernandes", pos: "MF" },
+                { num: 23, name: "Vitinha", pos: "MF" },
+                { num: 10, name: "Bernardo Silva", pos: "FW" },
+                { num: 7, name: "Cristiano Ronaldo", pos: "FW" },
+                { num: 17, name: "Rafael Leao", pos: "FW" }
+            ],
+            subs: ["Rui Patricio", "Goncalo Inacio", "Diogo Dalot", "Joao Neves", "Ruben Neves", "Joao Felix", "Goncalo Ramos", "Diogo Jota"]
+        },
+        uzbekistan: {
+            formation: "3-4-3",
+            lineup: [
+                { num: 1, name: "Utkir Yusupov", pos: "GK" },
+                { num: 4, name: "Farrukh Sayfiev", pos: "DF" },
+                { num: 5, name: "Rustam Ashurmatov", pos: "DF" },
+                { num: 15, name: "Umar Eshmurodov", pos: "DF" },
+                { num: 3, name: "Khojiakbar Alijonov", pos: "MF" },
+                { num: 7, name: "Otabek Shukurov", pos: "MF" },
+                { num: 9, name: "Odiljon Hamrobekov", pos: "MF" },
+                { num: 13, name: "Sherzod Nasrullaev", pos: "MF" },
+                { num: 22, name: "Abbosbek Faizullaev", pos: "FW" },
+                { num: 14, name: "Eldor Shomurodov", pos: "FW" },
+                { num: 10, name: "Jaloliddin Masharipov", pos: "FW" }
+            ],
+            subs: ["Abduvohid Nematov", "Husniddin Aliqulov", "Zafarmurod Abdurakhmatov", "Jamshid Iskanderov", "Diyor Kholmatov", "Oston Urunov", "Igor Sergeev", "Bobur Abdikholikov"]
+        },
+        brazil: {
+            formation: "4-3-3",
+            lineup: [
+                { num: 1, name: "Alisson Becker", pos: "GK" },
+                { num: 2, name: "Danilo", pos: "DF" },
+                { num: 3, name: "Marquinhos", pos: "DF" },
+                { num: 4, name: "Gabriel Magalhaes", pos: "DF" },
+                { num: 6, name: "Guilherme Arana", pos: "DF" },
+                { num: 5, name: "Bruno Guimaraes", pos: "MF" },
+                { num: 8, name: "Lucas Paqueta", pos: "MF" },
+                { num: 10, name: "Rodrygo Goes", pos: "MF" },
+                { num: 7, name: "Vinicius Junior", pos: "FW" },
+                { num: 9, name: "Endrick", pos: "FW" },
+                { num: 11, name: "Raphinha", pos: "FW" }
+            ],
+            subs: ["Ederson", "Lucas Beraldo", "Douglas Luiz", "Andreas Pereira", "Savinho", "Gabriel Martinelli"]
+        },
+        france: {
+            formation: "4-2-3-1",
+            lineup: [
+                { num: 16, name: "Mike Maignan", pos: "GK" },
+                { num: 5, name: "Jules Kounde", pos: "DF" },
+                { num: 4, name: "Dayot Upamecano", pos: "DF" },
+                { num: 17, name: "William Saliba", pos: "DF" },
+                { num: 22, name: "Theo Hernandez", pos: "DF" },
+                { num: 8, name: "Aurelien Tchouameni", pos: "MF" },
+                { num: 13, name: "N'Golo Kante", pos: "MF" },
+                { num: 11, name: "Ousmane Dembele", pos: "MF" },
+                { num: 7, name: "Antoine Griezmann", pos: "MF" },
+                { num: 20, name: "Kingsley Coman", pos: "MF" },
+                { num: 10, name: "Kylian Mbappe", pos: "FW" }
+            ],
+            subs: ["Brice Samba", "Ibrahima Konate", "Eduardo Camavinga", "Warren Zaire-Emery", "Bradley Barcola", "Olivier Giroud"]
+        },
+        arsenal: {
+            formation: "4-3-3",
+            lineup: [
+                { num: 22, name: "David Raya", pos: "GK" },
+                { num: 4, name: "Ben White", pos: "DF" },
+                { num: 2, name: "William Saliba", pos: "DF" },
+                { num: 6, name: "Gabriel Magalhaes", pos: "DF" },
+                { num: 12, name: "Jurrien Timber", pos: "DF" },
+                { num: 41, name: "Declan Rice", pos: "MF" },
+                { num: 5, name: "Thomas Partey", pos: "MF" },
+                { num: 8, name: "Martin Odegaard", pos: "MF" },
+                { num: 7, name: "Bukayo Saka", pos: "FW" },
+                { num: 29, name: "Kai Havertz", pos: "FW" },
+                { num: 11, name: "Gabriel Martinelli", pos: "FW" }
+            ],
+            subs: ["Neto", "Riccardo Calafiori", "Oleksandr Zinchenko", "Jorginho", "Mikel Merino", "Leandro Trossard", "Raheem Sterling", "Gabriel Jesus"]
+        },
+        chelsea: {
+            formation: "4-2-3-1",
+            lineup: [
+                { num: 1, name: "Robert Sanchez", pos: "GK" },
+                { num: 27, name: "Malo Gusto", pos: "DF" },
+                { num: 29, name: "Wesley Fofana", pos: "DF" },
+                { num: 6, name: "Levi Colwill", pos: "DF" },
+                { num: 3, name: "Marc Cucurella", pos: "DF" },
+                { num: 25, name: "Moises Caicedo", pos: "MF" },
+                { num: 45, name: "Romeo Lavia", pos: "MF" },
+                { num: 11, name: "Noni Madueke", pos: "MF" },
+                { num: 20, name: "Cole Palmer", pos: "MF" },
+                { num: 19, name: "Jadon Sancho", pos: "MF" },
+                { num: 15, name: "Nicolas Jackson", pos: "FW" }
+            ],
+            subs: ["Filip Jorgensen", "Tosin Adarabioyo", "Renato Veiga", "Enzo Fernandez", "Kiernan Dewsbury-Hall", "Pedro Neto", "Joao Felix", "Christopher Nkunku"]
+        }
+    };
+    
+    if (popularTeams[cleanName]) {
+        return popularTeams[cleanName];
+    }
+    
+    const firstNames = ["James", "David", "Robert", "John", "Michael", "Thomas", "Daniel", "Carlos", "Luis", "Jose", "Ivan", "Luka", "Andres", "Mateo", "Alex", "Pierre", "Marco", "Diego", "Sergi", "Ken", "Ali", "Yuki", "Kim"];
+    const lastNames = ["Smith", "Jones", "Miller", "Davis", "Garcia", "Rodriguez", "Martinez", "Hernandez", "Silva", "Santos", "Ferreira", "Muller", "Schmidt", "Dubois", "Martin", "Rossi", "Bianchi", "Kovac", "Novak", "Ivanov", "Petrov", "Aliyev", "Rahman"];
+    
+    let seed = 0;
+    for (let i = 0; i < cleanName.length; i++) {
+        seed += cleanName.charCodeAt(i);
+    }
+    
+    function seededRandom(max, min = 0) {
+        seed = (seed * 9301 + 49297) % 233280;
+        const rnd = seed / 233280;
+        return Math.floor(min + rnd * (max - min));
+    }
+    
+    const generatedLineup = [];
+    const positions = ["GK", "DF", "DF", "DF", "DF", "MF", "MF", "MF", "FW", "FW", "FW"];
+    const numbersUsed = new Set();
+    
+    positions.forEach((pos, idx) => {
+        let num;
+        if (pos === "GK") num = 1;
+        else {
+            do {
+                num = seededRandom(99, 2);
+            } while (numbersUsed.has(num));
+        }
+        numbersUsed.add(num);
+        
+        const firstName = firstNames[seededRandom(firstNames.length)];
+        const lastName = lastNames[seededRandom(lastNames.length)];
+        generatedLineup.push({
+            num: num,
+            name: `${firstName[0]}. ${lastName}`,
+            pos: pos
+        });
+    });
+    
+    const generatedSubs = [];
+    for (let i = 0; i < 6; i++) {
+        const firstName = firstNames[seededRandom(firstNames.length)];
+        const lastName = lastNames[seededRandom(lastNames.length)];
+        generatedSubs.push(`${firstName[0]}. ${lastName}`);
+    }
+    
+    return {
+        formation: "4-3-3",
+        lineup: generatedLineup,
+        subs: generatedSubs
+    };
+}
+
+async function fetchSquadForTeam(teamName) {
+    const cleanName = teamName.trim();
+    const local = getSquadForTeam(cleanName);
+    
+    try {
+        const searchUrl = `https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(cleanName)}`;
+        const searchResp = await fetch(searchUrl);
+        const searchData = await searchResp.json();
+        
+        if (!searchData || !searchData.teams || searchData.teams.length === 0) {
+            console.log(`Team "${cleanName}" not found in SportsDB. Using local generator.`);
+            return local;
+        }
+        
+        const teamId = searchData.teams[0].idTeam;
+        const lookupUrl = `https://www.thesportsdb.com/api/v1/json/3/lookup_all_players.php?id=${teamId}`;
+        const lookupResp = await fetch(lookupUrl);
+        const lookupData = await lookupResp.json();
+        
+        if (!lookupData || !lookupData.player || lookupData.player.length === 0) {
+            console.log(`No players found for team ID ${teamId}. Using local generator.`);
+            return local;
+        }
+        
+        const rawPlayers = lookupData.player;
+        const processed = [];
+        const seenNumbers = new Set();
+        
+        rawPlayers.forEach(p => {
+            let pos = "MF";
+            const rawPos = (p.strPosition || "").toLowerCase();
+            if (rawPos.includes("gk") || rawPos.includes("goalkeeper")) pos = "GK";
+            else if (rawPos.includes("back") || rawPos.includes("def") || rawPos.includes("guard")) pos = "DF";
+            else if (rawPos.includes("mid") || rawPos.includes("cent") || rawPos.includes("wingback")) pos = "MF";
+            else if (rawPos.includes("forw") || rawPos.includes("strik") || rawPos.includes("wing") || rawPos.includes("attack")) pos = "FW";
+            
+            let num = parseInt(p.strNumber);
+            if (isNaN(num) || num <= 0 || num > 99) {
+                num = null;
+            }
+            
+            processed.push({
+                name: p.strPlayer,
+                pos: pos,
+                num: num
+            });
+        });
+        
+        const gks = processed.filter(p => p.pos === "GK");
+        const dfs = processed.filter(p => p.pos === "DF");
+        const mfs = processed.filter(p => p.pos === "MF");
+        const fws = processed.filter(p => p.pos === "FW");
+        
+        const lineup = [];
+        const subs = [];
+        
+        if (gks.length > 0) lineup.push(gks[0]);
+        else if (processed.length > 0) lineup.push(processed[0]);
+        
+        for (let i = 0; i < 4; i++) {
+            const list = dfs.filter(x => !lineup.includes(x));
+            if (list.length > 0) lineup.push(list[0]);
+        }
+        
+        for (let i = 0; i < 3; i++) {
+            const list = mfs.filter(x => !lineup.includes(x));
+            if (list.length > 0) lineup.push(list[0]);
+        }
+        
+        for (let i = 0; i < 3; i++) {
+            const list = fws.filter(x => !lineup.includes(x));
+            if (list.length > 0) lineup.push(list[0]);
+        }
+        
+        processed.forEach(p => {
+            if (lineup.length < 11 && !lineup.includes(p)) {
+                lineup.push(p);
+            }
+        });
+        
+        processed.forEach(p => {
+            if (!lineup.includes(p)) {
+                subs.push(p.name);
+            }
+        });
+        
+        lineup.forEach((p, idx) => {
+            if (!p.num || seenNumbers.has(p.num)) {
+                let temp = p.pos === "GK" ? 1 : idx + 2;
+                while (seenNumbers.has(temp)) {
+                    temp++;
+                }
+                p.num = temp;
+            }
+            seenNumbers.add(p.num);
+        });
+        
+        const limitedSubs = subs.slice(0, 8);
+        if (limitedSubs.length === 0) {
+            limitedSubs.push("J. Silva", "M. Santos", "A. Ferreira");
+        }
+        
+        return {
+            formation: "4-3-3",
+            lineup: lineup,
+            subs: limitedSubs
+        };
+        
+    } catch (err) {
+        console.warn("fetchSquadForTeam error:", err);
+        return local;
+    }
+}
+
+async function loadMatchSquadsAsync(match) {
+    if (!match) return;
+    if (match.isDynamicSquad) {
+        return;
+    }
+    
+    const container = document.getElementById("lineups-scroll-container");
+    if (container && activeMatchId === match.id) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 2rem 0;"><div class="animate-pulse">🔄 Fetching real squad from SportsDB...</div></div>`;
+    }
+    
+    try {
+        const homeSquad = await fetchSquadForTeam(match.homeTeam);
+        const awaySquad = await fetchSquadForTeam(match.awayTeam);
+        
+        match.formation = { home: homeSquad.formation, away: awaySquad.formation };
+        match.lineup = { home: homeSquad.lineup, away: awaySquad.lineup };
+        match.subs = { home: homeSquad.subs, away: awaySquad.subs };
+        match.isDynamicSquad = true;
+        
+        if (activeMatchId === match.id) {
+            renderMatchLineups();
+            renderLiveMatches();
+        }
+    } catch (e) {
+        console.error("Failed to load dynamic squad:", e);
+        const homeSquad = getSquadForTeam(match.homeTeam);
+        const awaySquad = getSquadForTeam(match.awayTeam);
+        match.formation = { home: homeSquad.formation, away: awaySquad.formation };
+        match.lineup = { home: homeSquad.lineup, away: awaySquad.lineup };
+        match.subs = { home: homeSquad.subs, away: awaySquad.subs };
+        match.isDynamicSquad = true;
+        
+        if (activeMatchId === match.id) {
+            renderMatchLineups();
+            renderLiveMatches();
+        }
+    }
+}
+
 // Initialize on page load
 function initApp() {
-    // Connect to local validator
+    // Connect to correct validator/network based on saved settings
+    const savedNetwork = localStorage.getItem("solplay_network") || "localnet";
+    const rpcSelect = document.getElementById("network-rpc-select");
+    if (rpcSelect) {
+        rpcSelect.value = savedNetwork;
+    }
+    
     try {
-        connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
-        showToast("Connected to Solana Localnet Validator!", "success");
+        if (savedNetwork === "localnet") {
+            connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
+            showToast("Connected to Solana Localnet Validator!", "success");
+        } else {
+            connection = new solanaWeb3.Connection("https://api.devnet.solana.com", "confirmed");
+            showToast("Connected to Solana Devnet!", "success");
+        }
     } catch (e) {
-        showToast("Failed to connect to Localnet validator. Running in offline fallback.", "error");
+        showToast("Failed to connect to validator. Running in offline fallback.", "error");
     }
 
     // Load wallet if stored
@@ -633,10 +975,121 @@ function initApp() {
 
     // Render multi-league matches and select default
     renderLiveMatches();
-    selectActiveMatch(999);
+    selectActiveMatch(2026);
     
     // Render Leaderboard data
     renderLeaderboard();
+
+    // Start fetching and polling autonomous oracle config
+    loadOracleConfig();
+    setInterval(loadOracleConfig, 5000);
+}
+
+// Global active oracle matches config & dynamic pubkey helpers
+window.activeOracleMatches = null;
+
+function getMarketPubkeyForMatch(matchId) {
+    if (window.activeOracleMatches && window.activeOracleMatches.matches && window.activeOracleMatches.matches[matchId]) {
+        return new solanaWeb3.PublicKey(window.activeOracleMatches.matches[matchId].marketPubkey);
+    }
+    return getOrCreateAccountKeypair("market_999").publicKey;
+}
+
+function getPlatformStatePubkey() {
+    if (window.activeOracleMatches && window.activeOracleMatches.platformStatePubkey) {
+        return new solanaWeb3.PublicKey(window.activeOracleMatches.platformStatePubkey);
+    }
+    return getOrCreateAccountKeypair("platform_state").publicKey;
+}
+
+function getTreasuryPubkey() {
+    if (window.activeOracleMatches && window.activeOracleMatches.treasuryPubkey) {
+        return new solanaWeb3.PublicKey(window.activeOracleMatches.treasuryPubkey);
+    }
+    return getOrCreateAccountKeypair("treasury").publicKey;
+}
+
+function getCreatorPubkey() {
+    if (window.activeOracleMatches && window.activeOracleMatches.creatorPubkey) {
+        return new solanaWeb3.PublicKey(window.activeOracleMatches.creatorPubkey);
+    }
+    return getOrCreateAccountKeypair("punter_creator").publicKey;
+}
+
+async function loadOracleConfig() {
+    try {
+        const resp = await fetch("/active_matches.json?t=" + Date.now());
+        if (resp.ok) {
+            const data = await resp.json();
+            window.activeOracleMatches = data;
+            
+            // Show status badge
+            const badge = document.getElementById("oracle-status-badge");
+            if (badge) {
+                badge.classList.remove("hidden");
+                badge.style.display = "flex";
+            }
+            
+            if (data.matches) {
+                for (const gameId in data.matches) {
+                    const oMatch = data.matches[gameId];
+                    let match = MATCHES_DATA.find(m => m.id === parseInt(gameId));
+                    if (!match) {
+                        match = {
+                            id: oMatch.gameId,
+                            homeTeam: oMatch.homeTeam,
+                            awayTeam: oMatch.awayTeam,
+                            league: "World Cup Group K • Live",
+                            status: oMatch.status,
+                            score: oMatch.score,
+                            time: oMatch.time,
+                            timeline: oMatch.timeline || [],
+                            formation: { home: "4-3-3", away: "3-4-3" }
+                        };
+                        MATCHES_DATA.unshift(match);
+                    } else {
+                        match.status = oMatch.status;
+                        match.score = oMatch.score;
+                        match.time = oMatch.time;
+                        match.timeline = oMatch.timeline || match.timeline;
+                    }
+                    
+                    // Settle locally to allow claiming in Portfolio UI
+                    if (match.status === "FINISHED") {
+                        localWagers.forEach(w => {
+                            if (w.gameId === match.id) {
+                                w.status = "Resolved";
+                            }
+                        });
+                        renderActiveWagers();
+                    }
+                }
+                
+                renderLiveMatches();
+                
+                // Update live player scoreboard if active match matches
+                const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
+                if (activeMatch && data.matches[activeMatch.id.toString()]) {
+                    const liveScoreEl = document.getElementById("player-live-score");
+                    if (liveScoreEl) {
+                        liveScoreEl.innerHTML = `${activeMatch.homeTeam} <span id="player-score-home">${activeMatch.score.home}</span> - <span id="player-score-away">${activeMatch.score.away}</span> ${activeMatch.awayTeam}`;
+                    }
+                    const liveTimeEl = document.getElementById("player-live-time");
+                    if (liveTimeEl) {
+                        liveTimeEl.textContent = activeMatch.time;
+                    }
+                    renderMatchTimeline();
+                }
+            }
+        }
+    } catch (e) {
+        // Hide badge if offline
+        const badge = document.getElementById("oracle-status-badge");
+        if (badge) {
+            badge.classList.add("hidden");
+            badge.style.display = "none";
+        }
+    }
 }
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -982,7 +1435,65 @@ function updateStreamProviders() {
         providerSelect.appendChild(opt);
     });
     
+    // Add Custom option
+    const customOpt = document.createElement("option");
+    customOpt.value = "custom";
+    customOpt.textContent = "🔗 Custom Stream URL";
+    providerSelect.appendChild(customOpt);
+    
     switchStreamProvider();
+}
+
+function showCustomStreamInput(show) {
+    const customContainer = document.getElementById("custom-stream-container");
+    if (customContainer) {
+        if (show) {
+            customContainer.classList.remove("hidden");
+            customContainer.style.display = "flex";
+        } else {
+            customContainer.classList.add("hidden");
+            customContainer.style.display = "none";
+        }
+    }
+}
+
+function loadCustomStream() {
+    const urlInput = document.getElementById("custom-stream-url");
+    if (!urlInput || !urlInput.value.trim()) {
+        showToast("Please enter a valid stream URL", "error");
+        return;
+    }
+    
+    const url = urlInput.value.trim();
+    const playerFrame = document.getElementById("video-iframe-player");
+    const mockPlayer = document.getElementById("mock-video-player");
+    const video = document.getElementById("hls-video-player");
+    
+    document.getElementById("stream-title").textContent = `Custom Stream Link - Live Feed`;
+    
+    if (url.includes(".m3u8") || url.includes("m3u8")) {
+        playerFrame.style.display = "none";
+        mockPlayer.style.display = "none";
+        video.style.display = "block";
+        initHlsPlayer(video, url);
+        showToast("Custom HLS Stream Loaded Successfully!", "success");
+    } else {
+        let embedUrl = url;
+        if (url.includes("youtube.com/watch?v=")) {
+            const vidId = url.split("v=")[1].split("&")[0];
+            embedUrl = `https://www.youtube.com/embed/${vidId}?autoplay=1&mute=1`;
+        } else if (url.includes("youtu.be/")) {
+            const vidId = url.split("youtu.be/")[1].split("?")[0];
+            embedUrl = `https://www.youtube.com/embed/${vidId}?autoplay=1&mute=1`;
+        }
+        
+        video.style.display = "none";
+        mockPlayer.style.display = "none";
+        playerFrame.style.display = "block";
+        playerFrame.src = embedUrl;
+        destroyHlsPlayer();
+        showToast("Custom Embed Stream Loaded Successfully!", "success");
+    }
 }
 
 function switchStreamProvider() {
@@ -990,8 +1501,15 @@ function switchStreamProvider() {
     const providerSelect = document.getElementById("stream-provider-select");
     if (!regionSelect || !providerSelect) return;
     const selectedRegion = regionSelect.value;
-    const providerIdx = parseInt(providerSelect.value);
     
+    if (providerSelect.value === "custom") {
+        showCustomStreamInput(true);
+        return;
+    } else {
+        showCustomStreamInput(false);
+    }
+    
+    const providerIdx = parseInt(providerSelect.value);
     if (isNaN(providerIdx)) return;
     
     const provider = activeStreams[selectedRegion] ? activeStreams[selectedRegion][providerIdx] : null;
@@ -1830,8 +2348,8 @@ async function placeBet() {
     const lamports = Math.floor(stakeSol * solanaWeb3.LAMPORTS_PER_SOL);
 
     try {
-        const marketAccountPubkey = getOrCreateAccountKeypair("market_999").publicKey;
-        const platformStatePubkey = getOrCreateAccountKeypair("platform_state").publicKey;
+        const marketAccountPubkey = getMarketPubkeyForMatch(activeMatchId);
+        const platformStatePubkey = getPlatformStatePubkey();
 
         // Pre-check: Verify platform state is initialized
         const platformStateInfo = await connection.getAccountInfo(platformStatePubkey);
@@ -2001,10 +2519,10 @@ async function claimWagerOnchain(idx) {
     showToast("Submitting Claim Transaction to Solana...", "info");
 
     try {
-        const marketAccountPubkey = getOrCreateAccountKeypair("market_999").publicKey;
-        const platformStatePubkey = getOrCreateAccountKeypair("platform_state").publicKey;
-        const treasuryPubkey = getOrCreateAccountKeypair("treasury").publicKey;
-        const creatorPubkey = getOrCreateAccountKeypair("punter_creator").publicKey;
+        const marketAccountPubkey = getMarketPubkeyForMatch(w.gameId);
+        const platformStatePubkey = getPlatformStatePubkey();
+        const treasuryPubkey = getTreasuryPubkey();
+        const creatorPubkey = getCreatorPubkey();
 
         // Build ClaimWinnings Instruction (ID 4)
         // size: 9 bytes
@@ -2307,6 +2825,9 @@ function selectActiveMatch(matchId) {
     } else {
         updateStreamProvidersForMatch(match);
     }
+    
+    // Trigger async squad/lineups loading for the match
+    loadMatchSquadsAsync(match);
     
     renderLiveMatches();
     

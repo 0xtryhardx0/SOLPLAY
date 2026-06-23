@@ -561,6 +561,10 @@ void main() {
                 <option value="devnet" class="bg-surface text-white">🚀 Devnet</option>
             </select>
         </div>
+        <div id="oracle-status-badge" class="hidden md:flex items-center gap-2 px-3 py-1.5 glass-panel rounded-full border border-teal-500/35" style="background: rgba(13, 148, 136, 0.12);">
+            <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse" style="box-shadow: 0 0 8px #2dd4bf;"></span>
+            <span class="text-[10px] uppercase font-black tracking-widest text-teal-300">🤖 Autonomous Oracle Connected</span>
+        </div>
     </div>
 
     <!-- Floating Navigation Menu -->
@@ -637,19 +641,25 @@ void main() {
                         <div class="bg-error/20 text-error text-[10px] font-bold px-2 py-0.5 rounded border border-error/30 animate-pulse">LIVE</div>
                         <h2 class="text-headline-md font-bold text-white" id="stream-title">Arsenal vs Chelsea - Live Stream</h2>
                     </div>
-                    <div class="flex gap-2">
-                        <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-region-select" onchange="updateStreamProviders()">
-                            <option value="uk_eu">🇪🇺 UK & Europe</option>
-                            <option value="us_am">🇺🇸 US & Americas</option>
-                            <option value="africa">🌍 Africa</option>
-                            <option value="asia_in">🌏 Asia & India</option>
-                            <option value="mock" selected>⚡ Developer Mocks</option>
-                        </select>
-                        <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-provider-select" onchange="switchStreamProvider()">
-                            <option value="0">Server 1 (YouTube Live)</option>
-                            <option value="1">Server 2 (HLS Direct)</option>
-                            <option value="2">Server 3 (E-Sports Mock)</option>
-                        </select>
+                    <div class="flex flex-col gap-2 items-end">
+                        <div class="flex gap-2">
+                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-region-select" onchange="updateStreamProviders()">
+                                <option value="uk_eu">🇪🇺 UK & Europe</option>
+                                <option value="us_am">🇺🇸 US & Americas</option>
+                                <option value="africa">🌍 Africa</option>
+                                <option value="asia_in">🌏 Asia & India</option>
+                                <option value="mock" selected>⚡ Developer Mocks</option>
+                            </select>
+                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-provider-select" onchange="switchStreamProvider()">
+                                <option value="0">Server 1 (YouTube Live)</option>
+                                <option value="1">Server 2 (HLS Direct)</option>
+                                <option value="2">Server 3 (E-Sports Mock)</option>
+                            </select>
+                        </div>
+                        <div id="custom-stream-container" class="hidden w-full max-w-[320px] p-1.5 glass-panel rounded-lg flex gap-1.5 items-center border border-white/5" style="background: rgba(0,0,0,0.3);">
+                            <input type="text" id="custom-stream-url" placeholder="Paste .m3u8 HLS or YouTube URL..." class="bg-transparent border-none text-[10px] text-white focus:ring-0 flex-1 outline-none px-2 py-0.5 w-full" style="font-family: monospace;">
+                            <button onclick="loadCustomStream()" class="bg-primary hover:bg-primary-hover text-white text-[10px] px-3 py-1 rounded font-bold transition-all" style="background: linear-gradient(135deg, var(--neon-teal), #0d9488);">Load</button>
+                        </div>
                     </div>
                 </div>
 
