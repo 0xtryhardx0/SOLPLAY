@@ -562,6 +562,41 @@ void main() {
             </select>
         </div>
     </div>
+
+    <!-- Floating Navigation Menu -->
+    <nav class="hidden lg:flex items-center gap-6">
+        <button onclick="switchTab('sports')" class="text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">Bet Now</button>
+        
+        <!-- Markets Dropdown -->
+        <div class="relative group">
+            <button class="flex items-center gap-1 text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 transition-all uppercase tracking-widest outline-none">
+                Markets
+                <span class="material-symbols-outlined text-[14px]">keyboard_arrow_down</span>
+            </button>
+            <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl glass-panel border border-white/5 backdrop-blur-3xl py-2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200">
+                <button onclick="selectActiveMatch(999); switchTab('sports')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🏆 World Cup</button>
+                <button onclick="switchTab('sports'); switchBettingTab('tournaments')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🎮 E-Sports</button>
+                <button onclick="switchTab('sports'); switchBettingTab('custom')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🎯 Custom Pools</button>
+            </div>
+        </div>
+
+        <!-- Live Events Dropdown -->
+        <div class="relative group">
+            <button class="flex items-center gap-1 text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 transition-all uppercase tracking-widest outline-none">
+                Live Events
+                <span class="material-symbols-outlined text-[14px]">keyboard_arrow_down</span>
+            </button>
+            <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl glass-panel border border-white/5 backdrop-blur-3xl py-2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200">
+                <button onclick="document.getElementById('stream-title').scrollIntoView({behavior: 'smooth'})" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">📹 Watch stream</button>
+                <button onclick="switchMatchTab('lineups'); document.getElementById('stream-title').scrollIntoView({behavior: 'smooth'})" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">⚡ Edge Speedtest</button>
+            </div>
+        </div>
+
+        <button onclick="switchTab('wagers')" class="text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">Portfolio</button>
+        <button onclick="switchTab('leaderboard')" class="text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">Leaderboard</button>
+        <button onclick="document.getElementById('wallet-type-select').scrollIntoView({behavior: 'smooth'}); document.getElementById('wallet-type-select').classList.add('animate-pulse'); setTimeout(() => document.getElementById('wallet-type-select').classList.remove('animate-pulse'), 2000)" class="text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">Wallet</button>
+    </nav>
+
     <div class="flex items-center gap-4">
         <!-- Balance Display -->
         <div class="hidden md:flex items-center gap-3 px-4 py-2 glass-panel rounded-xl" id="sol-balance-container" style="display: none;">
@@ -927,6 +962,44 @@ void main() {
                         <div class="grid grid-cols-2 gap-4">
                             <button class="w-full py-3 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 font-bold text-label-sm hover:bg-secondary hover:text-on-secondary transition-all glass-shine" onclick="buyMemeToken(0.1)">BUY 0.1 SOL</button>
                             <button class="w-full py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-label-sm hover:bg-primary hover:text-on-primary transition-all glass-shine" onclick="buyMemeToken(0.5)">BUY 0.5 SOL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Panel -->
+                <div class="hidden flex flex-col gap-6 tab-panel" id="panel-leaderboard" style="display: none;">
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col gap-6 glass-shine border-primary/20">
+                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                            <div>
+                                <h3 class="text-headline-md font-black text-white flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-secondary">emoji_events</span>
+                                    Leaderboard
+                                </h3>
+                                <p class="text-label-sm text-on-surface/50 font-normal mt-1">Top traders, prediction masters, and copy-bet creators on Solana.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Top 3 Bettors Cards -->
+                        <div class="grid grid-cols-3 gap-4" id="leaderboard-podium">
+                            <!-- Populated dynamically from app.js -->
+                        </div>
+                        
+                        <!-- Detailed Rankings Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-label-sm text-on-surface/70">
+                                <thead>
+                                    <tr class="border-b border-white/5 text-on-surface/40">
+                                        <th class="py-3 px-2">Rank</th>
+                                        <th class="py-3">Bettor</th>
+                                        <th class="py-3 text-right">Win Rate</th>
+                                        <th class="py-3 text-right">Wagers</th>
+                                        <th class="py-3 text-right">Total Profit</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-rows">
+                                    <!-- Populated dynamically in app.js -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

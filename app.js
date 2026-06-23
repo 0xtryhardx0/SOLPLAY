@@ -634,6 +634,9 @@ function initApp() {
     // Render multi-league matches and select default
     renderLiveMatches();
     selectActiveMatch(999);
+    
+    // Render Leaderboard data
+    renderLeaderboard();
 }
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -2705,7 +2708,7 @@ function loadWagersFromStorage() {
 
 function switchExchangeTab(tabId) {
     try {
-        const tabs = ["sports", "slip", "wagers", "memes"];
+        const tabs = ["sports", "slip", "wagers", "memes", "leaderboard"];
         tabs.forEach(t => {
             const btn = document.getElementById(`btn-tab-${t}`);
             const panel = document.getElementById(`panel-${t}`);
@@ -2951,5 +2954,73 @@ async function sendConfirmAndVerifyTransaction(tx, signers) {
             throw new Error(`${e.message}. Logs: ${logs.join(" | ")}`);
         }
         throw e;
+    }
+}
+
+// 6. Leaderboard Data & Dynamic Renderer
+const LEADERBOARD_DATA = [
+    { rank: 1, address: "DirmZaAX8CuoHyvwick6wjnvfDWxnyZyTSf1yoSME2hT", winRate: "89%", wagers: 142, profit: "482.4 SOL", name: "DegenKing" },
+    { rank: 2, address: "GnjgbeuLcmy1tUNRSzwAM5yPmsmKJvvP7H33H6vMoAm9", winRate: "78%", wagers: 98, profit: "215.1 SOL", name: "SolSniper" },
+    { rank: 3, address: "Crb6DGVkXfwDTY9gTaMm62VEfYHF5PA1oJGpF1Ls6RCS", winRate: "72%", wagers: 114, profit: "189.5 SOL", name: "WhaleMaker" },
+    { rank: 4, address: "5mmeXYXKJkNkWuz6f9WhZprkkiNLpdWkFWarqB6PN75N", winRate: "68%", wagers: 74, profit: "95.8 SOL", name: "AlphaChaser" },
+    { rank: 5, address: "CMtyux7PeLhzZ7NyTaSkXxebcysNBappKfxZGsuWySNh", winRate: "64%", wagers: 52, profit: "41.2 SOL", name: "YieldFarmer" }
+];
+
+function renderLeaderboard() {
+    try {
+        const podiumEl = document.getElementById("leaderboard-podium");
+        const rowsEl = document.getElementById("leaderboard-rows");
+        if (!podiumEl || !rowsEl) return;
+
+        // Render Podium Cards (2nd, 1st, 3rd layout)
+        const podiumHTML = `
+            <!-- Rank 2 -->
+            <div class="glass-panel p-4 rounded-xl flex flex-col items-center justify-between text-center relative border-t border-white/10 hover:bg-white/[0.02] transition-all">
+                <span class="absolute top-2 right-2 text-label-xs text-on-surface/40">#2</span>
+                <div class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-headline-sm font-black text-white bg-slate-800/40 backdrop-blur-md">🥈</div>
+                <div class="font-bold text-white text-label-md mt-2">${LEADERBOARD_DATA[1].name}</div>
+                <div class="text-label-xs text-on-surface/40 truncate w-full font-mono mt-0.5">${LEADERBOARD_DATA[1].address.slice(0, 6)}...${LEADERBOARD_DATA[1].address.slice(-4)}</div>
+                <div class="text-label-sm font-black text-secondary mt-2">${LEADERBOARD_DATA[1].profit}</div>
+            </div>
+            <!-- Rank 1 -->
+            <div class="glass-panel p-5 rounded-xl flex flex-col items-center justify-between text-center relative border border-secondary/30 scale-105 shadow-[0_0_20px_rgba(0,236,145,0.15)] bg-white/[0.02] transition-all">
+                <span class="absolute top-2 right-2 text-label-xs text-secondary font-bold">#1</span>
+                <div class="w-12 h-12 rounded-full border border-secondary flex items-center justify-center text-headline-md font-black text-white bg-secondary/10 backdrop-blur-md">🥇</div>
+                <div class="font-bold text-white text-label-md mt-2">${LEADERBOARD_DATA[0].name}</div>
+                <div class="text-label-xs text-on-surface/40 truncate w-full font-mono mt-0.5">${LEADERBOARD_DATA[0].address.slice(0, 6)}...${LEADERBOARD_DATA[0].address.slice(-4)}</div>
+                <div class="text-label-sm font-black text-secondary mt-2">${LEADERBOARD_DATA[0].profit}</div>
+            </div>
+            <!-- Rank 3 -->
+            <div class="glass-panel p-4 rounded-xl flex flex-col items-center justify-between text-center relative border-t border-white/10 hover:bg-white/[0.02] transition-all">
+                <span class="absolute top-2 right-2 text-label-xs text-on-surface/40">#3</span>
+                <div class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-headline-sm font-black text-white bg-amber-950/20 backdrop-blur-md">🥉</div>
+                <div class="font-bold text-white text-label-md mt-2">${LEADERBOARD_DATA[2].name}</div>
+                <div class="text-label-xs text-on-surface/40 truncate w-full font-mono mt-0.5">${LEADERBOARD_DATA[2].address.slice(0, 6)}...${LEADERBOARD_DATA[2].address.slice(-4)}</div>
+                <div class="text-label-sm font-black text-secondary mt-2">${LEADERBOARD_DATA[2].profit}</div>
+            </div>
+        `;
+        podiumEl.innerHTML = podiumHTML;
+
+        // Render List Rows
+        let rowsHTML = "";
+        LEADERBOARD_DATA.forEach(p => {
+            rowsHTML += `
+                <tr class="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
+                    <td class="py-4 px-2 font-bold text-white">${p.rank}</td>
+                    <td class="py-4">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-white">${p.name}</span>
+                            <span class="text-label-xs text-on-surface/40 font-mono">${p.address.slice(0, 8)}...${p.address.slice(-8)}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 text-right text-white font-medium">${p.winRate}</td>
+                    <td class="py-4 text-right text-on-surface/60">${p.wagers}</td>
+                    <td class="py-4 text-right font-black text-secondary">${p.profit}</td>
+                </tr>
+            `;
+        });
+        rowsEl.innerHTML = rowsHTML;
+    } catch (e) {
+        console.error("Error in renderLeaderboard:", e);
     }
 }
