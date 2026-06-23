@@ -1486,25 +1486,25 @@ async function tipUserChat(user) {
 function switchBettingTab(tab) {
     try {
         currentBettingTab = tab;
-        const tabLive = document.getElementById("tab-live");
-        const tabCustom = document.getElementById("tab-custom");
-        const tabTournaments = document.getElementById("tab-tournaments");
-        const tabLp = document.getElementById("tab-lp");
-
-        if (tabLive) tabLive.classList.toggle("active", tab === 'live');
-        if (tabCustom) tabCustom.classList.toggle("active", tab === 'custom');
-        if (tabTournaments) tabTournaments.classList.toggle("active", tab === 'tournaments');
-        if (tabLp) tabLp.classList.toggle("active", tab === 'lp');
-
-        const contentLive = document.getElementById("content-live");
-        const contentCustom = document.getElementById("content-custom");
-        const contentTournaments = document.getElementById("content-tournaments");
-        const contentLp = document.getElementById("content-lp");
-
-        if (contentLive) contentLive.style.display = tab === 'live' ? 'block' : 'none';
-        if (contentCustom) contentCustom.style.display = tab === 'custom' ? 'block' : 'none';
-        if (contentTournaments) contentTournaments.style.display = tab === 'tournaments' ? 'block' : 'none';
-        if (contentLp) contentLp.style.display = tab === 'lp' ? 'block' : 'none';
+        const tabs = ['live', 'custom', 'tournaments', 'lp'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`tab-${t}`);
+            const content = document.getElementById(`content-${t}`);
+            if (btn) {
+                const isActive = (t === tab);
+                btn.classList.toggle("active", isActive);
+                if (isActive) {
+                    btn.classList.remove("text-on-surface/40");
+                    btn.classList.add("text-white", "border-b-2", "border-secondary");
+                } else {
+                    btn.classList.remove("text-white", "border-b-2", "border-secondary");
+                    btn.classList.add("text-on-surface/40");
+                }
+            }
+            if (content) {
+                content.style.display = (t === tab) ? "block" : "none";
+            }
+        });
         
         if (tab === 'tournaments') {
             renderTournaments();
@@ -2712,7 +2712,17 @@ function switchExchangeTab(tabId) {
         tabs.forEach(t => {
             const btn = document.getElementById(`btn-tab-${t}`);
             const panel = document.getElementById(`panel-${t}`);
-            if (btn) btn.classList.toggle("active", t === tabId);
+            if (btn) {
+                const isActive = (t === tabId);
+                btn.classList.toggle("active", isActive);
+                if (isActive) {
+                    btn.classList.remove("text-on-surface/50", "hover:bg-white/5");
+                    btn.classList.add("bg-white/10", "text-white", "shadow-xl");
+                } else {
+                    btn.classList.remove("bg-white/10", "text-white", "shadow-xl");
+                    btn.classList.add("text-on-surface/50", "hover:bg-white/5");
+                }
+            }
             if (panel) panel.style.display = (t === tabId) ? "flex" : "none";
         });
         if (tabId === "slip") {
@@ -2734,16 +2744,24 @@ function switchMatchTab(tabId) {
             const el = document.getElementById(p);
             if (el) el.style.display = "none";
         });
+        
         btns.forEach(b => {
             const el = document.getElementById(b);
-            if (el) el.classList.remove("active");
+            if (el) {
+                const isActive = b.endsWith(tabId);
+                el.classList.toggle("active", isActive);
+                if (isActive) {
+                    el.classList.remove("text-on-surface/40");
+                    el.classList.add("text-[#d8b9ff]", "border-b-2", "border-[#d8b9ff]");
+                } else {
+                    el.classList.remove("text-[#d8b9ff]", "border-b-2", "border-[#d8b9ff]");
+                    el.classList.add("text-on-surface/40");
+                }
+            }
         });
 
         const activePanel = document.getElementById(`panel-match-${tabId}`);
-        const activeBtn = document.getElementById(`btn-match-${tabId}`);
-
         if (activePanel) activePanel.style.display = "flex";
-        if (activeBtn) activeBtn.classList.add("active");
 
         if (tabId === 'lineups') {
             renderMatchLineups();
