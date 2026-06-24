@@ -83,7 +83,7 @@ const MATCHES_DATA = [
         league: "World Cup Tonight • Live",
         homeTeam: "Brazil",
         awayTeam: "France",
-        time: "62'",
+        time: "73'",
         status: "LIVE",
         score: { home: 1, away: 1 },
         formation: { home: "4-3-3", away: "4-2-3-1" },
