@@ -138,3 +138,51 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 **Answer:**
 `We possess deep systems-level expertise in Rust and SBF smart contract engineering, combined with advanced frontend UI design capabilities (real-time HLS streams, dynamic canvas rendering engines). Having built complex parsers and high-frequency telemetry monitors, we know how to bypass public RPC limits, optimize transactions, and craft secure, interactive Web3 consumer products. Beyond technical execution, we are a team dedicated to showcasing the depth of Web3 talent within Africa, driven by a long-term vision to usher global users into the next era of decentralized finance and consumer crypto on Solana.`
 
+---
+
+## 🤝 PART 4: Additional Alliance DAO Form Fields
+
+### 1. Company name
+**Answer:**
+`SolPlay`
+
+### 2. What are you building?
+**Question:** *Maximum 50 characters, e.g. "Lending & borrowing on Ethereum".*
+**Answer:**
+`Decentralized social sportsbook on Solana`
+
+### 3. Pitch what you're building in 1 paragraph
+**Question:** *Summarize the problem you're addressing and the product you're building to solve it.*
+**Answer:**
+`Traditional sportsbooks are plagued by account restrictions, high friction, and centralized custody, while Web3 alternatives lack engagement and live social experiences. SolPlay solves this by merging live HLS/CDN sports video streaming directly with a non-custodial copy-betting feed on Solana. Users can watch live events, discuss in real-time chats, and copy successful bets in one click, with creators earning 2.0% on-chain commissions on winning cloned tickets. Backed by automated oracle-driven settlement and latency front-running protection, SolPlay is bringing high-velocity social sports betting to Web3.`
+
+### 4. Founder Intro URL Video Script (60 seconds)
+**Question:** *A 1-minute max unlisted YouTube video with all founders on camera...*
+**Outline Script (Keep under 60s, speak clearly and confidently):**
+```text
+[Founder 1]: "Hi, I'm [Your Name], and I lead smart contract engineering for SolPlay."
+[Founder 2/Co-founder (if applicable)]: "And I'm [Name], leading our streaming core and frontend."
+[Founder 1]: "We are building SolPlay: a decentralized social sportsbook on Solana. Traditional sportsbooks delay payouts, charge high fees, and block winning users. We are changing that by letting anyone place non-custodial bets in one click, copy-trade winning ticket slips directly from a social chat feed, and watch live streams in the same interface."
+[Founder 2/Co-founder]: "We've built the Rust SBF smart contracts, oracle settles, and HLS/CDN streaming. We are co-located in [City, Country] and are dedicated to showcasing the high-caliber engineering talent emerging from Africa."
+[Founder 1]: "We are driven to bring high-velocity consumer apps to Solana. We look forward to accelerating SolPlay with Alliance."
+```
+
+### 5. Website URL
+**Answer:**
+`[Paste your SolPlay live URL here]`
+
+### 6. Company Twitter URL
+**Answer:**
+`[Paste your SolPlay X/Twitter URL here]`
+
+### 7. Locations & Workspace
+*   **Where are most founders located?** `[E.g., Lagos, Nigeria]`
+*   **Specify the exact city and country:** `[E.g., Lagos, Nigeria]`
+*   **If one or more founders are not working from the above location, from which city/country they're working out of:** `N/A`
+*   **What's your team's predominant work environment?** `Co-located (working together in the same space)`
+*   **What's your team size?** `2` *(or replace with your exact headcount)*
+
+### 8. Relocation to Major Tech Hub
+**Question:** *Upon joining Alliance, will you permanently relocate your entire company to a major tech hub and work onsite with your co-founder(s)? If yes, which city – and why that city?*
+**Answer:**
+`Yes. We are fully committed to permanently relocating our team to a major tech hub like New York City or the San Francisco Bay Area. Working co-located in a primary crypto hub enables us to participate directly in the developer community, secure partnerships with major liquidity providers and market makers, and recruit world-class talent as we scale. Being physically onsite with other builders and the Alliance network provides the feedback loop speed and alignment necessary to establish SolPlay as a leading Web3 consumer platform.`
