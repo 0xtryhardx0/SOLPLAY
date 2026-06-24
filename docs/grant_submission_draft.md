@@ -136,4 +136,5 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 ### 11. Why You?
 **Question:** *Why are you and your team the best people to build this project? What edge do you have over the competition?*
 **Answer:**
-`We possess deep systems-level expertise in Rust and SBF smart contract engineering, combined with advanced frontend UI design capabilities (real-time HLS streams, dynamic canvas rendering engines). Having built complex parsers and high-frequency telemetry monitors, we know how to bypass public RPC limits, optimize transactions, and craft secure, interactive Web3 consumer products.`
+`We possess deep systems-level expertise in Rust and SBF smart contract engineering, combined with advanced frontend UI design capabilities (real-time HLS streams, dynamic canvas rendering engines). Having built complex parsers and high-frequency telemetry monitors, we know how to bypass public RPC limits, optimize transactions, and craft secure, interactive Web3 consumer products. Beyond technical execution, we are a team dedicated to showcasing the depth of Web3 talent within Africa, driven by a long-term vision to usher global users into the next era of decentralized finance and consumer crypto on Solana.`
+
