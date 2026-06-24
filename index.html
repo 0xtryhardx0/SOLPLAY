@@ -1122,17 +1122,52 @@ void main() {
                         ctx.drawImage(img, 0, 0);
                         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         const data = imageData.data;
-                        for (let i = 0; i < data.length; i += 4) {
-                            const r = data[i], g = data[i+1], b = data[i+2];
-                            // Extract dark ink pixels from the signature image
-                            if ((r + g + b) / 3 < 160) {
-                                // Recolor to SolPlay teal (#2dd4bf)
-                                data[i] = 45;
-                                data[i+1] = 212;
-                                data[i+2] = 191;
-                                data[i+3] = 255;
-                            } else {
-                                data[i+3] = 0; // Translucent/Transparent background
+                        const w = canvas.width;
+                        const h = canvas.height;
+                        
+                        // First pass: Thresholding (lower to 130 to ignore light gray scan anomalies)
+                        const threshold = 130;
+                        const inkMask = new Uint8Array(w * h);
+                        for (let y = 0; y < h; y++) {
+                            for (let x = 0; x < w; x++) {
+                                const idx = (y * w + x) * 4;
+                                const r = data[idx], g = data[idx+1], b = data[idx+2];
+                                if ((r + g + b) / 3 < threshold) {
+                                    inkMask[y * w + x] = 1;
+                                }
+                            }
+                        }
+                        
+                        // Second pass: Denoising check (stray pixels without neighbors are discarded)
+                        for (let y = 0; y < h; y++) {
+                            for (let x = 0; x < w; x++) {
+                                const idx = (y * w + x) * 4;
+                                if (inkMask[y * w + x] === 1) {
+                                    let neighbors = 0;
+                                    for (let dy = -1; dy <= 1; dy++) {
+                                        for (let dx = -1; dx <= 1; dx++) {
+                                            if (dx === 0 && dy === 0) continue;
+                                            const nx = x + dx;
+                                            const ny = y + dy;
+                                            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                                                if (inkMask[ny * w + nx] === 1) {
+                                                    neighbors++;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (neighbors >= 2) {
+                                        // Recolor to SolPlay teal (#2dd4bf)
+                                        data[idx] = 45;
+                                        data[idx+1] = 212;
+                                        data[idx+2] = 191;
+                                        data[idx+3] = 255;
+                                    } else {
+                                        data[idx+3] = 0; // Remove isolated speckle
+                                    }
+                                } else {
+                                    data[idx+3] = 0; // Transparent background
+                                }
                             }
                         }
                         ctx.putImageData(imageData, 0, 0);
