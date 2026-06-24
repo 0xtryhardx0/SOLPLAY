@@ -2918,6 +2918,21 @@ function renderLiveMatches() {
             }
         }
         
+        const timeVal = parseInt(match.time);
+        let marketsClosed = false;
+        let closedMessage = "";
+
+        if (match.status === "FINISHED" || match.time === "Full Time") {
+            marketsClosed = true;
+            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🏁 Match Concluded - Betting Closed</div>`;
+        } else if (!isNaN(timeVal) && timeVal >= 88) {
+            marketsClosed = true;
+            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🔒 Match Suspended (Late Game - 88')</div>`;
+        } else if (currentMarket === 'scorer' && !isNaN(timeVal) && timeVal >= 80) {
+            marketsClosed = true;
+            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🔒 Goalscorer Markets Closed (80')</div>`;
+        }
+
         let oddsGridClass = currentMarket === '1x2' ? 'market-grid-3' : 'market-grid';
         
         if (currentMarket === 'scorer') {
@@ -2926,17 +2941,32 @@ function renderLiveMatches() {
             html += `<div class="${oddsGridClass}">`;
         }
         
-        activeOdds.forEach(odd => {
-            const isSelected = (activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === odd.outcomeId && activeSelection.outcomeLabel === odd.desc);
-            const escapedDesc = odd.desc.replace(/'/g, "\\'");
-            const escapedGameTitle = `${match.homeTeam} vs ${match.awayTeam}`.replace(/'/g, "\\'");
-            html += `
-                <button class="odds-btn ${isSelected ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${odd.outcomeId}, ${odd.value}, '${escapedDesc}', '${escapedGameTitle}')">
-                    <span class="odds-label">${odd.label}</span>
-                    <span class="odds-value">${odd.value.toFixed(2)}</span>
-                </button>
-            `;
-        });
+        if (marketsClosed) {
+            html += closedMessage;
+        } else {
+            const isMatchSuspended = match.isSuspended;
+            activeOdds.forEach(odd => {
+                const isSelected = (activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === odd.outcomeId && activeSelection.outcomeLabel === odd.desc);
+                const escapedDesc = odd.desc.replace(/'/g, "\\'");
+                const escapedGameTitle = `${match.homeTeam} vs ${match.awayTeam}`.replace(/'/g, "\\'");
+                
+                if (isMatchSuspended) {
+                    html += `
+                        <button class="odds-btn" disabled style="opacity: 0.5; cursor: not-allowed; border-color: rgba(239, 68, 68, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem;">
+                            <span class="odds-label" style="font-size: 0.75rem;">${odd.label}</span>
+                            <span class="odds-value" style="color: var(--neon-pink); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">🔒 SUSP</span>
+                        </button>
+                    `;
+                } else {
+                    html += `
+                        <button class="odds-btn ${isSelected ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${odd.outcomeId}, ${odd.value}, '${escapedDesc}', '${escapedGameTitle}')">
+                            <span class="odds-label">${odd.label}</span>
+                            <span class="odds-value">${odd.value.toFixed(2)}</span>
+                        </button>
+                    `;
+                }
+            });
+        }
         
         if (currentMarket === 'scorer') {
             html += `</div></div>`;
@@ -3335,6 +3365,39 @@ function startMatchTimer() {
     }, 6000); 
 }
 
+function adjustLiveOddsOnGoal(match) {
+    if (!match.odds) {
+        match.odds = { home: 2.00, draw: 3.20, away: 3.00 };
+    }
+    const scoreDiff = match.score.home - match.score.away;
+    if (scoreDiff > 0) {
+        // Home is leading
+        match.odds.home = parseFloat(Math.max(1.05, 1.6 - scoreDiff * 0.35).toFixed(2));
+        match.odds.draw = parseFloat((2.8 + scoreDiff * 1.5).toFixed(2));
+        match.odds.away = parseFloat((3.5 + scoreDiff * 4.5).toFixed(2));
+    } else if (scoreDiff < 0) {
+        // Away is leading
+        const absDiff = Math.abs(scoreDiff);
+        match.odds.away = parseFloat(Math.max(1.05, 1.6 - absDiff * 0.35).toFixed(2));
+        match.odds.draw = parseFloat((2.8 + absDiff * 1.5).toFixed(2));
+        match.odds.home = parseFloat((3.5 + absDiff * 4.5).toFixed(2));
+    } else {
+        // It's a draw
+        match.odds.home = 2.45;
+        match.odds.draw = 2.05;
+        match.odds.away = 2.75;
+    }
+
+    // Re-populate the markets in MATCH_MARKETS
+    if (MATCH_MARKETS[match.id]) {
+        MATCH_MARKETS[match.id]['1x2'] = [
+            { label: match.homeTeam, value: match.odds.home, outcomeId: 0, desc: `${match.homeTeam} Win` },
+            { label: "Draw", value: match.odds.draw, outcomeId: 2, desc: "Draw" },
+            { label: match.awayTeam, value: match.odds.away, outcomeId: 1, desc: `${match.awayTeam} Win` }
+        ];
+    }
+}
+
 function triggerSimulatedMatchEvent(match) {
     const min = match.time || "45'";
     const hasLineups = match.lineup && match.lineup.home && match.lineup.home.length > 0;
@@ -3353,6 +3416,16 @@ function triggerSimulatedMatchEvent(match) {
     if (roll < 0.40) {
         if (isHome) match.score.home++;
         else match.score.away++;
+        
+        // Suspend match betting for 8 seconds
+        match.isSuspended = true;
+        setTimeout(() => {
+            match.isSuspended = false;
+            renderLiveMatches();
+        }, 8000);
+        
+        // Dynamically adjust live odds based on the new scoreline
+        adjustLiveOddsOnGoal(match);
         
         let assistName = "";
         if (hasLineups && teamLineup.length > 1) {
@@ -3378,6 +3451,15 @@ function triggerSimulatedMatchEvent(match) {
         const cardName = isRed ? "Red Card" : "Yellow Card";
         const icon = isRed ? "🟥" : "🟨";
         const desc = `${cardName}: ${playerName} (${teamName})`;
+        
+        // Suspend match betting for 5 seconds for major red card events
+        if (isRed) {
+            match.isSuspended = true;
+            setTimeout(() => {
+                match.isSuspended = false;
+                renderLiveMatches();
+            }, 5000);
+        }
         
         match.timeline.push({
             time: min,
