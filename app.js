@@ -1073,6 +1073,17 @@ function initApp() {
     if (typeof updateDemoControlsUI === 'function') {
         updateDemoControlsUI();
     }
+
+    // Close CDN dropdown when clicking outside
+    window.addEventListener("click", function(event) {
+        const dropdown = document.getElementById("cdn-dropdown-menu");
+        const container = document.getElementById("cdn-dropdown-container");
+        if (dropdown && container && !dropdown.classList.contains("hidden")) {
+            if (!container.contains(event.target)) {
+                dropdown.classList.add("hidden");
+            }
+        }
+    });
 }
 
 // Global active oracle matches config & dynamic pubkey helpers
@@ -1664,53 +1675,6 @@ function switchStreamProvider() {
     if (existingRoutingBlock) {
         existingRoutingBlock.remove();
     }
-    
-    // P2P CDN Accelerator HTML Widget
-    const cdnHtml = `
-        <div class="cdn-accelerator-panel glass" style="margin-top:1rem; padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); background:rgba(0,0,0,0.25); display:flex; flex-direction:column; gap:0.5rem; text-align:left;">
-            <div class="cdn-header" style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.3rem; margin-bottom:0.3rem;">
-                <span class="cdn-title" style="font-weight:700; color:var(--neon-teal); font-family:var(--font-outfit);">⚡ P2P CDN ACCELERATOR</span>
-                <span class="cdn-node-status" id="active-cdn-node-status" style="font-weight:600; color:var(--text-secondary);">Direct Feed</span>
-            </div>
-            <div class="cdn-nodes-grid" style="display:flex; flex-direction:column; gap:0.4rem;">
-                <div class="cdn-node-row" id="cdn-node-eu" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
-                    <div style="display:flex; align-items:center; gap:0.4rem;">
-                        <span class="cdn-status-dot green" id="dot-eu" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
-                        <span style="color:var(--text-primary);">🇪🇺 Frankfurt Edge (Direct)</span>
-                    </div>
-                    <div id="ping-eu" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
-                    <button class="btn-mini" onclick="connectCDNNode('eu', 'Frankfurt Edge', 24)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
-                </div>
-                <div class="cdn-node-row" id="cdn-node-us" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
-                    <div style="display:flex; align-items:center; gap:0.4rem;">
-                        <span class="cdn-status-dot green" id="dot-us" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
-                        <span style="color:var(--text-primary);">🇺🇸 New York Relay (Mesh)</span>
-                    </div>
-                    <div id="ping-us" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
-                    <button class="btn-mini" onclick="connectCDNNode('us', 'New York Relay', 78)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
-                </div>
-                <div class="cdn-node-row" id="cdn-node-ap" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
-                    <div style="display:flex; align-items:center; gap:0.4rem;">
-                        <span class="cdn-status-dot green" id="dot-ap" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
-                        <span style="color:var(--text-primary);">🇯🇵 Tokyo Gateway (Fastest)</span>
-                    </div>
-                    <div id="ping-ap" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
-                    <button class="btn-mini" onclick="connectCDNNode('ap', 'Tokyo Gateway', 142)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
-                </div>
-                <div class="cdn-node-row" id="cdn-node-af" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:0.3rem 0.5rem; border-radius:4px; font-size:0.7rem; border:1px solid rgba(255,255,255,0.02);">
-                    <div style="display:flex; align-items:center; gap:0.4rem;">
-                        <span class="cdn-status-dot green" id="dot-af" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981;"></span>
-                        <span style="color:var(--text-primary);">🇳🇬 Lagos Edge (Sub-Cache)</span>
-                    </div>
-                    <div id="ping-af" style="font-family:monospace; color:var(--text-secondary);">-- ms</div>
-                    <button class="btn-mini" onclick="connectCDNNode('af', 'Lagos Edge', 92)" style="padding:0.15rem 0.4rem; font-size:0.65rem;">Connect</button>
-                </div>
-            </div>
-            <div class="cdn-actions" style="margin-top:0.3rem;">
-                <button class="btn-primary" id="btn-run-speedtest" onclick="runCDNSpeedtest()" style="width:100%; padding:0.45rem; font-size:0.75rem; background:linear-gradient(135deg, var(--neon-teal), #0d9488); border:none; box-shadow:var(--glow-teal);">⚡ Run P2P Speedtest</button>
-            </div>
-        </div>
-    `;
 
     if (provider.type === "youtube") {
         playerFrame.style.display = "block";
@@ -1849,8 +1813,51 @@ function connectCDNNode(id, name, basePing) {
         statusEl.innerHTML = `<span style="color:var(--neon-teal); text-shadow:0 0 8px rgba(20,184,166,0.3);">Connected: ${name} (${finalPing}ms)</span>`;
     }
     
+    const statusBtnLabel = document.getElementById("player-active-cdn-status");
+    if (statusBtnLabel) {
+        statusBtnLabel.textContent = `CDN: ${name} (${finalPing}ms)`;
+    }
+    
     showToast(`Stream accelerated via ${name} (${finalPing}ms)!`, "success");
     appendChatMessage("System", `🚀 live feed routed through ${name} CDN relay point. Speed: 980Mbps | Ping: ${finalPing}ms.`, true);
+    
+    closeCDNDropdown();
+}
+
+function openCDNDropdown() {
+    const menu = document.getElementById("cdn-dropdown-menu");
+    if (menu) {
+        menu.classList.remove("hidden");
+    }
+}
+
+function closeCDNDropdown() {
+    const menu = document.getElementById("cdn-dropdown-menu");
+    if (menu) {
+        menu.classList.add("hidden");
+    }
+}
+
+function toggleCDNDropdown() {
+    const menu = document.getElementById("cdn-dropdown-menu");
+    if (menu) {
+        menu.classList.toggle("hidden");
+    }
+}
+
+function openCDNModal() {
+    // Scroll player select header into view
+    const target = document.getElementById("stream-title");
+    if (target) {
+        target.scrollIntoView({ behavior: "smooth" });
+    }
+    setTimeout(() => {
+        openCDNDropdown();
+    }, 450);
+}
+
+function closeCDNModal() {
+    closeCDNDropdown();
 }
 
 let hlsPlayerInstance = null;
