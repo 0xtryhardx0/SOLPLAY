@@ -2925,12 +2925,9 @@ function renderLiveMatches() {
         if (match.status === "FINISHED" || match.time === "Full Time") {
             marketsClosed = true;
             closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🏁 Match Concluded - Betting Closed</div>`;
-        } else if (!isNaN(timeVal) && timeVal >= 88) {
+        } else if (!isNaN(timeVal) && timeVal >= 75) {
             marketsClosed = true;
-            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🔒 Match Suspended (Late Game - 88')</div>`;
-        } else if (currentMarket === 'scorer' && !isNaN(timeVal) && timeVal >= 80) {
-            marketsClosed = true;
-            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🔒 Goalscorer Markets Closed (80')</div>`;
+            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🔒 Match Locked (75' Safety Cutoff)</div>`;
         }
 
         let oddsGridClass = currentMarket === '1x2' ? 'market-grid-3' : 'market-grid';
