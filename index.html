@@ -1107,36 +1107,38 @@ void main() {
                 <span class="material-symbols-outlined text-[20px]">public</span>
             </button>
             <!-- Subtle Signature Watermark Footer -->
-            <div class="flex flex-col items-center justify-center opacity-10 hover:opacity-80 transition-all duration-500 select-none">
-                <svg class="w-24 h-10 text-on-surface/40 hover:text-[#2dd4bf] transition-colors duration-300" viewBox="0 0 160 65" fill="none">
-                    <!-- Main sweeping left S/E cursive loop -->
-                    <path 
-                        d="M 25,48 C 15,48 10,38 12,28 C 15,12 32,5 48,10 C 60,14 62,24 50,32 C 40,38 28,42 22,46 C 15,50 12,56 16,60 C 22,64 35,62 48,54 C 55,50 60,42 63,33 C 65,27 68,23 72,21" 
-                        stroke="currentColor" 
-                        stroke-width="2" 
-                        stroke-linecap="round" 
-                        stroke-linejoin="round" 
-                    />
-                    <!-- Middle connecting loops -->
-                    <path 
-                        d="M 72,21 C 76,20 80,24 82,28 C 84,32 82,38 85,42 C 87,45 92,42 95,38 C 98,34 98,28 101,24 C 103,20 106,18 109,21 C 112,24 110,32 113,38 C 115,42 118,44 122,42 C 126,40 129,35 132,30" 
-                        stroke="currentColor" 
-                        stroke-width="2" 
-                        stroke-linecap="round" 
-                        stroke-linejoin="round" 
-                    />
-                    <!-- High-speed bold underscore diagonal slash -->
-                    <path 
-                        d="M 14,48 L 18,48 C 24,48 45,52 65,51 C 85,50 110,44 135,38 L 155,34" 
-                        stroke="currentColor" 
-                        stroke-width="2" 
-                        stroke-linecap="round" 
-                        stroke-linejoin="round" 
-                    />
-                    <!-- Top right flourish dot -->
-                    <circle cx="118" cy="18" r="1.5" fill="currentColor" stroke="none" />
-                </svg>
+            <div class="flex flex-col items-center justify-center opacity-20 hover:opacity-90 transition-all duration-500 select-none">
+                <canvas id="seal-canvas" class="w-24 h-10" style="object-fit: contain; filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.4));"></canvas>
             </div>
+            <script>
+                (function() {
+                    const img = new Image();
+                    img.src = '/sovereign_signature.jpg';
+                    img.onload = () => {
+                        const canvas = document.getElementById('seal-canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i], g = data[i+1], b = data[i+2];
+                            // Extract dark ink pixels from the signature image
+                            if ((r + g + b) / 3 < 160) {
+                                // Recolor to SolPlay teal (#2dd4bf)
+                                data[i] = 45;
+                                data[i+1] = 212;
+                                data[i+2] = 191;
+                                data[i+3] = 255;
+                            } else {
+                                data[i+3] = 0; // Translucent/Transparent background
+                            }
+                        }
+                        ctx.putImageData(imageData, 0, 0);
+                    };
+                })();
+            </script>
         </div>
     </div>
 </footer>
