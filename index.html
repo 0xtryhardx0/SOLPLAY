@@ -666,7 +666,7 @@ void main() {
                 <!-- Video Players -->
                 <div class="aspect-video relative bg-black/40 group overflow-hidden">
                     <!-- YouTube Embed (Server 1) -->
-                    <iframe class="w-full h-full border-none" id="video-iframe-player" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    <iframe class="w-full h-full border-none" id="video-iframe-player" allow="autoplay; encrypted-media" allowfullscreen style="display: none;"></iframe>
                     
                     <!-- Native HLS Video Stream Element (Server 2) -->
                     <video class="w-full h-full object-cover" id="hls-video-player" controls autoplay muted style="display: none;"></video>
