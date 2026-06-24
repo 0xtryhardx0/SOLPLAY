@@ -84,7 +84,7 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 ### 1. Solana On-Chain Accounts
 **Question:** *Insert this project's on-chain addresses (program ID, token address, fee payer wallets etc.). Separate them using a comma.*
 **Answer:**
-`Program ID: 84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk, Developer Fee Payer: CMtyux7PeLhzZ7NyTaSkXxebcysNBappKfxZGsuWySNh, Platform Treasury Wallet: 5syXsU47xYXcixG8wyV31NC1kKgDC53PZfVhsuXnDjDe`
+`Program ID: 84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk, Developer/Deployer Wallet: 7Q9NYXodMBXjcAYRhDbxFgDStYRMJBrRCrkVn8iNPsVh, Platform Treasury Vault: 9z6sWgxTX7h3s5UwVP5eCP7ZN66MAcoGvX1RtixZfpKZ, On-Chain Funding Address: AoczTq3VU8ZxmeeBW8kXojU5YUr7yiskGfbTaCFMFM5k`
 
 ### 2. Funding Amount
 **Question:** *How much are you requesting in funding?*
@@ -99,7 +99,7 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 ### 4. Your project / idea
 **Question:** *What are you building?*
 **Answer:**
-`CDN acceleration) with a non-custodial copy-betting feed, transparent on-chain wagers, and custom oracle-driven game settlingSolPlay is a decentralized social sportsbook on Solana. It merges live sports video streams (with localized HLS/.`
+`SolPlay is a decentralized social sportsbook on Solana. It merges live sports video streams (with localized HLS/CDN acceleration) with a non-custodial copy-betting feed, transparent on-chain wagers, and custom oracle-driven game settling.`
 
 ### 5. Referral Partner
 **Question:** *If you were referred by a Solana Foundation Partner or by someone at Solana Foundation, please indicate below.*
