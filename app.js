@@ -1068,6 +1068,11 @@ function initApp() {
     // Start fetching and polling autonomous oracle config
     loadOracleConfig();
     setInterval(loadOracleConfig, 5000);
+
+    // Initial update of demo controls UI styling
+    if (typeof updateDemoControlsUI === 'function') {
+        updateDemoControlsUI();
+    }
 }
 
 // Global active oracle matches config & dynamic pubkey helpers
@@ -1183,10 +1188,13 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
     window.addEventListener('load', initApp);
 }
 
+let currentSandboxProfile = localStorage.getItem("solplay_current_sandbox_profile") || "profile_a";
+
 // 1. Wallet Management (Local Sandbox Wallet)
 function loadOrCreateWallet() {
     try {
-        const storedSecret = localStorage.getItem("solplay_wallet_secret");
+        const profileKey = `solplay_wallet_secret_${currentSandboxProfile}`;
+        const storedSecret = localStorage.getItem(profileKey) || localStorage.getItem("solplay_wallet_secret");
         if (storedSecret) {
             const secretArray = JSON.parse(storedSecret);
             if (Array.isArray(secretArray)) {
@@ -1195,17 +1203,20 @@ function loadOrCreateWallet() {
         }
     } catch (e) {
         console.error("Failed to parse stored wallet secret, resetting keypair...", e);
-        localStorage.removeItem("solplay_wallet_secret");
     }
 
     if (!walletKeypair) {
         try {
             walletKeypair = solanaWeb3.Keypair.generate();
             const secretArray = Array.from(walletKeypair.secretKey);
-            localStorage.setItem("solplay_wallet_secret", JSON.stringify(secretArray));
+            localStorage.setItem(`solplay_wallet_secret_${currentSandboxProfile}`, JSON.stringify(secretArray));
         } catch (e) {
             console.error("Failed to generate developer fallback keypair", e);
         }
+    }
+
+    if (currentSandboxProfile === "profile_a") {
+        localStorage.setItem("solplay_wallet_secret", JSON.stringify(Array.from(walletKeypair.secretKey)));
     }
 
     if (walletKeypair && activeWalletType === 'sandbox') {
@@ -2811,6 +2822,10 @@ function renderLiveMatches() {
 
     container.innerHTML = "";
 
+    if (typeof populateDemoMatchSelect === 'function') {
+        populateDemoMatchSelect();
+    }
+
     MATCHES_DATA.forEach(match => {
         const isActive = (match.id === activeMatchId);
         const card = document.createElement("div");
@@ -3315,9 +3330,12 @@ function buyMemeToken(solAmount) {
     }, 1200);
 }
 
-// 10. Live Match Simulation
+let simulationTickInterval = 6000;
+
 // 10. Live Match Simulation
 function startMatchTimer() {
+    if (matchTimer) clearInterval(matchTimer);
+    
     // Ticks fast for local testing
     matchTimer = setInterval(() => {
         MATCHES_DATA.forEach(match => {
@@ -3339,8 +3357,9 @@ function startMatchTimer() {
                 match.time = `${timeVal}'`;
             }
             
-            // Randomly trigger live events (e.g. 8% chance per tick)
-            if (match.status === 'LIVE' && Math.random() < 0.08) {
+            // Randomly trigger live events (reduce event chance if ticking extremely fast to avoid clutter)
+            const eventChance = simulationTickInterval < 1000 ? 0.01 : 0.08;
+            if (match.status === 'LIVE' && Math.random() < eventChance) {
                 triggerSimulatedMatchEvent(match);
             }
         });
@@ -3359,7 +3378,7 @@ function startMatchTimer() {
             }
             renderMatchTimeline();
         }
-    }, 6000); 
+    }, simulationTickInterval);
 }
 
 function adjustLiveOddsOnGoal(match) {
@@ -3947,4 +3966,254 @@ function renderLeaderboard() {
     } catch (e) {
         console.error("Error in renderLeaderboard:", e);
     }
+}
+
+// ------------------------------------------------------------------------
+// Sandbox & Demo Control Room Features
+// ------------------------------------------------------------------------
+
+function toggleDemoPanel() {
+    const panel = document.getElementById("demo-controls-panel");
+    if (panel) {
+        panel.classList.toggle("hidden");
+    }
+}
+
+async function switchSandboxProfile(profileId) {
+    if (activeWalletType !== 'sandbox') {
+        showToast("Please switch to Sandbox Wallet to use profiles!", "warning");
+        return;
+    }
+    
+    currentSandboxProfile = profileId;
+    localStorage.setItem("solplay_current_sandbox_profile", profileId);
+    
+    walletKeypair = null;
+    loadOrCreateWallet();
+    
+    const connectBtn = document.getElementById("btn-connect-wallet");
+    if (isWalletConnected && connectBtn) {
+        connectBtn.textContent = activePublicKey.toString().slice(0, 6) + "..." + activePublicKey.toString().slice(-4);
+        await updateWalletBalance();
+    }
+    
+    loadWagersFromStorage();
+    renderActiveWagers();
+    updateDemoControlsUI();
+    showToast(`Switched to Sandbox Profile: ${profileId.toUpperCase().replace('_', ' ')}!`, "success");
+}
+
+function updateSimulationSpeed(speedMs) {
+    simulationTickInterval = speedMs;
+    startMatchTimer();
+    updateDemoControlsUI();
+    
+    let label = "Normal (6s)";
+    if (speedMs === 1500) label = "Fast (1.5s)";
+    if (speedMs === 300) label = "Turbo (0.3s)";
+    showToast(`Simulation speed: ${label}`, "info");
+}
+
+function updateDemoControlsUI() {
+    // Update Wallet Profile buttons styling
+    ["profile_a", "profile_b", "profile_c"].forEach(prof => {
+        const btn = document.getElementById(`btn-profile-${prof}`);
+        if (btn) {
+            if (currentSandboxProfile === prof) {
+                btn.style.background = "linear-gradient(135deg, var(--neon-teal), #0d9488)";
+                btn.style.boxShadow = "var(--glow-teal)";
+                btn.style.borderColor = "transparent";
+            } else {
+                btn.style.background = "rgba(255,255,255,0.05)";
+                btn.style.boxShadow = "none";
+                btn.style.borderColor = "rgba(255,255,255,0.05)";
+            }
+        }
+    });
+
+    // Update Speed buttons styling
+    [6000, 1500, 300].forEach(speed => {
+        const btn = document.getElementById(`btn-speed-${speed}`);
+        if (btn) {
+            if (simulationTickInterval === speed) {
+                btn.style.background = "linear-gradient(135deg, var(--neon-pink), #db2777)";
+                btn.style.boxShadow = "var(--glow-pink)";
+                btn.style.borderColor = "transparent";
+            } else {
+                btn.style.background = "rgba(255,255,255,0.05)";
+                btn.style.boxShadow = "none";
+                btn.style.borderColor = "rgba(255,255,255,0.05)";
+            }
+        }
+    });
+}
+
+function populateDemoMatchSelect() {
+    const selectEl = document.getElementById("demo-match-select");
+    if (!selectEl) return;
+    
+    const currentVal = selectEl.value;
+    selectEl.innerHTML = "";
+    
+    MATCHES_DATA.forEach(match => {
+        const opt = document.createElement("option");
+        opt.value = match.id;
+        opt.className = "bg-surface text-white";
+        opt.textContent = `${match.homeTeam} vs ${match.awayTeam} (${match.time})`;
+        selectEl.appendChild(opt);
+    });
+    
+    if (currentVal && MATCHES_DATA.some(m => m.id == currentVal)) {
+        selectEl.value = currentVal;
+    } else if (activeMatchId) {
+        selectEl.value = activeMatchId;
+    }
+}
+
+function adjustMatchTime(matchId, minutes) {
+    const match = MATCHES_DATA.find(m => m.id === matchId);
+    if (!match) return;
+    
+    match.time = `${minutes}'`;
+    if (minutes >= 90) {
+        match.time = "Full Time";
+        match.status = "FINISHED";
+        verifyAllWagersStatus();
+        showToast(`Match ended: ${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam}`, "success");
+    } else {
+        match.status = "LIVE";
+    }
+    
+    renderLiveMatches();
+    if (activeMatchId === matchId) {
+        const liveTimeEl = document.getElementById("player-live-time");
+        if (liveTimeEl) liveTimeEl.textContent = match.time;
+        renderMatchTimeline();
+    }
+    showToast(`Adjusted match time to ${minutes}'`, "success");
+}
+
+function addGoalToMatch(matchId, isHome) {
+    const match = MATCHES_DATA.find(m => m.id === matchId);
+    if (!match || match.status !== 'LIVE') {
+        showToast("Cannot add goal, match is not live.", "warning");
+        return;
+    }
+    
+    if (isHome) {
+        match.score.home++;
+    } else {
+        match.score.away++;
+    }
+    
+    // Suspend match betting for 3 seconds (shorter for testing/demo)
+    match.isSuspended = true;
+    setTimeout(() => {
+        match.isSuspended = false;
+        renderLiveMatches();
+    }, 3000);
+    
+    adjustLiveOddsOnGoal(match);
+    
+    const playerName = isHome ? "Home Star" : "Away Star";
+    const teamName = isHome ? match.homeTeam : match.awayTeam;
+    const desc = `Goal! ${teamName} ${match.score.home} - ${match.score.away}. Scored by ${playerName} (Demo Action).`;
+    
+    match.timeline.push({
+        time: match.time,
+        type: "goal",
+        desc: desc,
+        icon: "⚽"
+    });
+    
+    showToast(desc, "info");
+    renderLiveMatches();
+    
+    if (activeMatchId === matchId) {
+        const liveScoreEl = document.getElementById("player-live-score");
+        if (liveScoreEl) {
+            liveScoreEl.innerHTML = `${match.homeTeam} <span id="player-score-home">${match.score.home}</span> - <span id="player-score-away">${match.score.away}</span> ${match.awayTeam}`;
+        }
+        renderMatchTimeline();
+    }
+}
+
+function forceEndActiveMatch(outcomeType) {
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId);
+    if (!match) return;
+    
+    if (match.status === "FINISHED") {
+        showToast("Match is already finished.", "warning");
+        return;
+    }
+    
+    if (outcomeType === 'home') {
+        if (match.score.home <= match.score.away) {
+            match.score.home = match.score.away + 1;
+        }
+    } else if (outcomeType === 'away') {
+        if (match.score.away <= match.score.home) {
+            match.score.away = match.score.home + 1;
+        }
+    } else if (outcomeType === 'draw') {
+        match.score.home = match.score.away;
+    } else {
+        if (match.score.home === match.score.away) {
+            match.score.home++;
+        }
+    }
+    
+    match.time = "Full Time";
+    match.status = "FINISHED";
+    
+    match.timeline.push({
+        time: "90'",
+        type: "end",
+        desc: `Match concluded: ${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam}`,
+        icon: "🏁"
+    });
+    
+    verifyAllWagersStatus();
+    renderLiveMatches();
+    
+    const liveScoreEl = document.getElementById("player-live-score");
+    if (liveScoreEl) {
+        liveScoreEl.innerHTML = `${match.homeTeam} <span id="player-score-home">${match.score.home}</span> - <span id="player-score-away">${match.score.away}</span> ${match.awayTeam}`;
+    }
+    const liveTimeEl = document.getElementById("player-live-time");
+    if (liveTimeEl) {
+        liveTimeEl.textContent = match.time;
+    }
+    renderMatchTimeline();
+    
+    showToast(`Force Ended match! Score: ${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam}`, "success");
+}
+
+function triggerDemoTimeAdjust(minutes) {
+    const selectEl = document.getElementById("demo-match-select");
+    if (!selectEl) return;
+    const matchId = parseInt(selectEl.value);
+    if (isNaN(matchId)) return;
+    adjustMatchTime(matchId, minutes);
+}
+
+function triggerDemoGoal(isHome) {
+    const selectEl = document.getElementById("demo-match-select");
+    if (!selectEl) return;
+    const matchId = parseInt(selectEl.value);
+    if (isNaN(matchId)) return;
+    addGoalToMatch(matchId, isHome);
+}
+
+function triggerDemoEnd(outcomeType) {
+    const selectEl = document.getElementById("demo-match-select");
+    if (!selectEl) return;
+    const matchId = parseInt(selectEl.value);
+    if (isNaN(matchId)) return;
+    
+    // Switch active match if controlled match is different
+    if (activeMatchId !== matchId) {
+        selectActiveMatch(matchId);
+    }
+    forceEndActiveMatch(outcomeType);
 }
