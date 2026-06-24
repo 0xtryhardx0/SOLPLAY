@@ -99,7 +99,7 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 ### 4. Your project / idea
 **Question:** *What are you building?*
 **Answer:**
-`SolPlay is a decentralized social sportsbook on Solana. It merges live sports video streams (with localized HLS/CDN acceleration) with a non-custodial copy-betting feed, transparent on-chain wagers, and custom oracle-driven game settling.`
+`CDN acceleration) with a non-custodial copy-betting feed, transparent on-chain wagers, and custom oracle-driven game settlingSolPlay is a decentralized social sportsbook on Solana. It merges live sports video streams (with localized HLS/.`
 
 ### 5. Referral Partner
 **Question:** *If you were referred by a Solana Foundation Partner or by someone at Solana Foundation, please indicate below.*
