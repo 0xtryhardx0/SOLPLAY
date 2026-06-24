@@ -592,7 +592,7 @@ void main() {
             </button>
             <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl glass-panel border border-white/5 backdrop-blur-3xl py-2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200">
                 <button onclick="document.getElementById('stream-title').scrollIntoView({behavior: 'smooth'})" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">📹 Watch stream</button>
-                <button onclick="switchMatchTab('lineups'); document.getElementById('stream-title').scrollIntoView({behavior: 'smooth'})" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">⚡ Edge Speedtest</button>
+                <button onclick="openCDNModal()" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">⚡ CDN Speedtest</button>
             </div>
         </div>
 
@@ -651,10 +651,14 @@ void main() {
                                 <option value="mock" selected>⚡ Developer Mocks</option>
                             </select>
                             <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-provider-select" onchange="switchStreamProvider()">
-                                <option value="0">Server 1 (YouTube Live)</option>
-                                <option value="1">Server 2 (HLS Direct)</option>
-                                <option value="2">Server 3 (E-Sports Mock)</option>
+                                <option value="0">Server 1 (Red Bull TV - HLS)</option>
+                                <option value="1">Server 2 (HLS Direct Test Feed)</option>
+                                <option value="2">Server 3 (CBS News Live Mirror)</option>
                             </select>
+                            <button onclick="openCDNModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-label-sm text-white transition-all font-bold select-none cursor-pointer">
+                                <span class="material-symbols-outlined text-secondary text-[16px] animate-pulse">speed</span>
+                                <span id="player-active-cdn-status">CDN: Direct Feed</span>
+                            </button>
                         </div>
                         <div id="custom-stream-container" class="hidden w-full max-w-[320px] p-1.5 glass-panel rounded-lg flex gap-1.5 items-center border border-white/5" style="background: rgba(0,0,0,0.3);">
                             <input type="text" id="custom-stream-url" placeholder="Paste .m3u8 HLS or YouTube URL..." class="bg-transparent border-none text-[10px] text-white focus:ring-0 flex-1 outline-none px-2 py-0.5 w-full" style="font-family: monospace;">
@@ -1168,6 +1172,79 @@ void main() {
         <span class="material-symbols-outlined text-[20px] animate-pulse">sports_esports</span>
         <span>⚡ Demo Controls</span>
     </button>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<!-- CDN Accelerator Modal -->
+<div id="cdn-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+    <div class="w-full max-w-sm rounded-2xl glass-panel border border-white/10 p-6 flex flex-col gap-4 shadow-2xl relative" style="background: rgba(10, 10, 20, 0.95); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        <!-- Close button -->
+        <button onclick="closeCDNModal()" class="absolute top-4 right-4 text-on-surface/50 hover:text-white transition-colors">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+
+        <div class="flex items-center gap-2 border-b border-white/10 pb-3">
+            <span class="material-symbols-outlined text-secondary text-[24px]">speed</span>
+            <span class="text-headline-sm font-bold text-white">P2P CDN Accelerator</span>
+        </div>
+
+        <div class="text-[11px] text-on-surface/60 leading-relaxed">
+            Optimize your live sports stream latency. Run a speedtest to map P2P edge nodes, and select the fastest routing relay point.
+        </div>
+
+        <!-- Node Rows -->
+        <div class="flex flex-col gap-2">
+            <!-- Frankfurt -->
+            <div class="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-2">
+                    <span id="dot-eu" class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                    <span class="text-label-sm text-white font-medium">🇪🇺 Frankfurt Edge</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="ping-eu" class="text-label-sm font-mono text-secondary">-- ms</span>
+                    <button onclick="connectCDNNode('eu', 'Frankfurt Edge', 24)" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-label-xs text-white border border-white/10 font-bold transition-all">Connect</button>
+                </div>
+            </div>
+            <!-- New York -->
+            <div class="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-2">
+                    <span id="dot-us" class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                    <span class="text-label-sm text-white font-medium">🇺🇸 New York Relay</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="ping-us" class="text-label-sm font-mono text-secondary">-- ms</span>
+                    <button onclick="connectCDNNode('us', 'New York Relay', 78)" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-label-xs text-white border border-white/10 font-bold transition-all">Connect</button>
+                </div>
+            </div>
+            <!-- Tokyo -->
+            <div class="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-2">
+                    <span id="dot-ap" class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                    <span class="text-label-sm text-white font-medium">🇯🇵 Tokyo Gateway</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="ping-ap" class="text-label-sm font-mono text-secondary">-- ms</span>
+                    <button onclick="connectCDNNode('ap', 'Tokyo Gateway', 142)" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-label-xs text-white border border-white/10 font-bold transition-all">Connect</button>
+                </div>
+            </div>
+            <!-- Lagos -->
+            <div class="flex justify-between items-center bg-white/[0.02] border border-white/5 p-3 rounded-xl hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-2">
+                    <span id="dot-af" class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                    <span class="text-label-sm text-white font-medium">🇳🇬 Lagos Edge</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="ping-af" class="text-label-sm font-mono text-secondary">-- ms</span>
+                    <button onclick="connectCDNNode('af', 'Lagos Edge', 92)" class="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-label-xs text-white border border-white/10 font-bold transition-all">Connect</button>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="runCDNSpeedtest()" id="btn-run-speedtest" class="w-full py-3 rounded-xl text-label-md font-bold text-white shadow-xl hover:scale-105 active:scale-95 transition-all" style="background: linear-gradient(135deg, var(--neon-teal), #0d9488); box-shadow: var(--glow-teal); border: none;">
+            ⚡ Run P2P Speedtest
+        </button>
+    </div>
 </div>
 
 <div class="toast-container" id="toast-container"></div>

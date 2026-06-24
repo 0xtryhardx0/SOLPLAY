@@ -1524,6 +1524,12 @@ function updateStreamProviders() {
     const regionSelect = document.getElementById("stream-region-select");
     const providerSelect = document.getElementById("stream-provider-select");
     if (!regionSelect || !providerSelect) return;
+    
+    // Restore preferred region if saved
+    const preferredRegion = localStorage.getItem("solplay_preferred_region");
+    if (preferredRegion) {
+        regionSelect.value = preferredRegion;
+    }
     const selectedRegion = regionSelect.value;
     
     // Clear previous options
@@ -1552,6 +1558,23 @@ function updateStreamProviders() {
     customOpt.value = "custom";
     customOpt.textContent = "🔗 Custom Stream URL";
     providerSelect.appendChild(customOpt);
+    
+    // Restore preferred provider selection if it matches one of the new options
+    const preferredProviderVal = localStorage.getItem("solplay_preferred_provider_val");
+    if (preferredProviderVal !== null) {
+        if (preferredProviderVal === "custom") {
+            providerSelect.value = "custom";
+        } else {
+            const idx = parseInt(preferredProviderVal);
+            if (!isNaN(idx) && idx < combinedStreams.length) {
+                providerSelect.value = idx;
+            } else {
+                providerSelect.value = 0;
+            }
+        }
+    } else {
+        providerSelect.value = 0;
+    }
     
     switchStreamProvider();
 }
@@ -1613,6 +1636,10 @@ function switchStreamProvider() {
     const providerSelect = document.getElementById("stream-provider-select");
     if (!regionSelect || !providerSelect) return;
     const selectedRegion = regionSelect.value;
+    
+    // Save current stream choices to localStorage
+    localStorage.setItem("solplay_preferred_region", selectedRegion);
+    localStorage.setItem("solplay_preferred_provider_val", providerSelect.value);
     
     if (providerSelect.value === "custom") {
         showCustomStreamInput(true);
@@ -1717,7 +1744,6 @@ function switchStreamProvider() {
             <a href="${provider.url}" class="btn-primary" target="_blank" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink); padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600;">
                 🚀 Route Feed & Launch Portal
             </a>
-            ${cdnHtml}
         `;
         
         // Insert right under score
@@ -1736,7 +1762,6 @@ function switchStreamProvider() {
             <span class="provider-desc" style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; display: block; margin-bottom: 0.5rem; line-height: 1.4;">
                 ${provider.description}
             </span>
-            ${cdnHtml}
         `;
         mockPlayer.insertBefore(descBlock, mockPlayer.querySelector(".stream-controls"));
     }
