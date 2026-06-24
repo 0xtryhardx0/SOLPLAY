@@ -76,3 +76,64 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 
 ### 5. Pitch Deck or Product Demo Link
 `[Paste your Loom video demo link here]`
+
+---
+
+## 📝 PART 3: Detailed Answers for Solana Foundation Grant Form Fields
+
+### 1. Solana On-Chain Accounts
+**Question:** *Insert this project's on-chain addresses (program ID, token address, fee payer wallets etc.). Separate them using a comma.*
+**Answer:**
+`Program ID: 84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk, Developer Fee Payer: CMtyux7PeLhzZ7NyTaSkXxebcysNBappKfxZGsuWySNh, Platform Treasury Wallet: 5syXsU47xYXcixG8wyV31NC1kKgDC53PZfVhsuXnDjDe`
+
+### 2. Funding Amount
+**Question:** *How much are you requesting in funding?*
+**Answer:**
+`$15,000 USD (to be paid in SOL/USDC)`
+
+### 3. Funding Category
+**Question:** *Which funding category are you applying for?*
+**Answer:**
+`Web3 Consumer Apps / Gaming & Social DeFi`
+
+### 4. Your project / idea
+**Question:** *What are you building?*
+**Answer:**
+`SolPlay is a decentralized social sportsbook on Solana. It merges live sports video streams (with localized HLS/CDN acceleration) with a non-custodial copy-betting feed, transparent on-chain wagers, and custom oracle-driven game settling.`
+
+### 5. Referral Partner
+**Question:** *If you were referred by a Solana Foundation Partner or by someone at Solana Foundation, please indicate below.*
+**Answer:**
+`None / Self-referred`
+
+### 6. Is / will this project be open sourced?
+**Question:** *Is / will this project be open sourced?*
+**Answer:**
+`Yes`
+
+### 7. Milestones & Budget Breakdown
+**Question:** *Specify the amount of funding you are requesting and list the milestones that will be completed to unlock each portion of that funding.*
+**Answer:**
+*   **$7,500 due upon completion of Milestone 1:** Integration of the autonomous oracle daemon with API-Football for live, real-world match settling, and smart contract third-party audit completion.
+*   **$2,500 due upon completion of Milestone 2:** Platform deployment to Solana Mainnet, verified program accounts, and launch of custom hosted domains.
+*   **$5,000 due upon completion of Milestone 3:** Public launch of the platform, marketing campaign targeting copy-betting communities, and onboarding of 10+ social sports creators with at least $100,000 in cumulative platform betting volume within 60 days of launch.
+
+### 8. Relevant traction metrics
+**Question:** *Tell us about the traction that your project has already achieved.*
+**Answer:**
+`We have built the core Rust SBF smart contracts, launched a local test validator cluster, and developed a consumer-facing glassmorphic UI integrating live HLS video streams with real Phantom wallet signature validation. In local developer testing, we successfully validated edge-node latency, automatic odds calculation cutoffs, and simulated betting transaction state pools.`
+
+### 9. Competition
+**Question:** *Who is a direct competitor to your project? Tell us your competitive advantage.*
+**Answer:**
+`Traditional sportsbooks (centralized and prone to banning winning accounts/delayed payouts) and existing Web3 betting platforms (strictly transactional and non-social). SolPlay's competitive advantages are: (1) On-chain copy-betting where users can replicate active tickets in 1-click and creators earn a 2.0% commission directly on-chain, (2) native video stream integration, and (3) robust front-running protections (odds cuts and match freezing) preventing latency courtsiding.`
+
+### 10. How is this project a public good?
+**Question:** *How is this project a public good?*
+**Answer:**
+`SolPlay makes a significant open-source contribution to the Solana ecosystem by providing a reference implementation of a high-performance consumer dApp that integrates live media streaming and Web3 wallets. The client-side P2P CDN accelerator code, the Rust betting escrow program, and the automated sports odds oracle daemon will be open-sourced to help other developer teams build consumer-facing applications on Solana.`
+
+### 11. Why You?
+**Question:** *Why are you and your team the best people to build this project? What edge do you have over the competition?*
+**Answer:**
+`We possess deep systems-level expertise in Rust and SBF smart contract engineering, combined with advanced frontend UI design capabilities (real-time HLS streams, dynamic canvas rendering engines). Having built complex parsers and high-frequency telemetry monitors, we know how to bypass public RPC limits, optimize transactions, and craft secure, interactive Web3 consumer products.`
