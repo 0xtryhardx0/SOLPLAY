@@ -18,3 +18,15 @@ market_999.json
 wager_a.json
 wager_b.json
 milestone_1.json
+
+# Local test JSON states
+*_test.json
+market_2026.json
+active_matches.json
+inspect_*.py
+test_tx*.py
+test_sig.py
+test_get_health.py
+check_html.py
+find_tx.py
+test_tabs.js

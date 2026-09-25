@@ -839,6 +839,7 @@ void main() {
                     <span class="material-symbols-outlined text-[18px] text-secondary">trending_up</span>
                     Memes
                 </button>
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors" id="btn-tab-staking" onclick="switchTab('staking')">📈 Staking</button>
             </div>
 
             <!-- Tab Panels Container -->
@@ -1046,6 +1047,91 @@ void main() {
                         <div class="grid grid-cols-2 gap-4">
                             <button class="w-full py-3 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 font-bold text-label-sm hover:bg-secondary hover:text-on-secondary transition-all glass-shine" onclick="buyMemeToken(0.1)">BUY 0.1 SOL</button>
                             <button class="w-full py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-label-sm hover:bg-primary hover:text-on-primary transition-all glass-shine" onclick="buyMemeToken(0.5)">BUY 0.5 SOL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staking (LP Pool) Panel -->
+                <div class="hidden flex flex-col gap-6 tab-panel" id="panel-staking" style="display: none;">
+                    <div class="glass-panel rounded-2xl p-6 glass-shine border-primary/20 flex flex-col gap-6">
+                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                            <div>
+                                <h3 class="text-headline-sm font-black text-white italic tracking-tighter">📈 BE THE HOUSE</h3>
+                                <p class="text-label-sm text-on-surface/40">Deposit SOL to act as the sportsbook bankroll and earn yields.</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-success/10 text-success text-[10px] font-black tracking-wider uppercase animate-pulse">Pool Active</span>
+                        </div>
+
+                        <!-- Pool Statistics Grid -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Total Value Locked</span>
+                                <span class="text-headline-sm font-black text-white" id="lp-tvl">0.00 SOL</span>
+                            </div>
+                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Available Liquidity</span>
+                                <span class="text-headline-sm font-black text-secondary" id="lp-available">0.00 SOL</span>
+                            </div>
+                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Reserved Liabilities</span>
+                                <span class="text-headline-sm font-black text-white" id="lp-reserved">0.00 SOL</span>
+                            </div>
+                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                                <span class="text-label-sm text-on-surface/40 block mb-1">Estimated APY</span>
+                                <span class="text-headline-sm font-black text-neon-teal">12.50%</span>
+                            </div>
+                        </div>
+
+                        <!-- Staking Actions & User Balances -->
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Staking Operations Form -->
+                            <div class="flex flex-col gap-4 bg-white/[0.01] p-5 rounded-xl border border-white/5">
+                                <h4 class="text-label-md font-bold text-white mb-2">Stake / Unstake SOL</h4>
+                                
+                                <!-- Deposit Operations -->
+                                <div class="flex flex-col gap-2">
+                                    <label class="text-[11px] font-bold text-on-surface/50 uppercase tracking-wider">Deposit into LP</label>
+                                    <div class="flex gap-2">
+                                        <input type="number" step="0.1" min="0.1" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-body-md font-bold focus:outline-none focus:border-primary/50" id="input-stake-amount" placeholder="Amount (SOL)">
+                                        <button class="px-6 py-3 rounded-xl bg-primary text-on-primary text-label-sm font-bold hover:bg-primary-hover transition-all" onclick="depositLpFunds()">Stake SOL</button>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-white/5 my-2"></div>
+
+                                <!-- Withdraw Operations -->
+                                <div class="flex flex-col gap-2">
+                                    <label class="text-[11px] font-bold text-on-surface/50 uppercase tracking-wider">Withdraw from LP</label>
+                                    <div class="flex gap-2">
+                                        <input type="number" step="0.1" min="0.1" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-body-md font-bold focus:outline-none focus:border-secondary/50" id="input-unstake-amount" placeholder="LP Shares">
+                                        <button class="px-6 py-3 rounded-xl bg-secondary text-on-secondary text-label-sm font-bold hover:bg-secondary-hover transition-all" onclick="withdrawLpFunds()">Unstake LP</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Position Card -->
+                            <div class="flex flex-col justify-between p-5 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 relative overflow-hidden">
+                                <div class="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
+                                <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-secondary/20 rounded-full blur-2xl pointer-events-none"></div>
+                                
+                                <div>
+                                    <h4 class="text-label-md font-bold text-white mb-4">Your Staking Position</h4>
+                                    <div class="flex flex-col gap-3">
+                                        <div class="flex justify-between items-center text-body-sm">
+                                            <span class="text-on-surface/50">Your LP Shares:</span>
+                                            <span class="font-black text-white" id="user-lp-shares">0.00 LP</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-body-sm">
+                                            <span class="text-on-surface/50">Staked Equivalent:</span>
+                                            <span class="font-black text-secondary" id="user-lp-value">0.00 SOL</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-white/5 my-4"></div>
+
+                                <button class="w-full py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white text-label-xs font-bold transition-all" onclick="refreshStakingMetrics()">🔄 Refresh Position Metrics</button>
+                            </div>
                         </div>
                     </div>
                 </div>
