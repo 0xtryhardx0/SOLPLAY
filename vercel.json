@@ -1,5 +1,5 @@
 {
-  "version": 2,
-  "name": "solplay-sportsbook",
+  "buildCommand": "",
+  "outputDirectory": ".",
   "cleanUrls": true
 }
