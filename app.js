@@ -1889,6 +1889,13 @@ function initHlsPlayer(videoElement, streamUrl) {
                         break;
                     default:
                         destroyHlsPlayer();
+                        const vidEl = document.getElementById("hls-video-player");
+                        if (vidEl) vidEl.style.display = "none";
+                        const mockEl = document.getElementById("mock-video-player");
+                        if (mockEl) mockEl.style.display = "flex";
+                        if (typeof showToast === "function") {
+                            showToast("Stream signal offline. Auto-switched to Live 2D Match Radar.", "info");
+                        }
                         break;
                 }
             }
@@ -3694,8 +3701,8 @@ function switchExchangeTab(tabId) {
 
 function switchMatchTab(tabId) {
     try {
-        const panels = ["panel-match-chat", "panel-match-lineups", "panel-match-timeline"];
-        const btns = ["btn-match-chat", "btn-match-lineups", "btn-match-timeline"];
+        const panels = ["panel-match-chat", "panel-match-lineups", "panel-match-timeline", "panel-match-stats"];
+        const btns = ["btn-match-chat", "btn-match-lineups", "btn-match-timeline", "btn-match-stats"];
 
         panels.forEach(p => {
             const el = document.getElementById(p);
@@ -3724,11 +3731,77 @@ function switchMatchTab(tabId) {
             renderMatchLineups();
         } else if (tabId === 'timeline') {
             renderMatchTimeline();
+        } else if (tabId === 'stats') {
+            renderMatchStats();
         }
     } catch (e) {
         console.error("Error inside switchMatchTab:", e);
         showToast("Match center tab error: " + e.message, "error");
     }
+}
+
+function renderMatchStats() {
+    const container = document.getElementById("stats-scroll-container");
+    if (!container) return;
+    
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId);
+    if (!match) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">Select a match to view live in-game statistics</div>`;
+        return;
+    }
+    
+    // Dynamic match stats
+    const homePoss = match.stats && match.stats.possession ? match.stats.possession.home : 54;
+    const awayPoss = 100 - homePoss;
+    const homeShots = match.stats && match.stats.shots ? match.stats.shots.home : 13;
+    const awayShots = match.stats && match.stats.shots ? match.stats.shots.away : 8;
+    const homeOnTarget = Math.round(homeShots * 0.45);
+    const awayOnTarget = Math.round(awayShots * 0.4);
+    const homeAttacks = match.stats && match.stats.attacks ? match.stats.attacks.home : 62;
+    const awayAttacks = match.stats && match.stats.attacks ? match.stats.attacks.away : 41;
+    const homeCorners = match.stats && match.stats.corners ? match.stats.corners.home : 6;
+    const awayCorners = match.stats && match.stats.corners ? match.stats.corners.away : 3;
+
+    container.innerHTML = `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px;">
+                <span style="color: #a855f7;">${match.homeTeam}</span>
+                <span style="color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">Ball Possession</span>
+                <span style="color: #06b6d4;">${match.awayTeam}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; margin-bottom: 6px;">
+                <span>${homePoss}%</span>
+                <span>${awayPoss}%</span>
+            </div>
+            <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; display: flex;">
+                <div style="width: ${homePoss}%; background: linear-gradient(90deg, #a855f7, #c084fc);"></div>
+                <div style="width: ${awayPoss}%; background: linear-gradient(90deg, #22d3ee, #06b6d4);"></div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                <span style="font-weight: 700;">${homeShots} (${homeOnTarget})</span>
+                <span style="color: var(--text-secondary);">Shots (On Target)</span>
+                <span style="font-weight: 700;">${awayShots} (${awayOnTarget})</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                <span style="font-weight: 700;">${homeAttacks}</span>
+                <span style="color: var(--text-secondary);">Dangerous Attacks</span>
+                <span style="font-weight: 700;">${awayAttacks}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                <span style="font-weight: 700;">${homeCorners}</span>
+                <span style="color: var(--text-secondary);">Corner Kicks</span>
+                <span style="font-weight: 700;">${awayCorners}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                <span style="font-weight: 700; color: #22c55e;">1.74</span>
+                <span style="color: var(--text-secondary);">Expected Goals (xG)</span>
+                <span style="font-weight: 700; color: #22c55e;">0.89</span>
+            </div>
+        </div>
+    `;
 }
 
 function renderMatchLineups() {

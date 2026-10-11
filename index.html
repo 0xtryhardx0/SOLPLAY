@@ -740,8 +740,8 @@ void main() {
 
                 <!-- Video Players -->
                 <div class="aspect-video relative bg-black/40 group overflow-hidden">
-                    <!-- YouTube Embed (Server 1) -->
-                    <iframe class="w-full h-full border-none" id="video-iframe-player" allow="autoplay; encrypted-media" allowfullscreen style="display: none;"></iframe>
+                    <!-- YouTube & Live Stream Embed (Server 1) -->
+                    <iframe class="w-full h-full border-none" id="video-iframe-player" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="no-referrer" allowfullscreen style="display: none;"></iframe>
                     
                     <!-- Native HLS Video Stream Element (Server 2) -->
                     <video class="w-full h-full object-cover" id="hls-video-player" controls autoplay muted style="display: none;"></video>
@@ -799,6 +799,7 @@ void main() {
                     <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-chat" onclick="switchMatchTab('chat')">CHATS</button>
                     <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-lineups" onclick="switchMatchTab('lineups')">LINEUPS</button>
                     <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-timeline" onclick="switchMatchTab('timeline')">TIMELINE</button>
+                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-stats" onclick="switchMatchTab('stats')">STATS</button>
                 </div>
 
                 <!-- Chat Panel -->
@@ -822,6 +823,13 @@ void main() {
                 <!-- Timeline Panel -->
                 <div class="flex-1 overflow-y-auto p-6" id="panel-match-timeline" style="display: none;">
                     <div id="timeline-scroll-container" class="space-y-4"></div>
+                </div>
+
+                <!-- Live In-Match Stats Panel -->
+                <div class="flex-1 overflow-y-auto p-6" id="panel-match-stats" style="display: none;">
+                    <div id="stats-scroll-container" class="space-y-4">
+                        <!-- In-Match Stats populated dynamically -->
+                    </div>
                 </div>
             </section>
         </div>
