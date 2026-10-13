@@ -1581,5 +1581,270 @@ body {
         radial-gradient(circle at 85% 85%, rgba(20, 184, 166, 0.08) 0%, transparent 45%);
 }
 
+/* ========================================================
+   SPORTSBOOK SCHEDULE & LEAGUE FILTER SUITE (Betting Standard)
+   ======================================================== */
+.schedule-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1.2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.75rem;
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+}
+
+.schedule-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+}
+.schedule-filter-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.schedule-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: var(--font-outfit);
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.schedule-pill:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+}
+
+.schedule-pill.active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.3) 0%, rgba(168, 85, 247, 0.3) 100%);
+    border-color: rgba(20, 184, 166, 0.7);
+    box-shadow: 0 0 16px rgba(20, 184, 166, 0.3);
+}
+
+.schedule-pill .pill-count {
+    font-size: 0.68rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.schedule-pill.active .pill-count {
+    background: #14b8a6;
+    color: #07070a;
+}
+
+/* League Badges Sub-Bar */
+.league-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+}
+.league-filter-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.league-badge-btn {
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    font-family: var(--font-outfit);
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.league-badge-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(168, 85, 247, 0.4);
+}
+
+.league-badge-btn.active {
+    color: #fff;
+    background: rgba(168, 85, 247, 0.22);
+    border-color: #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+    font-weight: 600;
+}
+
+/* Match Section Dividers */
+.match-section-divider {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 1.4rem 0 0.8rem 0;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+}
+
+.match-section-divider .title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.match-section-divider .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.55rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+}
+
+/* Schedule Time Badges */
+.badge-live-pulse {
+    color: #ec4899;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(236, 72, 153, 0.12);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+.badge-live-pulse::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ec4899;
+    box-shadow: 0 0 8px #ec4899;
+    animation: livePulseAnim 1.4s infinite ease-in-out;
+}
+@keyframes livePulseAnim {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+}
+
+.badge-schedule-today {
+    color: #14b8a6;
+    font-weight: 600;
+    font-size: 0.74rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid rgba(20, 184, 166, 0.25);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.badge-schedule-tomorrow {
+    color: #f59e0b;
+    font-weight: 600;
+    font-size: 0.74rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.badge-schedule-week {
+    color: #818cf8;
+    font-weight: 600;
+    font-size: 0.74rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(129, 140, 248, 0.1);
+    border: 1px solid rgba(129, 140, 248, 0.25);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+/* Enhanced Market Tabs (1x2, O/U, BTTS, Scorer, Score) */
+.market-tabs {
+    display: flex;
+    gap: 0.35rem;
+    margin: 0.75rem 0 0.5rem 0;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+}
+.market-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.market-tab-btn {
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.market-tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.market-tab-btn.active {
+    color: #14b8a6;
+    background: rgba(20, 184, 166, 0.12);
+    border-color: rgba(20, 184, 166, 0.4);
+    font-weight: 600;
+}
+
+.market-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+}
+
+.market-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+}
+
+
 
 

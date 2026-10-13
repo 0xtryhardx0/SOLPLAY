@@ -912,6 +912,44 @@ void main() {
 
                     <!-- Live matches -->
                     <div id="content-live">
+                        <!-- Betting Platform Schedule & League Filter Deck -->
+                        <div class="schedule-filter-container">
+                            <!-- Schedule Filter Pills: All, Live Now, Today, Tomorrow, This Week -->
+                            <div class="schedule-filter-bar" id="schedule-filter-bar">
+                                <button class="schedule-pill active" id="filter-pill-all" onclick="filterMatchesBySchedule('all')">
+                                    <span>🌐 All Fixtures</span>
+                                    <span class="pill-count" id="count-pill-all">0</span>
+                                </button>
+                                <button class="schedule-pill" id="filter-pill-live" onclick="filterMatchesBySchedule('live')">
+                                    <span>🔴 Live Now</span>
+                                    <span class="pill-count" id="count-pill-live">0</span>
+                                </button>
+                                <button class="schedule-pill" id="filter-pill-today" onclick="filterMatchesBySchedule('today')">
+                                    <span>📅 Today</span>
+                                    <span class="pill-count" id="count-pill-today">0</span>
+                                </button>
+                                <button class="schedule-pill" id="filter-pill-tomorrow" onclick="filterMatchesBySchedule('tomorrow')">
+                                    <span>⚽ Tomorrow</span>
+                                    <span class="pill-count" id="count-pill-tomorrow">0</span>
+                                </button>
+                                <button class="schedule-pill" id="filter-pill-week" onclick="filterMatchesBySchedule('week')">
+                                    <span>🏆 This Week</span>
+                                    <span class="pill-count" id="count-pill-week">0</span>
+                                </button>
+                            </div>
+
+                            <!-- League Badges Sub-Bar -->
+                            <div class="league-filter-bar" id="league-filter-bar">
+                                <button class="league-badge-btn active" id="league-btn-all" onclick="filterMatchesByLeague('all')">All Leagues</button>
+                                <button class="league-badge-btn" id="league-btn-epl" onclick="filterMatchesByLeague('Premier League')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+                                <button class="league-badge-btn" id="league-btn-ucl" onclick="filterMatchesByLeague('Champions League')">⭐ Champions League</button>
+                                <button class="league-badge-btn" id="league-btn-laliga" onclick="filterMatchesByLeague('La Liga')">🇪🇸 La Liga</button>
+                                <button class="league-badge-btn" id="league-btn-seriea" onclick="filterMatchesByLeague('Serie A')">🇮🇹 Serie A</button>
+                                <button class="league-badge-btn" id="league-btn-bundesliga" onclick="filterMatchesByLeague('Bundesliga')">🇩🇪 Bundesliga</button>
+                                <button class="league-badge-btn" id="league-btn-worldcup" onclick="filterMatchesByLeague('World Cup')">🌍 World Cup</button>
+                            </div>
+                        </div>
+
                         <div class="space-y-4" id="content-live-list">
                             <!-- Live matches populated dynamically by app.js -->
                         </div>

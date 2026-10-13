@@ -63,11 +63,15 @@ let currentBettingTab = 'live';
 
 // Simulated match state
 let activeMatchId = 2026; // Default to Portugal vs Uzbekistan World Cup Match
+let activeScheduleFilter = 'all'; // 'all', 'live', 'today', 'tomorrow', 'week'
+let activeLeagueFilter = 'all';   // 'all', 'Premier League', 'Champions League', etc.
 
 const MATCHES_DATA = [
     {
         id: 2026,
         league: "World Cup Group K • Live",
+        leagueCategory: "World Cup",
+        scheduleGroup: "live",
         homeTeam: "Portugal",
         awayTeam: "Uzbekistan",
         time: "10'",
@@ -926,87 +930,350 @@ async function loadMatchSquadsAsync(match) {
     }
 }
 
+// Dynamic Date & Fixture Scheduling System (Betting Platform Standard)
+function getSportsScheduleDates() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, "0");
+    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
+
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    return {
+        todayStr,
+        tomorrowStr,
+        todayLabel: `${daysOfWeek[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`,
+        tomorrowLabel: `${daysOfWeek[tomorrow.getDay()]}, ${months[tomorrow.getMonth()]} ${tomorrow.getDate()}`,
+        dayNameToday: daysOfWeek[now.getDay()],
+        dayNameTomorrow: daysOfWeek[tomorrow.getDay()]
+    };
+}
+
+// Generate complete betting markets (1X2, O/U 2.5, BTTS, Correct Score)
+function getMatchMarkets(match) {
+    if (!MATCH_MARKETS[match.id]) {
+        MATCH_MARKETS[match.id] = {};
+    }
+    const markets = MATCH_MARKETS[match.id];
+
+    const homeOdds = match.odds?.home || 2.10;
+    const drawOdds = match.odds?.draw || 3.30;
+    const awayOdds = match.odds?.away || 3.10;
+
+    // 1X2 Market
+    if (!markets['1x2'] || markets['1x2'].length === 0) {
+        markets['1x2'] = [
+            { label: match.homeTeam, value: homeOdds, outcomeId: 0, desc: `${match.homeTeam} Win` },
+            { label: "Draw", value: drawOdds, outcomeId: 2, desc: "Draw" },
+            { label: match.awayTeam, value: awayOdds, outcomeId: 1, desc: `${match.awayTeam} Win` }
+        ];
+    }
+
+    // Over/Under 2.5 Market
+    if (!markets['overunder']) {
+        const h = match.homeTeam.length;
+        const a = match.awayTeam.length;
+        const overVal = parseFloat((1.75 + ((h * 3) % 4) * 0.08).toFixed(2));
+        const underVal = parseFloat((1.95 + ((a * 2) % 4) * 0.08).toFixed(2));
+        markets['overunder'] = [
+            { label: "Over 2.5 Goals", value: overVal, outcomeId: 10, desc: `${match.homeTeam} vs ${match.awayTeam} - Over 2.5 Goals` },
+            { label: "Under 2.5 Goals", value: underVal, outcomeId: 11, desc: `${match.homeTeam} vs ${match.awayTeam} - Under 2.5 Goals` }
+        ];
+    }
+
+    // Both Teams to Score (BTTS) Market
+    if (!markets['btts']) {
+        const h = match.homeTeam.length;
+        const a = match.awayTeam.length;
+        const yesVal = parseFloat((1.68 + ((h + a) % 3) * 0.1).toFixed(2));
+        const noVal = parseFloat((2.08 + ((h * 2 + a) % 3) * 0.1).toFixed(2));
+        markets['btts'] = [
+            { label: "BTTS - Yes", value: yesVal, outcomeId: 20, desc: `${match.homeTeam} vs ${match.awayTeam} - Both Teams to Score: Yes` },
+            { label: "BTTS - No", value: noVal, outcomeId: 21, desc: `${match.homeTeam} vs ${match.awayTeam} - Both Teams to Score: No` }
+        ];
+    }
+
+    // Correct Score Market
+    if (!markets['score'] || markets['score'].length === 0) {
+        const h = match.homeTeam.length;
+        const a = match.awayTeam.length;
+        markets['score'] = [
+            { label: "1 - 0", value: parseFloat((6.50 + (h % 3) * 0.5).toFixed(2)), outcomeId: 50, desc: `${match.homeTeam} 1-0` },
+            { label: "2 - 0", value: parseFloat((8.50 + (h % 4) * 0.5).toFixed(2)), outcomeId: 51, desc: `${match.homeTeam} 2-0` },
+            { label: "2 - 1", value: parseFloat((8.00 + (a % 3) * 0.5).toFixed(2)), outcomeId: 52, desc: `${match.homeTeam} 2-1` },
+            { label: "1 - 1", value: parseFloat((5.50 + ((h + a) % 3) * 0.5).toFixed(2)), outcomeId: 55, desc: "Draw 1-1" },
+            { label: "0 - 1", value: parseFloat((8.50 + (a % 3) * 0.5).toFixed(2)), outcomeId: 57, desc: `${match.awayTeam} 1-0` },
+            { label: "0 - 2", value: parseFloat((11.00 + (a % 4) * 0.5).toFixed(2)), outcomeId: 58, desc: `${match.awayTeam} 2-0` }
+        ];
+    }
+
+    return markets;
+}
+
+// Schedule and League Filter Handlers
+function filterMatchesBySchedule(scheduleType) {
+    activeScheduleFilter = scheduleType;
+    const pills = ['all', 'live', 'today', 'tomorrow', 'week'];
+    pills.forEach(p => {
+        const btn = document.getElementById(`filter-pill-${p}`);
+        if (btn) {
+            btn.classList.toggle('active', p === scheduleType);
+        }
+    });
+    renderLiveMatches();
+}
+
+function filterMatchesByLeague(leagueName) {
+    activeLeagueFilter = leagueName;
+    const leagueMap = {
+        'all': 'league-btn-all',
+        'Premier League': 'league-btn-epl',
+        'Champions League': 'league-btn-ucl',
+        'La Liga': 'league-btn-laliga',
+        'Serie A': 'league-btn-seriea',
+        'Bundesliga': 'league-btn-bundesliga',
+        'World Cup': 'league-btn-worldcup'
+    };
+    Object.keys(leagueMap).forEach(key => {
+        const btn = document.getElementById(leagueMap[key]);
+        if (btn) {
+            btn.classList.toggle('active', key === leagueName);
+        }
+    });
+    renderLiveMatches();
+}
+
+// Autonomous Daily & Weekly Fixtures Synchronizer
 async function fetchUpcomingMatchesFromAPI() {
-    console.log("Fetching upcoming matches from SportsDB API...");
-    const leagues = [
-        { id: 4328, name: "Premier League" },
-        { id: 4480, name: "Champions League" }
+    console.log("Synchronizing daily and weekly fixtures across global soccer leagues...");
+    const dates = getSportsScheduleDates();
+
+    // 1. Align Core Static Matches to dynamic dates so they never go stale
+    MATCHES_DATA.forEach(match => {
+        if (match.id === 2026 || match.id === 999 || match.id === 998) {
+            match.scheduleGroup = 'live';
+            if (!match.leagueCategory) match.leagueCategory = match.id === 998 ? 'Premier League' : 'World Cup';
+        } else if (match.id === 995) {
+            match.scheduleGroup = 'today';
+            match.leagueCategory = 'La Liga';
+            match.time = "Today • 20:00 UTC";
+            match.scheduleDate = dates.todayStr;
+        } else if (match.id === 997) {
+            match.scheduleGroup = 'today';
+            match.leagueCategory = 'Saudi Pro League';
+            match.time = "Today • 20:45 UTC";
+            match.scheduleDate = dates.todayStr;
+        } else if (match.id === 994) {
+            match.scheduleGroup = 'tomorrow';
+            match.leagueCategory = 'Serie A';
+            match.time = `Tomorrow • 19:45 UTC`;
+            match.scheduleDate = dates.tomorrowStr;
+        } else if (match.id === 993) {
+            match.scheduleGroup = 'tomorrow';
+            match.leagueCategory = 'Bundesliga';
+            match.time = `Tomorrow • 20:30 UTC`;
+            match.scheduleDate = dates.tomorrowStr;
+        } else if (match.id === 996) {
+            match.scheduleGroup = 'tomorrow';
+            match.leagueCategory = 'MLS';
+            match.time = `Tomorrow • 21:00 UTC`;
+            match.scheduleDate = dates.tomorrowStr;
+        }
+        getMatchMarkets(match);
+    });
+
+    // 2. Guarantee Marquee Match Slates for Tomorrow and the Upcoming Week
+    const marqueeFixtures = [
+        // Tomorrow Marquee Games
+        {
+            id: 1010,
+            league: "Champions League • Tomorrow",
+            leagueCategory: "Champions League",
+            scheduleGroup: "tomorrow",
+            homeTeam: "Man City",
+            awayTeam: "Liverpool",
+            time: `Tomorrow • 20:00 UTC`,
+            status: "UPCOMING",
+            score: { home: 0, away: 0 },
+            formation: { home: "4-3-3", away: "4-3-3" },
+            odds: { home: 2.15, draw: 3.40, away: 3.10 }
+        },
+        {
+            id: 1011,
+            league: "Champions League • Tomorrow",
+            leagueCategory: "Champions League",
+            scheduleGroup: "tomorrow",
+            homeTeam: "PSG",
+            awayTeam: "Atletico Madrid",
+            time: `Tomorrow • 20:45 UTC`,
+            status: "UPCOMING",
+            score: { home: 0, away: 0 },
+            formation: { home: "4-3-3", away: "4-4-2" },
+            odds: { home: 1.95, draw: 3.35, away: 3.60 }
+        },
+        {
+            id: 1012,
+            league: "Serie A • Tomorrow",
+            leagueCategory: "Serie A",
+            scheduleGroup: "tomorrow",
+            homeTeam: "AC Milan",
+            awayTeam: "Napoli",
+            time: `Tomorrow • 18:30 UTC`,
+            status: "UPCOMING",
+            score: { home: 0, away: 0 },
+            formation: { home: "4-2-3-1", away: "3-4-2-1" },
+            odds: { home: 2.30, draw: 3.25, away: 2.95 }
+        },
+        // Weekend Slate
+        {
+            id: 1020,
+            league: "Premier League • Saturday",
+            leagueCategory: "Premier League",
+            scheduleGroup: "week",
+            homeTeam: "Arsenal",
+            awayTeam: "Man United",
+            time: "Saturday • 12:30 UTC",
+            status: "UPCOMING",
+            score: { home: 0, away: 0 },
+            formation: { home: "4-3-3", away: "4-2-3-1" },
+            odds: { home: 1.75, draw: 3.80, away: 4.20 }
+        },
+        {
+            id: 1021,
+            league: "Premier League • Friday",
+            leagueCategory: "Premier League",
+            scheduleGroup: "week",
+            homeTeam: "Newcastle",
+            awayTeam: "Tottenham",
+            time: "Friday • 20:00 UTC",
+            status: "UPCOMING",
+            score: { home: 0, away: 0 },
+            formation: { home: "4-3-3", away: "4-2-3-1" },
+            odds: { home: 2.20, draw: 3.40, away: 2.90 }
+        },
+        {
+            id: 1022,
+            league: "Bundesliga • Saturday",
+            leagueCategory: "Bundesliga",
+            scheduleGroup: "week",
+            homeTeam: "Bayer Leverkusen",
+            awayTeam: "RB Leipzig",
+            time: "Saturday • 15:30 UTC",
+            status: "UPCOMING",
+            score: { home: 0, away: 0 },
+            formation: { home: "3-4-2-1", away: "4-2-2-2" },
+            odds: { home: 2.05, draw: 3.50, away: 3.20 }
+        }
     ];
-    
+
+    marqueeFixtures.forEach(fix => {
+        if (!MATCHES_DATA.some(m => m.id === fix.id)) {
+            MATCHES_DATA.push(fix);
+            getMatchMarkets(fix);
+        }
+    });
+
+    // 3. Ingest Live Real-World Events for Today, Tomorrow and League Rounds
+    const apiEndpoints = [
+        { url: `https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${dates.todayStr}&s=Soccer`, forcedGroup: 'today' },
+        { url: `https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${dates.tomorrowStr}&s=Soccer`, forcedGroup: 'tomorrow' },
+        { url: `https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4328`, leagueName: "Premier League" },
+        { url: `https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4480`, leagueName: "Champions League" },
+        { url: `https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4335`, leagueName: "La Liga" },
+        { url: `https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4332`, leagueName: "Serie A" },
+        { url: `https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4331`, leagueName: "Bundesliga" }
+    ];
+
     let loadedCount = 0;
-    
-    for (const lg of leagues) {
+
+    for (const ep of apiEndpoints) {
         try {
-            const url = `https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=${lg.id}`;
-            const resp = await fetch(url);
+            const resp = await fetch(ep.url);
             if (!resp.ok) continue;
             const data = await resp.json();
-            
+
             if (data && data.events && data.events.length > 0) {
                 data.events.forEach(evt => {
                     const matchId = parseInt(evt.idEvent);
                     if (isNaN(matchId)) return;
-                    
-                    // Check if match already exists
+
                     const exists = MATCHES_DATA.some(m => m.id === matchId);
                     if (exists) return;
-                    
+
                     const homeTeam = evt.strHomeTeam;
                     const awayTeam = evt.strAwayTeam;
+                    if (!homeTeam || !awayTeam) return;
+
                     const h = homeTeam.length;
                     const a = awayTeam.length;
-                    
-                    // Compute deterministic realistic odds based on team name lengths
-                    const homeOdds = parseFloat((1.45 + ((h * 7) % 6) * 0.3).toFixed(2));
-                    const drawOdds = parseFloat((3.00 + (((h + a) * 11) % 5) * 0.25).toFixed(2));
-                    const awayOdds = parseFloat((1.85 + ((a * 9) % 7) * 0.4).toFixed(2));
-                    
+
+                    // Realistic odds calculation
+                    const homeOdds = parseFloat((1.55 + ((h * 7) % 6) * 0.28).toFixed(2));
+                    const drawOdds = parseFloat((3.10 + (((h + a) * 11) % 5) * 0.22).toFixed(2));
+                    const awayOdds = parseFloat((1.90 + ((a * 9) % 7) * 0.35).toFixed(2));
+
+                    // Schedule grouping
+                    let scheduleGroup = 'week';
+                    let timeDisplay = evt.dateEvent || "Upcoming";
+                    const kickoffTime = evt.strTime ? evt.strTime.substring(0, 5) : "19:45";
+
+                    if (ep.forcedGroup === 'today' || evt.dateEvent === dates.todayStr) {
+                        scheduleGroup = 'today';
+                        timeDisplay = `Today • ${kickoffTime} UTC`;
+                    } else if (ep.forcedGroup === 'tomorrow' || evt.dateEvent === dates.tomorrowStr) {
+                        scheduleGroup = 'tomorrow';
+                        timeDisplay = `Tomorrow • ${kickoffTime} UTC`;
+                    } else {
+                        scheduleGroup = 'week';
+                        timeDisplay = `${evt.dateEvent || 'Upcoming'} • ${kickoffTime} UTC`;
+                    }
+
+                    // League category tagging
+                    const leagueRaw = evt.strLeague || ep.leagueName || "Global Match";
+                    let leagueCategory = "Other";
+                    if (leagueRaw.includes("Premier League")) leagueCategory = "Premier League";
+                    else if (leagueRaw.includes("Champions League")) leagueCategory = "Champions League";
+                    else if (leagueRaw.includes("La Liga")) leagueCategory = "La Liga";
+                    else if (leagueRaw.includes("Serie A")) leagueCategory = "Serie A";
+                    else if (leagueRaw.includes("Bundesliga")) leagueCategory = "Bundesliga";
+                    else if (leagueRaw.includes("World Cup")) leagueCategory = "World Cup";
+
                     const newMatch = {
                         id: matchId,
-                        league: `${evt.strLeague || lg.name} • Upcoming`,
+                        league: `${leagueRaw} • ${scheduleGroup.toUpperCase()}`,
+                        leagueCategory: leagueCategory,
+                        scheduleGroup: scheduleGroup,
                         homeTeam: homeTeam,
                         awayTeam: awayTeam,
-                        time: evt.dateEvent || "Upcoming",
+                        time: timeDisplay,
                         status: "UPCOMING",
                         score: { home: 0, away: 0 },
                         formation: { home: "4-3-3", away: "4-3-3" },
                         odds: { home: homeOdds, draw: drawOdds, away: awayOdds },
                         timeline: [
-                            { time: "0'", type: "start", desc: "Match scheduled", icon: "📅" }
+                            { time: "0'", type: "start", desc: `Kick-off scheduled for ${timeDisplay}`, icon: "📅" }
                         ]
                     };
-                    
-                    // Setup markets
-                    MATCH_MARKETS[matchId] = {
-                        '1x2': [
-                            { label: homeTeam, value: homeOdds, outcomeId: 0, desc: `${homeTeam} Win` },
-                            { label: "Draw", value: drawOdds, outcomeId: 2, desc: "Draw" },
-                            { label: awayTeam, value: awayOdds, outcomeId: 1, desc: `${awayTeam} Win` }
-                        ],
-                        'scorer': [], // Will load dynamically when match center renders
-                        'score': [
-                            { label: "1 - 0", value: parseFloat((6.50 + (h % 4) * 0.5).toFixed(2)), outcomeId: 50, desc: `${homeTeam} 1-0` },
-                            { label: "2 - 1", value: parseFloat((8.00 + (a % 5) * 0.5).toFixed(2)), outcomeId: 52, desc: `${homeTeam} 2-1` },
-                            { label: "1 - 1", value: parseFloat((5.50 + ((h + a) % 3) * 0.5).toFixed(2)), outcomeId: 55, desc: "Draw 1-1" },
-                            { label: "0 - 1", value: parseFloat((8.50 + (a % 4) * 0.5).toFixed(2)), outcomeId: 57, desc: `${awayTeam} 1-0` }
-                        ]
-                    };
+
+                    getMatchMarkets(newMatch);
                     activeMatchMarkets[matchId] = '1x2';
-                    
                     MATCHES_DATA.push(newMatch);
                     loadedCount++;
                 });
             }
         } catch (e) {
-            console.warn(`Failed to fetch upcoming matches for league ${lg.name}:`, e);
+            console.warn(`SportsDB API fetch skipped for ${ep.url}:`, e);
         }
     }
-    
-    if (loadedCount > 0) {
-        console.log(`Successfully fetched and populated ${loadedCount} upcoming matches from SportsDB API.`);
-        renderLiveMatches();
-    }
+
+    console.log(`Sportsbook Fixtures Active: Total ${MATCHES_DATA.length} matches across all daily schedules.`);
+    renderLiveMatches();
 }
+
 
 // Initialize on page load
 function initApp() {
@@ -1058,8 +1325,9 @@ function initApp() {
     loadWagersFromStorage();
     renderActiveWagers();
 
-    // Fetch upcoming real matches dynamically from TheSportsDB
+    // Fetch upcoming real matches dynamically from TheSportsDB & poll daily updates every 3 minutes
     fetchUpcomingMatchesFromAPI();
+    setInterval(fetchUpcomingMatchesFromAPI, 180000);
 
     // Render multi-league matches and select default
     renderLiveMatches();
@@ -3032,7 +3300,7 @@ function triggerGoalBanner(teamName, side, scorer = "") {
     }, 4000);
 }
 
-// Render live match cards dynamically
+// Render live match cards dynamically with complete betting platform filtering
 function renderLiveMatches() {
     const container = document.getElementById("content-live-list");
     if (!container) return;
@@ -3043,22 +3311,79 @@ function renderLiveMatches() {
         populateDemoMatchSelect();
     }
 
-    MATCHES_DATA.forEach(match => {
+    const dates = getSportsScheduleDates();
+
+    // 1. Calculate live counts for all schedule categories respecting active league
+    const leagueFilterPass = (m) => {
+        if (activeLeagueFilter === 'all') return true;
+        const leagueStr = ((m.league || '') + ' ' + (m.leagueCategory || '')).toLowerCase();
+        return leagueStr.includes(activeLeagueFilter.toLowerCase());
+    };
+
+    const countAll = MATCHES_DATA.filter(leagueFilterPass).length;
+    const countLive = MATCHES_DATA.filter(m => m.scheduleGroup === 'live' && leagueFilterPass(m)).length;
+    const countToday = MATCHES_DATA.filter(m => m.scheduleGroup === 'today' && leagueFilterPass(m)).length;
+    const countTomorrow = MATCHES_DATA.filter(m => m.scheduleGroup === 'tomorrow' && leagueFilterPass(m)).length;
+    const countWeek = MATCHES_DATA.filter(m => m.scheduleGroup === 'week' && leagueFilterPass(m)).length;
+
+    // Update Pill Count Badges
+    const elAll = document.getElementById("count-pill-all");
+    if (elAll) elAll.textContent = countAll;
+    const elLive = document.getElementById("count-pill-live");
+    if (elLive) elLive.textContent = countLive;
+    const elToday = document.getElementById("count-pill-today");
+    if (elToday) elToday.textContent = countToday;
+    const elTom = document.getElementById("count-pill-tomorrow");
+    if (elTom) elTom.textContent = countTomorrow;
+    const elWeek = document.getElementById("count-pill-week");
+    if (elWeek) elWeek.textContent = countWeek;
+
+    // 2. Filter matches based on user's active filters
+    const filteredMatches = MATCHES_DATA.filter(match => {
+        if (!leagueFilterPass(match)) return false;
+        if (activeScheduleFilter === 'live' && match.scheduleGroup !== 'live') return false;
+        if (activeScheduleFilter === 'today' && match.scheduleGroup !== 'today') return false;
+        if (activeScheduleFilter === 'tomorrow' && match.scheduleGroup !== 'tomorrow') return false;
+        if (activeScheduleFilter === 'week' && match.scheduleGroup !== 'week') return false;
+        return true;
+    });
+
+    if (filteredMatches.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 3rem 1.5rem; background: rgba(255, 255, 255, 0.02); border-radius: 14px; border: 1px dashed rgba(255, 255, 255, 0.08);">
+                <div style="font-size: 2.2rem; margin-bottom: 0.6rem;">⚽</div>
+                <div style="font-weight: 700; color: #fff; font-size: 1rem;">No Matches in This Schedule View</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.3rem;">
+                    Try clicking <button onclick="filterMatchesBySchedule('all')" style="color: var(--neon-teal); text-decoration: underline; background: none; border: none; cursor: pointer; font-weight: 600;">All Fixtures</button> or toggle your League filter.
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Helper to generate a match card element
+    const createMatchCardElement = (match) => {
         const isActive = (match.id === activeMatchId);
         const card = document.createElement("div");
         card.className = `match-card ${isActive ? 'active-match' : ''}`;
-        
-        // Match meta details
-        const isLive = match.status === "LIVE";
-        const statusBadge = isLive 
-            ? `<span style="color: var(--neon-pink); font-weight: 600;">LIVE</span>` 
-            : `<span style="color: var(--text-secondary); font-weight: 600;">UPCOMING</span>`;
 
-        // Render card header
+        // Schedule & status badge
+        let scheduleBadge = '';
+        if (match.scheduleGroup === 'live') {
+            scheduleBadge = `<span class="badge-live-pulse">${match.time}</span>`;
+        } else if (match.scheduleGroup === 'today') {
+            scheduleBadge = `<span class="badge-schedule-today">📅 ${match.time}</span>`;
+        } else if (match.scheduleGroup === 'tomorrow') {
+            scheduleBadge = `<span class="badge-schedule-tomorrow">⚽ ${match.time}</span>`;
+        } else {
+            scheduleBadge = `<span class="badge-schedule-week">🏆 ${match.time}</span>`;
+        }
+
+        // Card header
         let html = `
             <div class="match-info-top">
                 <span>${match.league}</span>
-                ${statusBadge}
+                ${scheduleBadge}
             </div>
             <div class="match-teams-score">
                 <div>
@@ -3069,37 +3394,40 @@ function renderLiveMatches() {
                     <div class="score-row" id="match-card-score-${match.id}">
                         <span id="match-score-home-${match.id}">${match.score.home}</span> - <span id="match-score-away-${match.id}">${match.score.away}</span>
                     </div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">${match.time}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.15rem;">${match.status === 'LIVE' ? match.time : 'Pre-Match'}</div>
                 </div>
             </div>
         `;
 
-        // Add Market selector tabs
+        // Market Tabs (Winner 1X2, Over/Under 2.5, BTTS, Goalscorer, Correct Score)
         const currentMarket = activeMatchMarkets[match.id] || '1x2';
         html += `
             <div class="market-tabs">
                 <button class="market-tab-btn ${currentMarket === '1x2' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, '1x2')">Winner (1X2)</button>
+                <button class="market-tab-btn ${currentMarket === 'overunder' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'overunder')">O/U 2.5</button>
+                <button class="market-tab-btn ${currentMarket === 'btts' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'btts')">BTTS</button>
                 <button class="market-tab-btn ${currentMarket === 'scorer' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'scorer')">Goalscorer</button>
                 <button class="market-tab-btn ${currentMarket === 'score' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'score')">Correct Score</button>
             </div>
         `;
 
-        // Render odds selector grid based on active tab
-        const markets = MATCH_MARKETS[match.id] || {};
-        
+        // Render odds selector based on current active tab
+        const markets = getMatchMarkets(match);
         let activeOdds = [];
+        let oddsGridClass = 'market-grid-3';
+
         if (currentMarket === '1x2') {
-            const homeVal = match.odds ? match.odds.home : 2.00;
-            const drawVal = match.odds ? match.odds.draw : 3.20;
-            const awayVal = match.odds ? match.odds.away : 3.00;
-            activeOdds = markets['1x2'] || [
-                { label: match.homeTeam, value: homeVal, outcomeId: 0, desc: `${match.homeTeam} Win` },
-                { label: "Draw", value: drawVal, outcomeId: 2, desc: "Draw" },
-                { label: match.awayTeam, value: awayVal, outcomeId: 1, desc: `${match.awayTeam} Win` }
-            ];
+            activeOdds = markets['1x2'] || [];
+            oddsGridClass = 'market-grid-3';
+        } else if (currentMarket === 'overunder') {
+            activeOdds = markets['overunder'] || [];
+            oddsGridClass = 'market-grid-2';
+        } else if (currentMarket === 'btts') {
+            activeOdds = markets['btts'] || [];
+            oddsGridClass = 'market-grid-2';
         } else if (currentMarket === 'scorer') {
+            activeOdds = [];
             if (match.lineup && match.lineup.home) {
-                // Home starters
                 match.lineup.home.forEach((p, idx) => {
                     let oddsVal = 3.50;
                     if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
@@ -3108,7 +3436,6 @@ function renderLiveMatches() {
                     else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
                     activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 100 + idx, desc: `${p.name} to score` });
                 });
-                // Away starters
                 match.lineup.away.forEach((p, idx) => {
                     let oddsVal = 3.50;
                     if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
@@ -3117,39 +3444,21 @@ function renderLiveMatches() {
                     else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
                     activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 200 + idx, desc: `${p.name} to score` });
                 });
-            }
-            if (match.subs) {
-                if (match.subs.home) {
-                    match.subs.home.forEach((name, idx) => {
-                        let oddsVal = 4.00 + ((name.length * 6 + idx) % 9) * 0.5;
-                        activeOdds.push({ label: `${name} (Sub)`, value: oddsVal, outcomeId: 300 + idx, desc: `${name} to score` });
-                    });
-                }
-                if (match.subs.away) {
-                    match.subs.away.forEach((name, idx) => {
-                        let oddsVal = 4.00 + ((name.length * 6 + idx) % 9) * 0.5;
-                        activeOdds.push({ label: `${name} (Sub)`, value: oddsVal, outcomeId: 400 + idx, desc: `${name} to score` });
-                    });
-                }
-            }
-        } else if (currentMarket === 'score') {
-            activeOdds = markets['score'] || [];
-            if (activeOdds.length === 0) {
+            } else {
+                // Fallback top stars for teams without loaded squads
                 activeOdds = [
-                    { label: "1 - 0", value: 7.00, outcomeId: 50, desc: "1 - 0" },
-                    { label: "2 - 0", value: 9.00, outcomeId: 51, desc: "2 - 0" },
-                    { label: "2 - 1", value: 8.50, outcomeId: 52, desc: "2 - 1" },
-                    { label: "3 - 1", value: 15.00, outcomeId: 53, desc: "3 - 1" },
-                    { label: "0 - 0", value: 8.00, outcomeId: 54, desc: "0 - 0" },
-                    { label: "1 - 1", value: 6.00, outcomeId: 55, desc: "1 - 1" },
-                    { label: "2 - 2", value: 12.00, outcomeId: 56, desc: "2 - 2" },
-                    { label: "0 - 1", value: 9.50, outcomeId: 57, desc: "0 - 1" },
-                    { label: "0 - 2", value: 14.00, outcomeId: 58, desc: "0 - 2" },
-                    { label: "1 - 2", value: 11.00, outcomeId: 59, desc: "1 - 2" }
+                    { label: `${match.homeTeam} Top Forward`, value: 2.20, outcomeId: 101, desc: `${match.homeTeam} Star to score` },
+                    { label: `${match.homeTeam} Midfielder`, value: 3.40, outcomeId: 102, desc: `${match.homeTeam} Midfielder to score` },
+                    { label: `${match.awayTeam} Top Forward`, value: 2.45, outcomeId: 201, desc: `${match.awayTeam} Star to score` },
+                    { label: `${match.awayTeam} Midfielder`, value: 3.60, outcomeId: 202, desc: `${match.awayTeam} Midfielder to score` }
                 ];
             }
+            oddsGridClass = 'market-grid';
+        } else if (currentMarket === 'score') {
+            activeOdds = markets['score'] || [];
+            oddsGridClass = 'market-grid';
         }
-        
+
         const timeVal = parseInt(match.time);
         let marketsClosed = false;
         let closedMessage = "";
@@ -3162,14 +3471,12 @@ function renderLiveMatches() {
             closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🔒 Match Locked (75' Safety Cutoff)</div>`;
         }
 
-        let oddsGridClass = currentMarket === '1x2' ? 'market-grid-3' : 'market-grid';
-        
         if (currentMarket === 'scorer') {
             html += `<div class="goalscorer-odds-container"><div class="${oddsGridClass}">`;
         } else {
             html += `<div class="${oddsGridClass}">`;
         }
-        
+
         if (marketsClosed) {
             html += closedMessage;
         } else {
@@ -3178,7 +3485,7 @@ function renderLiveMatches() {
                 const isSelected = (activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === odd.outcomeId && activeSelection.outcomeLabel === odd.desc);
                 const escapedDesc = odd.desc.replace(/'/g, "\\'");
                 const escapedGameTitle = `${match.homeTeam} vs ${match.awayTeam}`.replace(/'/g, "\\'");
-                
+
                 if (isMatchSuspended) {
                     html += `
                         <button class="odds-btn" disabled style="opacity: 0.5; cursor: not-allowed; border-color: rgba(239, 68, 68, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem;">
@@ -3196,7 +3503,7 @@ function renderLiveMatches() {
                 }
             });
         }
-        
+
         if (currentMarket === 'scorer') {
             html += `</div></div>`;
         } else {
@@ -3219,8 +3526,40 @@ function renderLiveMatches() {
         }
 
         card.innerHTML = html;
-        container.appendChild(card);
-    });
+        return card;
+    };
+
+    // 3. Render according to schedule grouping
+    if (activeScheduleFilter === 'all') {
+        const groups = [
+            { key: 'live', title: '🔴 In-Play Live Now', count: countLive },
+            { key: 'today', title: `📅 Today's Match Card • ${dates.todayLabel}`, count: countToday },
+            { key: 'tomorrow', title: `⚽ Tomorrow's Fixtures • ${dates.tomorrowLabel}`, count: countTomorrow },
+            { key: 'week', title: '🏆 Upcoming Slate This Week', count: countWeek }
+        ];
+
+        groups.forEach(g => {
+            const matchesInGroup = filteredMatches.filter(m => m.scheduleGroup === g.key);
+            if (matchesInGroup.length > 0) {
+                const divider = document.createElement("div");
+                divider.className = "match-section-divider";
+                divider.innerHTML = `
+                    <div class="title">${g.title}</div>
+                    <div class="badge">${matchesInGroup.length} Matches</div>
+                `;
+                container.appendChild(divider);
+
+                matchesInGroup.forEach(match => {
+                    container.appendChild(createMatchCardElement(match));
+                });
+            }
+        });
+    } else {
+        // Direct list when specific schedule filter is clicked
+        filteredMatches.forEach(match => {
+            container.appendChild(createMatchCardElement(match));
+        });
+    }
 }
 
 function setBettingMarket(matchId, marketKey) {
