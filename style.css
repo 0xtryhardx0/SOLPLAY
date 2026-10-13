@@ -2034,6 +2034,522 @@ body {
     border-color: #14b8a6;
 }
 
+/* ==========================================================================
+   SPORTYBET & BET9JA HORIZONTAL MARKET MATRIX & FULL SPORTSBOOK DISPLAY
+   ========================================================================== */
+
+/* Full-Width Sportsbook View Mode Layout */
+#main-layout-grid.full-sportsbook-active {
+    grid-template-columns: 1fr !important;
+}
+
+#main-layout-grid.full-sportsbook-active #left-streaming-pane {
+    display: none;
+}
+
+#main-layout-grid.full-sportsbook-active #exchange-sportsbook-pane {
+    width: 100%;
+}
+
+.view-mode-btn {
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.view-mode-btn.active {
+    background: rgba(20, 184, 166, 0.2);
+    border-color: rgba(20, 184, 166, 0.5);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(20, 184, 166, 0.25);
+}
+
+.view-mode-btn:not(.active) {
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.view-mode-btn:not(.active):hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Horizontal Market Matrix Container with Sideways Scrolling */
+.match-matrix-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #14b8a6 rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    background: rgba(10, 10, 16, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+}
+
+.match-matrix-container.active-dragging {
+    cursor: grabbing !important;
+    user-select: none !important;
+}
+
+.match-matrix-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.match-matrix-container::-webkit-scrollbar-track {
+    background: rgba(15, 15, 25, 0.95);
+    border-radius: 4px;
+}
+
+.match-matrix-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #14b8a6, #9945ff, #00ec91);
+    border-radius: 4px;
+}
+
+/* Horizontal Table Structure */
+.match-matrix-table {
+    min-width: 1820px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Table Header Row */
+.match-matrix-header {
+    display: flex;
+    align-items: center;
+    background: rgba(15, 15, 28, 0.98);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.65rem 1rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--font-outfit);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.col-header-info {
+    width: 290px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    position: sticky;
+    left: 0;
+    z-index: 25;
+    background: rgba(14, 15, 28, 0.98);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.4);
+    padding-right: 0.75rem;
+}
+
+.col-header-markets {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.market-group-title {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #d1d5db;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.25rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Individual Match Matrix Row */
+.match-matrix-row-wrapper {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.2s ease;
+}
+
+.match-matrix-row-wrapper:hover {
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.match-matrix-row-wrapper.active-streaming {
+    background: rgba(20, 184, 166, 0.03);
+    border-left: 3px solid #14b8a6;
+}
+
+.match-matrix-row {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    gap: 0.8rem;
+}
+
+/* Sticky / Prominent Match Info Left Section */
+.match-info-sticky {
+    width: 290px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background: rgba(10, 11, 20, 0.98);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 4px 0 14px rgba(0, 0, 0, 0.45);
+    padding-right: 0.75rem;
+}
+
+.match-meta-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.match-meta-league {
+    font-weight: 700;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.match-teams-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0.15rem;
+}
+
+.matrix-team-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.matrix-team-name .score {
+    color: #14b8a6;
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.match-actions-line {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+}
+
+.btn-stream-pill {
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-stream-pill:hover, .btn-stream-pill.active {
+    background: rgba(20, 184, 166, 0.25);
+    border-color: #14b8a6;
+    color: #fff;
+}
+
+/* Horizontal Odds Track */
+.matrix-odds-track {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.odds-col-group {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.odds-col-group.group-3 {
+    width: 210px;
+}
+
+.odds-col-group.group-2 {
+    width: 140px;
+}
+
+.odds-col-group.group-dc {
+    width: 210px;
+}
+
+.matrix-odd-box {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 0.5rem 0.35rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+}
+
+.matrix-odd-box:hover {
+    background: rgba(20, 184, 166, 0.15);
+    border-color: rgba(20, 184, 166, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.matrix-odd-box.selected {
+    background: #14b8a6;
+    border-color: #14b8a6;
+    color: #050508;
+    box-shadow: 0 0 14px rgba(20, 184, 166, 0.4);
+}
+
+.matrix-odd-box .lbl {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.matrix-odd-box.selected .lbl {
+    color: #050508;
+}
+
+.matrix-odd-box .val {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #fff;
+    font-family: var(--font-outfit);
+}
+
+.matrix-odd-box.selected .val {
+    color: #050508;
+}
+
+/* More Markets Button (+68 Markets) */
+.btn-more-markets {
+    padding: 0.55rem 0.85rem;
+    border-radius: 8px;
+    background: rgba(153, 69, 255, 0.12);
+    border: 1px solid rgba(153, 69, 255, 0.35);
+    color: #d8b9ff;
+    font-size: 0.74rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.btn-more-markets:hover, .btn-more-markets.expanded {
+    background: rgba(153, 69, 255, 0.3);
+    border-color: #9945ff;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(153, 69, 255, 0.3);
+}
+
+/* All-Markets Accordion Drawer (SportyBet Style) */
+.match-accordion-drawer {
+    background: rgba(10, 10, 18, 0.95);
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    padding: 1.25rem 1.5rem;
+    animation: drawerFadeIn 0.25s ease-out;
+}
+
+@keyframes drawerFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.market-cat-tabs {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-bottom: 0.6rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.market-cat-pill {
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.market-cat-pill.active {
+    background: #14b8a6;
+    color: #07070a;
+    border-color: #14b8a6;
+    font-weight: 800;
+}
+
+.market-cat-pill:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.accordion-markets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.market-block-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.market-block-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.market-block-grid {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.market-block-grid.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.market-block-grid.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.market-block-grid.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Acca Boost Bonus Banner */
+.acca-boost-banner {
+    background: linear-gradient(135deg, rgba(234, 88, 12, 0.2) 0%, rgba(153, 69, 255, 0.25) 100%);
+    border: 1px solid rgba(234, 88, 12, 0.4);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.acca-boost-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fed7aa;
+}
+
+.acca-boost-percent {
+    font-size: 1rem;
+    font-weight: 900;
+    color: #fb923c;
+    text-shadow: 0 0 10px rgba(251, 146, 60, 0.5);
+}
+
+/* Stake Quick Chips */
+.stake-chips-row {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+}
+
+.stake-chip {
+    flex: 1;
+    padding: 0.3rem 0.2rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+
+.stake-chip:hover {
+    background: rgba(20, 184, 166, 0.2);
+    border-color: #14b8a6;
+    color: #fff;
+}
+
+/* Floating Betslip Pill */
+.floating-betslip-pill {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 90;
+    background: linear-gradient(135deg, #14b8a6, #9945ff);
+    color: #fff;
+    padding: 0.75rem 1.4rem;
+    border-radius: 9999px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 10px 25px rgba(20, 184, 166, 0.4), 0 0 20px rgba(153, 69, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.floating-betslip-pill:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(20, 184, 166, 0.55), 0 0 25px rgba(153, 69, 255, 0.45);
+}
+
+
 
 
 

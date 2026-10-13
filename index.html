@@ -600,7 +600,7 @@ void main() {
                 <span class="material-symbols-outlined text-[14px]">keyboard_arrow_down</span>
             </button>
             <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl glass-panel border border-white/5 backdrop-blur-3xl py-2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200">
-                <button onclick="selectActiveMatch(999); switchTab('sports')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🏆 World Cup</button>
+                <button onclick="selectActiveMatch(998); switchTab('sports')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
                 <button onclick="switchTab('sports'); switchBettingTab('tournaments')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🎮 E-Sports</button>
                 <button onclick="switchTab('sports'); switchBettingTab('custom')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🎯 Custom Pools</button>
             </div>
@@ -652,10 +652,42 @@ void main() {
     </div>
 </header>
 
-<main class="max-w-[1800px] mx-auto p-6 lg:p-8">
-    <div class="grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] gap-8">
+<main class="max-w-[1800px] mx-auto p-4 lg:p-6">
+    <!-- View Mode Switcher & Sideways Scrolling Navigation Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 p-3 glass-panel rounded-2xl border border-white/5 bg-surface/40">
+        <div class="flex items-center gap-3">
+            <span class="text-label-sm font-bold text-on-surface/50 uppercase tracking-widest flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-secondary">view_compact</span>
+                Display Mode:
+            </span>
+            <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/10">
+                <button id="view-mode-split" onclick="setSportsbookViewMode('split')" class="view-mode-btn active">
+                    <span class="material-symbols-outlined text-[15px]">splitscreen</span>
+                    Split View (Stream + Betting)
+                </button>
+                <button id="view-mode-full" onclick="setSportsbookViewMode('full')" class="view-mode-btn">
+                    <span class="material-symbols-outlined text-[15px]">fullscreen</span>
+                    Full Sportsbook Display (Panoramic)
+                </button>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-[11px] text-secondary font-semibold bg-secondary/10 px-3 py-1.5 rounded-full border border-secondary/20 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[14px]">swap_horiz</span>
+                Sideways Scroll Enabled (Swipe or Scroll ➔)
+            </span>
+            <button onclick="scrollMarketMatrix(-1)" class="scroll-arrow-btn text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold flex items-center gap-1" title="Scroll Markets Left">
+                <span>◀</span> Scroll Odds
+            </button>
+            <button onclick="scrollMarketMatrix(1)" class="scroll-arrow-btn text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold flex items-center gap-1" title="Scroll Markets Right">
+                Scroll Odds <span>▶</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] gap-8" id="main-layout-grid">
         <!-- Left Pane: Streaming & Engagement -->
-        <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-8" id="left-streaming-pane">
             <!-- Streaming Panel -->
             <section class="glass-panel rounded-2xl overflow-hidden flex flex-col glass-shine">
                 <div class="p-6 flex items-center justify-between border-b border-white/5">
@@ -885,7 +917,7 @@ void main() {
         </div>
 
         <!-- Right Pane: Exchange / Sportsbook -->
-        <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-8" id="exchange-sportsbook-pane">
             <!-- Main Exchange Tabs -->
             <div class="flex gap-2 glass-panel p-1.5 rounded-2xl">
                 <button class="flex-1 py-3 rounded-xl bg-white/10 text-white shadow-xl text-label-md font-bold" id="btn-tab-sports" onclick="switchTab('sports')">Sportsbook</button>
@@ -981,6 +1013,28 @@ void main() {
                             </div>
                         </div>
 
+                        <!-- Quick Market Matrix Sideways Scroll Controls Bar -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/10 mb-3 shadow-lg">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary">table_rows</span>
+                                    <span>Match Odds Board</span>
+                                </span>
+                                <span class="text-[10px] text-secondary font-semibold bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[12px]">swap_horiz</span>
+                                    Swipe / Drag Sideways to View All 8+ Markets
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="scrollMarketMatrix(-1)" class="scroll-arrow-btn text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/15 text-white font-bold flex items-center gap-1 transition-all" title="Scroll Markets Left">
+                                    <span>◀</span> Scroll Odds
+                                </button>
+                                <button onclick="scrollMarketMatrix(1)" class="scroll-arrow-btn text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/15 text-white font-bold flex items-center gap-1 transition-all" title="Scroll Markets Right">
+                                    Scroll Odds <span>▶</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="space-y-4" id="content-live-list">
                             <!-- Live matches populated dynamically by app.js -->
                         </div>
@@ -1038,10 +1092,35 @@ void main() {
                                 <span class="material-symbols-outlined text-primary">shopping_bag</span>
                                 Betslip
                             </h3>
-                            <span class="text-label-sm bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20" id="slip-count-badge">0 Selection</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-label-sm bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 font-bold" id="slip-count-badge">0 Selections</span>
+                                <button onclick="clearAllSelections()" class="text-[11px] text-error/80 hover:text-error hover:underline transition-colors">Clear All</button>
+                            </div>
                         </div>
 
-                        <!-- Betslip Selections -->
+                        <!-- Betslip Mode Switcher (Accumulator / Parlay vs Singles) -->
+                        <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/10" id="betslip-mode-switch">
+                            <button id="slip-mode-acca" onclick="setBetslipMode('accumulator')" class="flex-1 py-1.5 rounded-lg text-label-sm font-bold text-white bg-white/10 flex items-center justify-center gap-1.5 transition-all">
+                                <span>🚀 Accumulator (Combo)</span>
+                            </button>
+                            <button id="slip-mode-single" onclick="setBetslipMode('singles')" class="flex-1 py-1.5 rounded-lg text-label-sm font-bold text-on-surface/50 hover:text-white flex items-center justify-center gap-1.5 transition-all">
+                                <span>Single Bets</span>
+                            </button>
+                        </div>
+
+                        <!-- Acca Boost Bonus Banner -->
+                        <div id="acca-boost-banner" class="acca-boost-banner" style="display: none;">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">🔥</span>
+                                <div>
+                                    <div class="acca-boost-text" id="acca-boost-text">Combo Multiplier Bonus Active!</div>
+                                    <div class="text-[10px] text-white/50">Higher odds bonus applied to total payout</div>
+                                </div>
+                            </div>
+                            <span class="acca-boost-percent" id="acca-boost-badge">+0%</span>
+                        </div>
+
+                        <!-- Betslip Selections List -->
                         <div id="betslip-items-container" class="space-y-3">
                             <div class="text-center py-6 text-on-surface/40 text-label-md" id="betslip-empty-text">Select odds from matches to build your slip</div>
                         </div>
@@ -1049,26 +1128,44 @@ void main() {
                         <!-- Stake Calculator -->
                         <div class="space-y-4 pt-4 border-t border-white/10" id="betslip-calc" style="display: none;">
                             <div class="flex items-center justify-between">
-                                <span class="text-label-md text-on-surface/60">Stake Amount</span>
+                                <span class="text-label-md text-on-surface/60 font-bold">Total Stake Amount</span>
                                 <div class="flex items-center gap-2">
                                     <input class="w-24 bg-black/40 border-white/10 rounded-lg text-right text-label-md font-bold text-secondary focus:ring-secondary focus:border-secondary text-white" id="stake-amount" type="number" step="0.1" value="1.0" oninput="calculatePayout()"/>
                                     <span class="text-label-sm font-bold text-on-surface/40">SOL</span>
                                 </div>
                             </div>
+
+                            <!-- Quick Stake Chips -->
+                            <div class="stake-chips-row">
+                                <button onclick="setQuickStake(0.1)" class="stake-chip">+0.1</button>
+                                <button onclick="setQuickStake(0.5)" class="stake-chip">+0.5</button>
+                                <button onclick="setQuickStake(1.0)" class="stake-chip">+1.0</button>
+                                <button onclick="setQuickStake(2.0)" class="stake-chip">+2.0</button>
+                                <button onclick="setQuickStake(5.0)" class="stake-chip">+5.0</button>
+                                <button onclick="setQuickStake('MAX')" class="stake-chip" style="color:#14b8a6;">MAX</button>
+                            </div>
+
                             <div class="flex justify-between text-label-sm text-on-surface/50">
-                                <span>Combined Odds:</span>
-                                <span class="font-bold text-white" id="slip-odds-multiplier">1.00x</span>
+                                <span>Total Combined Odds:</span>
+                                <span class="font-bold text-white text-base font-mono" id="slip-odds-multiplier">1.00x</span>
+                            </div>
+                            <div class="flex justify-between text-label-sm text-on-surface/50" id="slip-bonus-row" style="display:none;">
+                                <span class="text-orange-400 font-semibold">Acca Boost Bonus:</span>
+                                <span class="font-bold text-orange-400" id="slip-bonus-amount">+0.0000 SOL</span>
                             </div>
                             <div class="flex justify-between text-label-sm text-on-surface/50">
                                 <span>DeFi Routing Fee (1.0%):</span>
-                                <span class="font-bold text-white" id="slip-routing-fee">0.0000 SOL</span>
+                                <span class="font-bold text-white font-mono" id="slip-routing-fee">0.0000 SOL</span>
                             </div>
                             <div class="flex justify-between items-center text-label-md border-t border-white/5 pt-3">
-                                <span class="font-bold text-white">Potential Return:</span>
-                                <span class="text-headline-md font-black text-secondary" id="slip-potential-payout">0.0000 SOL</span>
+                                <div>
+                                    <span class="font-bold text-white block">Potential Return:</span>
+                                    <span class="text-[10px] text-secondary">Instant Solana Wallet Settlement</span>
+                                </div>
+                                <span class="text-headline-md font-black text-secondary font-mono" id="slip-potential-payout">0.0000 SOL</span>
                             </div>
-                            <button class="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white font-black tracking-widest text-label-md shadow-[0_0_30px_rgba(153,69,255,0.4)] glass-shine uppercase" onclick="placeBet()">
-                                Place Wager On-Chain
+                            <button id="btn-place-slip" class="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white font-black tracking-widest text-label-md shadow-[0_0_30px_rgba(153,69,255,0.4)] glass-shine uppercase" onclick="placeBet()">
+                                Place Accumulator Wager
                             </button>
 
                             <!-- Share Slip Code -->
@@ -1524,6 +1621,18 @@ void main() {
         <span class="material-symbols-outlined text-[20px] animate-pulse">sports_esports</span>
         <span>⚡ Demo Controls</span>
     </button>
+<!-- Floating Quick Betslip Pill (SportyBet Style) -->
+<div id="floating-betslip-pill" class="floating-betslip-pill" onclick="switchTab('slip')" style="display: none;">
+    <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+        <span id="floating-slip-count">0 Bets</span>
+    </div>
+    <div class="h-4 w-[1px] bg-white/30"></div>
+    <div class="flex items-center gap-1.5">
+        <span class="text-xs text-white/80">Odds:</span>
+        <span class="text-yellow-300 font-bold" id="floating-slip-odds">1.00x</span>
+    </div>
+    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
 </div>
 
 <div class="toast-container" id="toast-container"></div>

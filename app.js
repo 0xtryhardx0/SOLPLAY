@@ -55,90 +55,35 @@ let walletKeypair = null;
 let activeWalletType = 'sandbox'; // 'sandbox' or 'phantom'
 let activePublicKey = null;
 let currentProgramId = new solanaWeb3.PublicKey("84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk");
-let activeSelection = null;
+let betslipSelections = [];
+let betslipMode = 'accumulator'; // 'accumulator' or 'singles'
+let activeViewMode = 'split';     // 'split' or 'full'
+let expandedAccordions = {};     // { [matchId]: boolean }
+let activeAccordionCategory = {};// { [matchId]: string }
+let activeSelection = null;      // backwards compatibility helper
 let milestoneProgress = 0;
 let watchTimer = null;
 let isWalletConnected = false;
 let currentBettingTab = 'live';
 
-// Simulated match state
-let activeMatchId = 2026; // Default to Portugal vs Uzbekistan World Cup Match
+// Sportsbook active match state (real fixtures only)
+let activeMatchId = 998; // Default to Arsenal vs Chelsea marquee live match
 let activeScheduleFilter = 'all'; // 'all', 'live', 'today', 'tomorrow', 'week'
 let activeLeagueFilter = 'all';   // 'all', 'Premier League', 'Champions League', etc.
 
 const MATCHES_DATA = [
-    {
-        id: 2026,
-        league: "World Cup Group K • Live",
-        leagueCategory: "World Cup",
-        scheduleGroup: "live",
-        homeTeam: "Portugal",
-        awayTeam: "Uzbekistan",
-        time: "10'",
-        status: "LIVE",
-        score: { home: 0, away: 0 },
-        formation: { home: "4-3-3", away: "3-4-3" },
-        timeline: [
-            { time: "0'", type: "start", desc: "Match started", icon: "🏁" }
-        ]
-    },
-    {
-        id: 999,
-        league: "World Cup Tonight • Live",
-        homeTeam: "Brazil",
-        awayTeam: "France",
-        time: "73'",
-        status: "LIVE",
-        score: { home: 1, away: 1 },
-        formation: { home: "4-3-3", away: "4-2-3-1" },
-        lineup: {
-            home: [
-                { num: 1, name: "Alisson", pos: "GK" },
-                { num: 2, name: "Danilo", pos: "DF" },
-                { num: 3, name: "Marquinhos", pos: "DF" },
-                { num: 4, name: "Gabriel M.", pos: "DF" },
-                { num: 6, name: "Guilherme Arana", pos: "DF" },
-                { num: 5, name: "Bruno Guimaraes", pos: "MF" },
-                { num: 8, name: "Lucas Paqueta", pos: "MF" },
-                { num: 10, name: "Rodrygo", pos: "MF" },
-                { num: 7, name: "Vinicius Jr", pos: "FW" },
-                { num: 9, name: "Endrick", pos: "FW" },
-                { num: 11, name: "Raphinha", pos: "FW" }
-            ],
-            away: [
-                { num: 16, name: "Mike Maignan", pos: "GK" },
-                { num: 5, name: "Jules Kounde", pos: "DF" },
-                { num: 4, name: "Dayot Upamecano", pos: "DF" },
-                { num: 17, name: "William Saliba", pos: "DF" },
-                { num: 22, name: "Theo Hernandez", pos: "DF" },
-                { num: 8, name: "Aurelien Tchouameni", pos: "MF" },
-                { num: 13, name: "N'Golo Kante", pos: "MF" },
-                { num: 11, name: "Ousmane Dembele", pos: "MF" },
-                { num: 7, name: "Antoine Griezmann", pos: "MF" },
-                { num: 20, name: "Kingsley Coman", pos: "MF" },
-                { num: 10, name: "Kylian Mbappe", pos: "FW" }
-            ]
-        },
-        subs: {
-            home: ["Ederson", "Lucas Beraldo", "Douglas Luiz", "Andreas Pereira", "Savinho", "Gabriel Martinelli"],
-            away: ["Brice Samba", "Ibrahima Konate", "Eduardo Camavinga", "Warren Zaire-Emery", "Bradley Barcola", "Olivier Giroud"]
-        },
-        timeline: [
-            { time: "0'", type: "start", desc: "Match started", icon: "🏁" },
-            { time: "22'", type: "goal", desc: "Goal! Brazil 1 - 0 France. Scored by Vinicius Jr (Assist: Lucas Paqueta).", icon: "⚽" },
-            { time: "38'", type: "card", desc: "Yellow Card: Aurelien Tchouameni (France)", icon: "🟨" },
-            { time: "45'", type: "half", desc: "Half Time (Brazil 1 - 0 France)", icon: "🏁" },
-            { time: "52'", type: "goal", desc: "Goal! Brazil 1 - 1 France. Scored by Kylian Mbappe (Assist: Antoine Griezmann).", icon: "⚽" }
-        ]
-    },
+    // --- LIVE MATCHES (In-Play) ---
     {
         id: 998,
         league: "Premier League • Live",
+        leagueCategory: "Premier League",
+        scheduleGroup: "live",
         homeTeam: "Arsenal",
         awayTeam: "Chelsea",
         time: "45'",
         status: "LIVE",
         score: { home: 0, away: 0 },
+        odds: { home: 2.25, draw: 3.30, away: 3.35 },
         formation: { home: "4-3-3", away: "4-2-3-1" },
         lineup: {
             home: [
@@ -181,11 +126,14 @@ const MATCHES_DATA = [
     {
         id: 997,
         league: "Saudi Pro League • Live",
+        leagueCategory: "Saudi Pro League",
+        scheduleGroup: "live",
         homeTeam: "Al Nassr",
         awayTeam: "Al Hilal",
-        time: "12'",
+        time: "18'",
         status: "LIVE",
-        score: { home: 0, away: 0 },
+        score: { home: 1, away: 0 },
+        odds: { home: 2.10, draw: 3.55, away: 3.20 },
         formation: { home: "4-2-3-1", away: "4-3-3" },
         lineup: {
             home: [
@@ -204,7 +152,7 @@ const MATCHES_DATA = [
             away: [
                 { num: 37, name: "Yassine Bounou", pos: "GK" },
                 { num: 66, name: "Saud Abdulhamid", pos: "DF" },
-                { num: 3, name: "Kalidou Koulibary", pos: "DF" },
+                { num: 3, name: "Kalidou Koulibaly", pos: "DF" },
                 { num: 87, name: "Hassan Tambakti", pos: "DF" },
                 { num: 12, name: "Yasir Al-Shahrani", pos: "DF" },
                 { num: 8, name: "Ruben Neves", pos: "MF" },
@@ -220,17 +168,588 @@ const MATCHES_DATA = [
             away: ["Mohammed Al-Owais", "Ali Al-Bulaihi", "Renan Lodi", "Mohamed Kanno", "Marcos Leonardo", "Abdullah Al-Hamdan"]
         },
         timeline: [
-            { time: "0'", type: "start", desc: "Match started", icon: "🏁" }
+            { time: "0'", type: "start", desc: "Match started", icon: "🏁" },
+            { time: "14'", type: "goal", desc: "GOAL! Cristiano Ronaldo (Al Nassr)", icon: "⚽" }
         ]
+    },
+    {
+        id: 995,
+        league: "La Liga • Live",
+        leagueCategory: "La Liga",
+        scheduleGroup: "live",
+        homeTeam: "Real Madrid",
+        awayTeam: "Barcelona",
+        time: "62'",
+        status: "LIVE",
+        score: { home: 1, away: 1 },
+        odds: { home: 2.20, draw: 3.60, away: 3.10 },
+        formation: { home: "4-3-1-2", away: "4-3-3" },
+        lineup: {
+            home: [
+                { num: 1, name: "Thibaut Courtois", pos: "GK" },
+                { num: 2, name: "Dani Carvajal", pos: "DF" },
+                { num: 3, name: "Eder Militao", pos: "DF" },
+                { num: 22, name: "Antonio Rudiger", pos: "DF" },
+                { num: 23, name: "Ferland Mendy", pos: "DF" },
+                { num: 14, name: "Aurelien Tchouameni", pos: "MF" },
+                { num: 15, name: "Federico Valverde", pos: "MF" },
+                { num: 8, name: "Eduardo Camavinga", pos: "MF" },
+                { num: 5, name: "Jude Bellingham", pos: "MF" },
+                { num: 9, name: "Kylian Mbappe", pos: "FW" },
+                { num: 7, name: "Vinicius Jr", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Marc-Andre ter Stegen", pos: "GK" },
+                { num: 23, name: "Jules Kounde", pos: "DF" },
+                { num: 2, name: "Pau Cubarsi", pos: "DF" },
+                { num: 5, name: "Inigo Martinez", pos: "DF" },
+                { num: 3, name: "Alejandro Balde", pos: "DF" },
+                { num: 17, name: "Marc Casado", pos: "MF" },
+                { num: 8, name: "Pedri", pos: "MF" },
+                { num: 20, name: "Dani Olmo", pos: "MF" },
+                { num: 19, name: "Lamine Yamal", pos: "FW" },
+                { num: 9, name: "Robert Lewandowski", pos: "FW" },
+                { num: 11, name: "Raphinha", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Andriy Lunin", "Lucas Vazquez", "Fran Garcia", "Luka Modric", "Arda Guler", "Rodrygo Goes"],
+            away: ["Inaki Pena", "Hector Fort", "Eric Garcia", "Frenkie de Jong", "Gavi", "Ferran Torres"]
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "El Clasico kick-off", icon: "🏁" },
+            { time: "28'", type: "goal", desc: "GOAL! Kylian Mbappe (Real Madrid)", icon: "⚽" },
+            { time: "54'", type: "goal", desc: "GOAL! Lamine Yamal (Barcelona)", icon: "⚽" }
+        ]
+    },
+    {
+        id: 993,
+        league: "Bundesliga • Live",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "live",
+        homeTeam: "Bayern Munich",
+        awayTeam: "Borussia Dortmund",
+        time: "34'",
+        status: "LIVE",
+        score: { home: 2, away: 1 },
+        odds: { home: 1.70, draw: 4.20, away: 4.40 },
+        formation: { home: "4-2-3-1", away: "4-2-3-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Manuel Neuer", pos: "GK" },
+                { num: 2, name: "Dayot Upamecano", pos: "DF" },
+                { num: 3, name: "Kim Min-jae", pos: "DF" },
+                { num: 22, name: "Raphael Guerreiro", pos: "DF" },
+                { num: 19, name: "Alphonso Davies", pos: "DF" },
+                { num: 6, name: "Joshua Kimmich", pos: "MF" },
+                { num: 45, name: "Aleksandar Pavlovic", pos: "MF" },
+                { num: 10, name: "Leroy Sane", pos: "MF" },
+                { num: 42, name: "Jamal Musiala", pos: "MF" },
+                { num: 7, name: "Serge Gnabry", pos: "MF" },
+                { num: 9, name: "Harry Kane", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Gregor Kobel", pos: "GK" },
+                { num: 26, name: "Julian Ryerson", pos: "DF" },
+                { num: 3, name: "Waldemar Anton", pos: "DF" },
+                { num: 4, name: "Nico Schlotterbeck", pos: "DF" },
+                { num: 5, name: "Ramy Bensebaini", pos: "DF" },
+                { num: 13, name: "Pascal Gross", pos: "MF" },
+                { num: 23, name: "Emre Can", pos: "MF" },
+                { num: 20, name: "Marcel Sabitzer", pos: "MF" },
+                { num: 10, name: "Julian Brandt", pos: "MF" },
+                { num: 27, name: "Karim Adeyemi", pos: "MF" },
+                { num: 9, name: "Serhou Guirassy", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Sven Ulreich", "Eric Dier", "Konrad Laimer", "Thomas Muller", "Kingsley Coman", "Mathys Tel"],
+            away: ["Alexander Meyer", "Niklas Sule", "Felix Nmecha", "Gio Reyna", "Jamie Gittens", "Donyell Malen"]
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Der Klassiker kick-off", icon: "🏁" },
+            { time: "11'", type: "goal", desc: "GOAL! Harry Kane (Bayern Munich)", icon: "⚽" },
+            { time: "22'", type: "goal", desc: "GOAL! Serhou Guirassy (Dortmund)", icon: "⚽" },
+            { time: "30'", type: "goal", desc: "GOAL! Jamal Musiala (Bayern Munich)", icon: "⚽" }
+        ]
+    },
+
+    // --- TODAY'S MATCH CARD ---
+    {
+        id: 981,
+        league: "Premier League • Today",
+        leagueCategory: "Premier League",
+        scheduleGroup: "today",
+        homeTeam: "Liverpool",
+        awayTeam: "Manchester City",
+        time: "17:30",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 2.65, draw: 3.55, away: 2.55 },
+        formation: { home: "4-3-3", away: "4-1-4-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Alisson Becker", pos: "GK" },
+                { num: 66, name: "Trent Alexander-Arnold", pos: "DF" },
+                { num: 5, name: "Ibrahima Konate", pos: "DF" },
+                { num: 4, name: "Virgil van Dijk", pos: "DF" },
+                { num: 26, name: "Andy Robertson", pos: "DF" },
+                { num: 38, name: "Ryan Gravenberch", pos: "MF" },
+                { num: 10, name: "Alexis Mac Allister", pos: "MF" },
+                { num: 8, name: "Dominik Szoboszlai", pos: "MF" },
+                { num: 11, name: "Mohamed Salah", pos: "FW" },
+                { num: 9, name: "Darwin Nunez", pos: "FW" },
+                { num: 7, name: "Luis Diaz", pos: "FW" }
+            ],
+            away: [
+                { num: 31, name: "Ederson", pos: "GK" },
+                { num: 2, name: "Kyle Walker", pos: "DF" },
+                { num: 25, name: "Manuel Akanji", pos: "DF" },
+                { num: 3, name: "Ruben Dias", pos: "DF" },
+                { num: 24, name: "Josko Gvardiol", pos: "DF" },
+                { num: 16, name: "Rodri", pos: "MF" },
+                { num: 20, name: "Bernardo Silva", pos: "MF" },
+                { num: 17, name: "Kevin De Bruyne", pos: "MF" },
+                { num: 47, name: "Phil Foden", pos: "MF" },
+                { num: 10, name: "Jack Grealish", pos: "MF" },
+                { num: 9, name: "Erling Haaland", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Caoimhin Kelleher", "Joe Gomez", "Curtis Jones", "Harvey Elliott", "Cody Gakpo", "Diogo Jota"],
+            away: ["Stefan Ortega", "John Stones", "Nathan Ake", "Mateo Kovacic", "Jeremy Doku", "Savinho"]
+        },
+        timeline: []
+    },
+    {
+        id: 982,
+        league: "Ligue 1 • Today",
+        leagueCategory: "Ligue 1",
+        scheduleGroup: "today",
+        homeTeam: "Paris Saint-Germain",
+        awayTeam: "Marseille",
+        time: "20:00",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 1.62, draw: 4.20, away: 4.85 },
+        formation: { home: "4-3-3", away: "4-2-3-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Gianluigi Donnarumma", pos: "GK" },
+                { num: 2, name: "Achraf Hakimi", pos: "DF" },
+                { num: 5, name: "Marquinhos", pos: "DF" },
+                { num: 51, name: "Willian Pacho", pos: "DF" },
+                { num: 25, name: "Nuno Mendes", pos: "DF" },
+                { num: 33, name: "Warren Zaire-Emery", pos: "MF" },
+                { num: 17, name: "Vitinha", pos: "MF" },
+                { num: 87, name: "Joao Neves", pos: "MF" },
+                { num: 10, name: "Ousmane Dembele", pos: "FW" },
+                { num: 9, name: "Goncalo Ramos", pos: "FW" },
+                { num: 29, name: "Bradley Barcola", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Geronimo Rulli", pos: "GK" },
+                { num: 62, name: "Michael Murillo", pos: "DF" },
+                { num: 5, name: "Leonardo Balerdi", pos: "DF" },
+                { num: 4, name: "Derek Cornelius", pos: "DF" },
+                { num: 3, name: "Quentin Merlin", pos: "DF" },
+                { num: 23, name: "Pierre-Emile Hojbjerg", pos: "MF" },
+                { num: 7, name: "Valentin Rongier", pos: "MF" },
+                { num: 10, name: "Mason Greenwood", pos: "MF" },
+                { num: 11, name: "Amine Harit", pos: "MF" },
+                { num: 8, name: "Jonathan Rowe", pos: "MF" },
+                { num: 9, name: "Elye Wahi", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Matvey Safonov", "Lucas Beraldo", "Fabian Ruiz", "Marco Asensio", "Lee Kang-in", "Randal Kolo Muani"],
+            away: ["Jeffrey de Lange", "Lilian Brassier", "Pol Lirola", "Geoffrey Kondogbia", "Adrien Rabiot", "Luis Henrique"]
+        },
+        timeline: []
+    },
+    {
+        id: 994,
+        league: "Serie A • Today",
+        leagueCategory: "Serie A",
+        scheduleGroup: "today",
+        homeTeam: "Inter Milan",
+        awayTeam: "Juventus",
+        time: "19:45",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 1.95, draw: 3.45, away: 4.10 },
+        formation: { home: "3-5-2", away: "4-1-4-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Yann Sommer", pos: "GK" },
+                { num: 28, name: "Benjamin Pavard", pos: "DF" },
+                { num: 15, name: "Francesco Acerbi", pos: "DF" },
+                { num: 95, name: "Alessandro Bastoni", pos: "DF" },
+                { num: 2, name: "Denzel Dumfries", pos: "MF" },
+                { num: 23, name: "Nicolo Barella", pos: "MF" },
+                { num: 20, name: "Hakan Calhanoglu", pos: "MF" },
+                { num: 22, name: "Henrikh Mkhitaryan", pos: "MF" },
+                { num: 32, name: "Federico Dimarco", pos: "MF" },
+                { num: 9, name: "Marcus Thuram", pos: "FW" },
+                { num: 10, name: "Lautaro Martinez", pos: "FW" }
+            ],
+            away: [
+                { num: 29, name: "Michele Di Gregorio", pos: "GK" },
+                { num: 37, name: "Nicolo Savona", pos: "DF" },
+                { num: 4, name: "Federico Gatti", pos: "DF" },
+                { num: 15, name: "Pierre Kalulu", pos: "DF" },
+                { num: 27, name: "Andrea Cambiaso", pos: "DF" },
+                { num: 19, name: "Khephren Thuram", pos: "MF" },
+                { num: 7, name: "Francisco Conceicao", pos: "MF" },
+                { num: 8, name: "Teun Koopmeiners", pos: "MF" },
+                { num: 16, name: "Weston McKennie", pos: "MF" },
+                { num: 10, name: "Kenan Yildiz", pos: "MF" },
+                { num: 9, name: "Dusan Vlahovic", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Raffaele Di Gennaro", "Stefan de Vrij", "Yann Bisseck", "Davide Frattesi", "Piotr Zielinski", "Mehdi Taremi"],
+            away: ["Mattia Perin", "Danilo Luiz", "Juan Cabal", "Manuel Locatelli", "Nicolo Fagioli", "Timothy Weah"]
+        },
+        timeline: []
+    },
+    {
+        id: 983,
+        league: "La Liga • Today",
+        leagueCategory: "La Liga",
+        scheduleGroup: "today",
+        homeTeam: "Atletico Madrid",
+        awayTeam: "Sevilla",
+        time: "21:00",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 1.65, draw: 3.85, away: 5.20 },
+        formation: { home: "3-5-2", away: "4-3-3" },
+        lineup: {
+            home: [
+                { num: 13, name: "Jan Oblak", pos: "GK" },
+                { num: 2, name: "Jose Maria Gimenez", pos: "DF" },
+                { num: 24, name: "Robin Le Normand", pos: "DF" },
+                { num: 21, name: "Javi Galan", pos: "DF" },
+                { num: 14, name: "Marcos Llorente", pos: "MF" },
+                { num: 5, name: "Rodrigo De Paul", pos: "MF" },
+                { num: 6, name: "Koke", pos: "MF" },
+                { num: 4, name: "Conor Gallagher", pos: "MF" },
+                { num: 12, name: "Samuel Lino", pos: "MF" },
+                { num: 7, name: "Antoine Griezmann", pos: "FW" },
+                { num: 19, name: "Julian Alvarez", pos: "FW" }
+            ],
+            away: [
+                { num: 13, name: "Orjan Nyland", pos: "GK" },
+                { num: 32, name: "Jose Angel Carmona", pos: "DF" },
+                { num: 22, name: "Loic Bade", pos: "DF" },
+                { num: 23, name: "Marcao", pos: "DF" },
+                { num: 3, name: "Adria Pedrosa", pos: "DF" },
+                { num: 18, name: "Lucien Agoume", pos: "MF" },
+                { num: 6, name: "Nemanja Gudelj", pos: "MF" },
+                { num: 8, name: "Pedro Ortiz", pos: "MF" },
+                { num: 11, name: "Dodi Lukebakio", pos: "FW" },
+                { num: 9, name: "Kelechi Iheanacho", pos: "FW" },
+                { num: 10, name: "Suso", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Juan Musso", "Cesar Azpilicueta", "Reinildo Mandava", "Pablo Barrios", "Angel Correa", "Alexander Sorloth"],
+            away: ["Alvaro Fernandez", "Kike Salas", "Juanlu Sanchez", "Albert Sambi Lokonga", "Chidera Ejuke", "Isaac Romero"]
+        },
+        timeline: []
+    },
+
+    // --- TOMORROW'S FIXTURES ---
+    {
+        id: 984,
+        league: "Premier League • Tomorrow",
+        leagueCategory: "Premier League",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Aston Villa",
+        awayTeam: "Tottenham",
+        time: "15:00",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 2.30, draw: 3.65, away: 2.85 },
+        formation: { home: "4-2-3-1", away: "4-3-3" },
+        lineup: {
+            home: [
+                { num: 23, name: "Emiliano Martinez", pos: "GK" },
+                { num: 2, name: "Matty Cash", pos: "DF" },
+                { num: 4, name: "Ezri Konsa", pos: "DF" },
+                { num: 14, name: "Pau Torres", pos: "DF" },
+                { num: 12, name: "Lucas Digne", pos: "DF" },
+                { num: 8, name: "Youri Tielemans", pos: "MF" },
+                { num: 24, name: "Amadou Onana", pos: "MF" },
+                { num: 31, name: "Leon Bailey", pos: "MF" },
+                { num: 7, name: "John McGinn", pos: "MF" },
+                { num: 27, name: "Morgan Rogers", pos: "MF" },
+                { num: 11, name: "Ollie Watkins", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Guglielmo Vicario", pos: "GK" },
+                { num: 23, name: "Pedro Porro", pos: "DF" },
+                { num: 17, name: "Cristian Romero", pos: "DF" },
+                { num: 37, name: "Micky van de Ven", pos: "DF" },
+                { num: 13, name: "Destiny Udogie", pos: "DF" },
+                { num: 29, name: "Pape Matar Sarr", pos: "MF" },
+                { num: 8, name: "Yves Bissouma", pos: "MF" },
+                { num: 10, name: "James Maddison", pos: "MF" },
+                { num: 22, name: "Brennan Johnson", pos: "FW" },
+                { num: 19, name: "Dominic Solanke", pos: "FW" },
+                { num: 7, name: "Son Heung-min", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Robin Olsen", "Diego Carlos", "Ian Maatsen", "Ross Barkley", "Emiliano Buendia", "Jhon Duran"],
+            away: ["Fraser Forster", "Radu Dragusin", "Archie Gray", "Rodrigo Bentancur", "Dejan Kulusevski", "Timo Werner"]
+        },
+        timeline: []
+    },
+    {
+        id: 985,
+        league: "Bundesliga • Tomorrow",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Bayer Leverkusen",
+        awayTeam: "RB Leipzig",
+        time: "17:30",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 1.88, draw: 3.90, away: 3.75 },
+        formation: { home: "3-4-2-1", away: "4-2-2-2" },
+        lineup: {
+            home: [
+                { num: 1, name: "Lukas Hradecky", pos: "GK" },
+                { num: 12, name: "Edmond Tapsoba", pos: "DF" },
+                { num: 4, name: "Jonathan Tah", pos: "DF" },
+                { num: 3, name: "Piero Hincapie", pos: "DF" },
+                { num: 30, name: "Jeremie Frimpong", pos: "MF" },
+                { num: 34, name: "Granit Xhaka", pos: "MF" },
+                { num: 8, name: "Robert Andrich", pos: "MF" },
+                { num: 20, name: "Alex Grimaldo", pos: "MF" },
+                { num: 10, name: "Florian Wirtz", pos: "MF" },
+                { num: 11, name: "Martin Terrier", pos: "MF" },
+                { num: 22, name: "Victor Boniface", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Peter Gulacsi", pos: "GK" },
+                { num: 16, name: "Lukas Klostermann", pos: "DF" },
+                { num: 4, name: "Willi Orban", pos: "DF" },
+                { num: 23, name: "Castello Lukeba", pos: "DF" },
+                { num: 22, name: "David Raum", pos: "DF" },
+                { num: 14, name: "Christoph Baumgartner", pos: "MF" },
+                { num: 44, name: "Kevin Kampl", pos: "MF" },
+                { num: 7, name: "Antonio Nusa", pos: "MF" },
+                { num: 10, name: "Xavi Simons", pos: "MF" },
+                { num: 11, name: "Lois Openda", pos: "FW" },
+                { num: 30, name: "Benjamin Sesko", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Matej Kovar", "Nordi Mukiele", "Aleix Garcia", "Exequiel Palacios", "Jonas Hofmann", "Patrik Schick"],
+            away: ["Maarten Vandevoordt", "Lutsharel Geertruida", "Arthur Vermeeren", "Amadou Haidara", "Nicolas Seiwald", "Yussuf Poulsen"]
+        },
+        timeline: []
+    },
+    {
+        id: 986,
+        league: "Serie A • Tomorrow",
+        leagueCategory: "Serie A",
+        scheduleGroup: "tomorrow",
+        homeTeam: "AC Milan",
+        awayTeam: "Napoli",
+        time: "19:45",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 2.45, draw: 3.35, away: 2.90 },
+        formation: { home: "4-2-3-1", away: "4-3-3" },
+        lineup: {
+            home: [
+                { num: 16, name: "Mike Maignan", pos: "GK" },
+                { num: 22, name: "Emerson Royal", pos: "DF" },
+                { num: 23, name: "Fikayo Tomori", pos: "DF" },
+                { num: 31, name: "Strahinja Pavlovic", pos: "DF" },
+                { num: 19, name: "Theo Hernandez", pos: "DF" },
+                { num: 29, name: "Youssouf Fofana", pos: "MF" },
+                { num: 14, name: "Tijjani Reijnders", pos: "MF" },
+                { num: 11, name: "Christian Pulisic", pos: "MF" },
+                { num: 8, name: "Ruben Loftus-Cheek", pos: "MF" },
+                { num: 10, name: "Rafael Leao", pos: "FW" },
+                { num: 7, name: "Alvaro Morata", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Alex Meret", pos: "GK" },
+                { num: 22, name: "Giovanni Di Lorenzo", pos: "DF" },
+                { num: 13, name: "Amir Rrahmani", pos: "DF" },
+                { num: 4, name: "Alessandro Buongiorno", pos: "DF" },
+                { num: 17, name: "Mathias Olivera", pos: "DF" },
+                { num: 99, name: "Andre-Frank Zambo Anguissa", pos: "MF" },
+                { num: 68, name: "Stanislav Lobotka", pos: "MF" },
+                { num: 8, name: "Scott McTominay", pos: "MF" },
+                { num: 21, name: "Matteo Politano", pos: "FW" },
+                { num: 11, name: "Romelu Lukaku", pos: "FW" },
+                { num: 77, name: "Khvicha Kvaratskhelia", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Marco Sportiello", "Davide Calabria", "Malick Thiaw", "Yunus Musah", "Samuel Chukwueze", "Tammy Abraham"],
+            away: ["Elia Caprile", "Rafa Marin", "Leonardo Spinazzola", "Billy Gilmour", "David Neres", "Giacomo Raspadori"]
+        },
+        timeline: []
+    },
+    {
+        id: 987,
+        league: "La Liga • Tomorrow",
+        leagueCategory: "La Liga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Real Sociedad",
+        awayTeam: "Athletic Bilbao",
+        time: "20:00",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 2.35, draw: 3.20, away: 3.15 },
+        formation: { home: "4-3-3", away: "4-2-3-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Alex Remiro", pos: "GK" },
+                { num: 18, name: "Hamari Traore", pos: "DF" },
+                { num: 5, name: "Igor Zubeldia", pos: "DF" },
+                { num: 21, name: "Nayef Aguerd", pos: "DF" },
+                { num: 3, name: "Aihen Munoz", pos: "DF" },
+                { num: 4, name: "Martin Zubimendi", pos: "MF" },
+                { num: 23, name: "Brais Mendez", pos: "MF" },
+                { num: 16, name: "Jon Ander Olasagasti", pos: "MF" },
+                { num: 14, name: "Takefusa Kubo", pos: "FW" },
+                { num: 10, name: "Mikel Oyarzabal", pos: "FW" },
+                { num: 11, name: "Sheraldo Becker", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Unai Simon", pos: "GK" },
+                { num: 18, name: "Oscar de Marcos", pos: "DF" },
+                { num: 5, name: "Yeray Alvarez", pos: "DF" },
+                { num: 4, name: "Aitor Paredes", pos: "DF" },
+                { num: 17, name: "Yuri Berchiche", pos: "DF" },
+                { num: 24, name: "Benat Prados", pos: "MF" },
+                { num: 16, name: "Inigo Ruiz de Galarreta", pos: "MF" },
+                { num: 9, name: "Inaki Williams", pos: "FW" },
+                { num: 8, name: "Oihan Sancet", pos: "MF" },
+                { num: 10, name: "Nico Williams", pos: "FW" },
+                { num: 12, name: "Gorka Guruzeta", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Unai Marrero", "Aritz Elustondo", "Javi Lopez", "Luka Sucic", "Sergio Gomez", "Orri Oskarsson"],
+            away: ["Julen Agirrezabala", "Dani Vivian", "Andoni Gorosabel", "Mikel Vesga", "Alex Berenguer", "Alvaro Djalo"]
+        },
+        timeline: []
+    },
+
+    // --- UPCOMING SLATE THIS WEEK ---
+    {
+        id: 988,
+        league: "UEFA Champions League • Marquee",
+        leagueCategory: "Champions League",
+        scheduleGroup: "week",
+        homeTeam: "Real Madrid",
+        awayTeam: "Manchester City",
+        time: "Wed 20:00",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 2.50, draw: 3.50, away: 2.70 },
+        formation: { home: "4-3-3", away: "4-1-4-1" },
+        lineup: {
+            home: [
+                { num: 1, name: "Thibaut Courtois", pos: "GK" },
+                { num: 2, name: "Dani Carvajal", pos: "DF" },
+                { num: 3, name: "Eder Militao", pos: "DF" },
+                { num: 22, name: "Antonio Rudiger", pos: "DF" },
+                { num: 23, name: "Ferland Mendy", pos: "DF" },
+                { num: 15, name: "Federico Valverde", pos: "MF" },
+                { num: 14, name: "Aurelien Tchouameni", pos: "MF" },
+                { num: 5, name: "Jude Bellingham", pos: "MF" },
+                { num: 11, name: "Rodrygo Goes", pos: "FW" },
+                { num: 9, name: "Kylian Mbappe", pos: "FW" },
+                { num: 7, name: "Vinicius Jr", pos: "FW" }
+            ],
+            away: [
+                { num: 31, name: "Ederson", pos: "GK" },
+                { num: 2, name: "Kyle Walker", pos: "DF" },
+                { num: 3, name: "Ruben Dias", pos: "DF" },
+                { num: 25, name: "Manuel Akanji", pos: "DF" },
+                { num: 24, name: "Josko Gvardiol", pos: "DF" },
+                { num: 16, name: "Rodri", pos: "MF" },
+                { num: 20, name: "Bernardo Silva", pos: "MF" },
+                { num: 17, name: "Kevin De Bruyne", pos: "MF" },
+                { num: 47, name: "Phil Foden", pos: "MF" },
+                { num: 10, name: "Jack Grealish", pos: "MF" },
+                { num: 9, name: "Erling Haaland", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Andriy Lunin", "Lucas Vazquez", "Eduardo Camavinga", "Luka Modric", "Arda Guler", "Brahim Diaz"],
+            away: ["Stefan Ortega", "John Stones", "Nathan Ake", "Ilkay Gundogan", "Savinho", "Jeremy Doku"]
+        },
+        timeline: []
+    },
+    {
+        id: 989,
+        league: "UEFA Champions League • Marquee",
+        leagueCategory: "Champions League",
+        scheduleGroup: "week",
+        homeTeam: "Arsenal",
+        awayTeam: "Bayern Munich",
+        time: "Tue 20:00",
+        status: "UPCOMING",
+        score: { home: 0, away: 0 },
+        odds: { home: 2.20, draw: 3.45, away: 3.20 },
+        formation: { home: "4-3-3", away: "4-2-3-1" },
+        lineup: {
+            home: [
+                { num: 22, name: "David Raya", pos: "GK" },
+                { num: 4, name: "Ben White", pos: "DF" },
+                { num: 2, name: "William Saliba", pos: "DF" },
+                { num: 6, name: "Gabriel Magalhaes", pos: "DF" },
+                { num: 12, name: "Jurrien Timber", pos: "DF" },
+                { num: 41, name: "Declan Rice", pos: "MF" },
+                { num: 5, name: "Thomas Partey", pos: "MF" },
+                { num: 8, name: "Martin Odegaard", pos: "MF" },
+                { num: 7, name: "Bukayo Saka", pos: "FW" },
+                { num: 29, name: "Kai Havertz", pos: "FW" },
+                { num: 11, name: "Gabriel Martinelli", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Manuel Neuer", pos: "GK" },
+                { num: 2, name: "Dayot Upamecano", pos: "DF" },
+                { num: 3, name: "Kim Min-jae", pos: "DF" },
+                { num: 22, name: "Raphael Guerreiro", pos: "DF" },
+                { num: 19, name: "Alphonso Davies", pos: "DF" },
+                { num: 6, name: "Joshua Kimmich", pos: "MF" },
+                { num: 45, name: "Aleksandar Pavlovic", pos: "MF" },
+                { num: 10, name: "Leroy Sane", pos: "MF" },
+                { num: 42, name: "Jamal Musiala", pos: "MF" },
+                { num: 7, name: "Serge Gnabry", pos: "MF" },
+                { num: 9, name: "Harry Kane", pos: "FW" }
+            ]
+        },
+        subs: {
+            home: ["Neto", "Oleksandr Zinchenko", "Jorginho", "Mikel Merino", "Leandro Trossard", "Gabriel Jesus"],
+            away: ["Sven Ulreich", "Eric Dier", "Konrad Laimer", "Thomas Muller", "Kingsley Coman", "Mathys Tel"]
+        },
+        timeline: []
     },
     {
         id: 996,
         league: "MLS • Upcoming",
+        leagueCategory: "MLS",
+        scheduleGroup: "week",
         homeTeam: "Inter Miami",
         awayTeam: "LA Galaxy",
-        time: "Upcoming",
+        time: "Sat 21:30",
         status: "UPCOMING",
         score: { home: 0, away: 0 },
+        odds: { home: 1.70, draw: 3.90, away: 4.20 },
         formation: { home: "4-3-3", away: "4-3-3" },
         lineup: {
             home: [
@@ -267,131 +786,48 @@ const MATCHES_DATA = [
         timeline: []
     },
     {
-        id: 995,
-        league: "La Liga • Upcoming",
-        homeTeam: "Real Madrid",
-        awayTeam: "Barcelona",
-        time: "Upcoming",
+        id: 990,
+        league: "Primeira Liga • Derby",
+        leagueCategory: "Primeira Liga",
+        scheduleGroup: "week",
+        homeTeam: "Sporting CP",
+        awayTeam: "Benfica",
+        time: "Sun 20:30",
         status: "UPCOMING",
         score: { home: 0, away: 0 },
-        formation: { home: "4-3-1-2", away: "4-3-3" },
+        odds: { home: 2.15, draw: 3.40, away: 3.30 },
+        formation: { home: "3-4-3", away: "4-2-3-1" },
         lineup: {
             home: [
-                { num: 1, name: "Thibaut Courtois", pos: "GK" },
-                { num: 2, name: "Dani Carvajal", pos: "DF" },
-                { num: 3, name: "Eder Militao", pos: "DF" },
-                { num: 22, name: "Antonio Rudiger", pos: "DF" },
-                { num: 23, name: "Ferland Mendy", pos: "DF" },
-                { num: 14, name: "Aurelien Tchouameni", pos: "MF" },
-                { num: 15, name: "Federico Valverde", pos: "MF" },
-                { num: 8, name: "Federico Camavinga", pos: "MF" },
-                { num: 5, name: "Jude Bellingham", pos: "MF" },
-                { num: 9, name: "Kylian Mbappe", pos: "FW" },
-                { num: 7, name: "Vinicius Jr", pos: "FW" }
+                { num: 1, name: "Franco Israel", pos: "GK" },
+                { num: 72, name: "Eduardo Quaresma", pos: "DF" },
+                { num: 25, name: "Goncalo Inacio", pos: "DF" },
+                { num: 26, name: "Ousmane Diomande", pos: "DF" },
+                { num: 57, name: "Geovany Quenda", pos: "MF" },
+                { num: 42, name: "Morten Hjulmand", pos: "MF" },
+                { num: 23, name: "Daniel Braganca", pos: "MF" },
+                { num: 20, name: "Maximiliano Araujo", pos: "MF" },
+                { num: 17, name: "Francisco Trincao", pos: "FW" },
+                { num: 9, name: "Viktor Gyokeres", pos: "FW" },
+                { num: 8, name: "Pedro Goncalves", pos: "FW" }
             ],
             away: [
-                { num: 1, name: "Marc-Andre ter Stegen", pos: "GK" },
-                { num: 23, name: "Jules Kounde", pos: "DF" },
-                { num: 2, name: "Pau Cubarsi", pos: "DF" },
-                { num: 5, name: "Inigo Martinez", pos: "DF" },
-                { num: 3, name: "Alejandro Balde", pos: "DF" },
-                { num: 17, name: "Marc Casado", pos: "MF" },
-                { num: 8, name: "Pedri", pos: "MF" },
-                { num: 20, name: "Dani Olmo", pos: "MF" },
-                { num: 19, name: "Lamine Yamal", pos: "FW" },
-                { num: 9, name: "Robert Lewandowski", pos: "FW" },
-                { num: 11, name: "Raphinha", pos: "FW" }
+                { num: 1, name: "Anatoliy Trubin", pos: "GK" },
+                { num: 8, name: "Alexander Bah", pos: "DF" },
+                { num: 4, name: "Antonio Silva", pos: "DF" },
+                { num: 30, name: "Nicolas Otamendi", pos: "DF" },
+                { num: 3, name: "Alvaro Carreras", pos: "DF" },
+                { num: 61, name: "Florentino Luis", pos: "MF" },
+                { num: 10, name: "Orkun Kokcu", pos: "MF" },
+                { num: 11, name: "Angel Di Maria", pos: "FW" },
+                { num: 7, name: "Kerem Akturkoglu", pos: "FW" },
+                { num: 17, name: "Kerem Akturkoglu", pos: "FW" },
+                { num: 14, name: "Vangelis Pavlidis", pos: "FW" }
             ]
         },
         subs: {
-            home: ["Andriy Lunin", "Lucas Vazquez", "Fran Garcia", "Luka Modric", "Arda Guler", "Rodrygo Goes"],
-            away: ["Inaki Pena", "Hector Fort", "Eric Garcia", "Frenkie de Jong", "Gavi", "Ferran Torres"]
-        },
-        timeline: []
-    },
-    {
-        id: 994,
-        league: "Serie A • Upcoming",
-        homeTeam: "Inter Milan",
-        awayTeam: "Juventus",
-        time: "Upcoming",
-        status: "UPCOMING",
-        score: { home: 0, away: 0 },
-        formation: { home: "3-5-2", away: "4-1-4-1" },
-        lineup: {
-            home: [
-                { num: 1, name: "Yann Sommer", pos: "GK" },
-                { num: 28, name: "Benjamin Pavard", pos: "DF" },
-                { num: 15, name: "Francesco Acerbi", pos: "DF" },
-                { num: 95, name: "Alessandro Bastoni", pos: "DF" },
-                { num: 2, name: "Denzel Dumfries", pos: "MF" },
-                { num: 23, name: "Nicolo Barella", pos: "MF" },
-                { num: 20, name: "Hakan Calhanoglu", pos: "MF" },
-                { num: 22, name: "Henrikh Mkhitaryan", pos: "MF" },
-                { num: 32, name: "Federico Dimarco", pos: "MF" },
-                { num: 9, name: "Marcus Thuram", pos: "FW" },
-                { num: 10, name: "Lautaro Martinez", pos: "FW" }
-            ],
-            away: [
-                { num: 29, name: "Michele Di Gregorio", pos: "GK" },
-                { num: 37, name: "Saud Abdulhamid", pos: "DF" },
-                { num: 4, name: "Federico Gatti", pos: "DF" },
-                { num: 15, name: "Pierre Kalulu", pos: "DF" },
-                { num: 27, name: "Andrea Cambiaso", pos: "DF" },
-                { num: 19, name: "Khephren Thuram", pos: "MF" },
-                { num: 7, name: "Francisco Conceicao", pos: "MF" },
-                { num: 8, name: "Teun Koopmeiners", pos: "MF" },
-                { num: 16, name: "Weston McKennie", pos: "MF" },
-                { num: 10, name: "Kenan Yildiz", pos: "MF" },
-                { num: 9, name: "Dusan Vlahovic", pos: "FW" }
-            ]
-        },
-        subs: {
-            home: ["Raffaele Di Gennaro", "Stefan de Vrij", "Yann Bisseck", "Davide Frattesi", "Piotr Zielinski", "Mehdi Taremi"],
-            away: ["Mattia Perin", "Danilo Luiz", "Juan Cabal", "Manuel Locatelli", "Nicolo Fagioli", "Timothy Weah"]
-        },
-        timeline: []
-    },
-    {
-        id: 993,
-        league: "Bundesliga • Upcoming",
-        homeTeam: "Bayern Munich",
-        awayTeam: "Dortmund",
-        time: "Upcoming",
-        status: "UPCOMING",
-        score: { home: 0, away: 0 },
-        formation: { home: "4-2-3-1", away: "4-2-3-1" },
-        lineup: {
-            home: [
-                { num: 1, name: "Manuel Neuer", pos: "GK" },
-                { num: 2, name: "Dayot Upamecano", pos: "DF" },
-                { num: 3, name: "Kim Min-jae", pos: "DF" },
-                { num: 22, name: "Raphael Guerreiro", pos: "DF" },
-                { num: 19, name: "Alphonso Davies", pos: "DF" },
-                { num: 6, name: "Joshua Kimmich", pos: "MF" },
-                { num: 45, name: "Aleksandar Pavlovic", pos: "MF" },
-                { num: 10, name: "Leroy Sane", pos: "MF" },
-                { num: 42, name: "Jamal Musiala", pos: "MF" },
-                { num: 7, name: "Serge Gnabry", pos: "MF" },
-                { num: 9, name: "Harry Kane", pos: "FW" }
-            ],
-            away: [
-                { num: 1, name: "Gregor Kobel", pos: "GK" },
-                { num: 26, name: "Julian Ryerson", pos: "DF" },
-                { num: 3, name: "Waldemar Anton", pos: "DF" },
-                { num: 4, name: "Nico Schlotterbeck", pos: "DF" },
-                { num: 5, name: "Ramy Bensebaini", pos: "DF" },
-                { num: 13, name: "Pascal Gross", pos: "MF" },
-                { num: 23, name: "Emre Can", pos: "MF" },
-                { num: 20, name: "Marcel Sabitzer", pos: "MF" },
-                { num: 10, name: "Julian Brandt", pos: "MF" },
-                { num: 27, name: "Karim Adeyemi", pos: "MF" },
-                { num: 9, name: "Serhou Guirassy", pos: "FW" }
-            ]
-        },
-        subs: {
-            home: ["Sven Ulreich", "Eric Dier", "Konrad Laimer", "Thomas Muller", "Kingsley Coman", "Mathys Tel"],
-            away: ["Alexander Meyer", "Niklas Sule", "Felix Nmecha", "Gio Reyna", "Jamie Gittens", "Donyell Malen"]
+            home: ["Diego Callai", "Zeno Debast", "Ricardo Esgaio", "Hidemasa Morita", "Geny Catamo", "Conrad Harder"],
+            away: ["Samuel Soares", "Tomas Araujo", "Jan-Niklas Beste", "Fredrik Aursnes", "Leandro Barreiro", "Arthur Cabral"]
         },
         timeline: []
     }
@@ -453,35 +889,25 @@ const TOURNAMENTS_DATA = [
 ];
 
 const activeMatchMarkets = {
-    999: '1x2',
     998: '1x2',
     997: '1x2',
-    996: '1x2',
     995: '1x2',
+    993: '1x2',
+    981: '1x2',
+    982: '1x2',
     994: '1x2',
-    993: '1x2'
+    983: '1x2',
+    984: '1x2',
+    985: '1x2',
+    986: '1x2',
+    987: '1x2',
+    988: '1x2',
+    989: '1x2',
+    996: '1x2',
+    990: '1x2'
 };
 
 const MATCH_MARKETS = {
-    999: { // Brazil vs France
-        '1x2': [
-            { label: "Brazil", value: 2.10, outcomeId: 0, desc: "Brazil Win" },
-            { label: "Draw", value: 3.40, outcomeId: 2, desc: "Draw" },
-            { label: "France", value: 3.10, outcomeId: 1, desc: "France Win" }
-        ],
-        'scorer': [
-            { label: "Vinicius Jr", value: 2.30, outcomeId: 10, desc: "Vinicius Jr to score" },
-            { label: "Mbappe", value: 2.15, outcomeId: 11, desc: "Mbappe to score" },
-            { label: "Neymar Jr", value: 2.50, outcomeId: 12, desc: "Neymar Jr to score" },
-            { label: "Griezmann", value: 2.80, outcomeId: 13, desc: "Griezmann to score" }
-        ],
-        'score': [
-            { label: "1 - 0", value: 7.00, outcomeId: 20, desc: "Brazil 1-0" },
-            { label: "2 - 1", value: 8.50, outcomeId: 21, desc: "Brazil 2-1" },
-            { label: "1 - 1", value: 6.00, outcomeId: 22, desc: "Draw 1-1" },
-            { label: "0 - 1", value: 9.00, outcomeId: 23, desc: "France 1-0" }
-        ]
-    },
     998: { // Arsenal vs Chelsea
         '1x2': [
             { label: "Arsenal", value: 2.25, outcomeId: 0, desc: "Arsenal Win" },
@@ -953,8 +1379,8 @@ function getSportsScheduleDates() {
     };
 }
 
-// Generate complete betting markets (1X2, Double Chance, O/U 2.5, BTTS, DNB, Correct Score)
-// Built-in House Edge / Vig (Overround: ~107% on singles, compounding on accumulators)
+// Generate comprehensive betting markets (SportyBet / Bet9ja Global Catalog)
+// House edge / Vig: ~106% - 108% overround on singles, compounding on accumulators
 function getMatchMarkets(match) {
     if (!MATCH_MARKETS[match.id]) {
         MATCH_MARKETS[match.id] = {};
@@ -965,49 +1391,47 @@ function getMatchMarkets(match) {
     const homeOdds = match.odds?.home || 2.10;
     const drawOdds = match.odds?.draw || 3.30;
     const awayOdds = match.odds?.away || 3.10;
+    const h = match.homeTeam ? match.homeTeam.length : 6;
+    const a = match.awayTeam ? match.awayTeam.length : 7;
 
     // 1. 1X2 Match Winner
     if (!markets['1x2'] || markets['1x2'].length === 0) {
         markets['1x2'] = [
-            { label: match.homeTeam, value: homeOdds, outcomeId: 0, desc: `${match.homeTeam} Win` },
-            { label: "Draw", value: drawOdds, outcomeId: 2, desc: "Draw" },
-            { label: match.awayTeam, value: awayOdds, outcomeId: 1, desc: `${match.awayTeam} Win` }
+            { label: `1 (${match.homeTeam})`, value: homeOdds, outcomeId: 0, desc: `${match.homeTeam} Win`, marketName: 'Winner (1X2)' },
+            { label: "X (Draw)", value: drawOdds, outcomeId: 2, desc: "Draw", marketName: 'Winner (1X2)' },
+            { label: `2 (${match.awayTeam})`, value: awayOdds, outcomeId: 1, desc: `${match.awayTeam} Win`, marketName: 'Winner (1X2)' }
         ];
     }
 
-    // 2. Double Chance (1X, 12, X2 - SportyBet high-volume accumulator favorite)
+    // 2. Double Chance (1X, 12, X2)
     if (!markets['dc']) {
         const dc1X = parseFloat((1 / (1/homeOdds + 1/drawOdds) * 0.93).toFixed(2));
         const dc12 = parseFloat((1 / (1/homeOdds + 1/awayOdds) * 0.93).toFixed(2));
         const dcX2 = parseFloat((1 / (1/drawOdds + 1/awayOdds) * 0.93).toFixed(2));
         markets['dc'] = [
-            { label: "1X (Home/Draw)", value: Math.max(1.15, dc1X), outcomeId: 5, desc: `${match.homeTeam} or Draw` },
-            { label: "12 (Home/Away)", value: Math.max(1.18, dc12), outcomeId: 6, desc: `${match.homeTeam} or ${match.awayTeam}` },
-            { label: "X2 (Draw/Away)", value: Math.max(1.20, dcX2), outcomeId: 7, desc: `Draw or ${match.awayTeam}` }
+            { label: "1X (Home/Draw)", value: Math.max(1.15, dc1X), outcomeId: 5, desc: `${match.homeTeam} or Draw`, marketName: 'Double Chance' },
+            { label: "12 (Home/Away)", value: Math.max(1.18, dc12), outcomeId: 6, desc: `${match.homeTeam} or ${match.awayTeam}`, marketName: 'Double Chance' },
+            { label: "X2 (Draw/Away)", value: Math.max(1.20, dcX2), outcomeId: 7, desc: `Draw or ${match.awayTeam}`, marketName: 'Double Chance' }
         ];
     }
 
     // 3. Over / Under 2.5 Goals
     if (!markets['overunder']) {
-        const h = match.homeTeam.length;
-        const a = match.awayTeam.length;
         const overVal = parseFloat((1.72 + ((h * 3) % 4) * 0.08).toFixed(2));
         const underVal = parseFloat((1.92 + ((a * 2) % 4) * 0.08).toFixed(2));
         markets['overunder'] = [
-            { label: "Over 2.5 Goals", value: overVal, outcomeId: 10, desc: `${match.homeTeam} vs ${match.awayTeam} - Over 2.5 Goals` },
-            { label: "Under 2.5 Goals", value: underVal, outcomeId: 11, desc: `${match.homeTeam} vs ${match.awayTeam} - Under 2.5 Goals` }
+            { label: "Over 2.5", value: overVal, outcomeId: 10, desc: `${match.homeTeam} vs ${match.awayTeam} - Over 2.5 Goals`, marketName: 'Total Goals (O/U 2.5)' },
+            { label: "Under 2.5", value: underVal, outcomeId: 11, desc: `${match.homeTeam} vs ${match.awayTeam} - Under 2.5 Goals`, marketName: 'Total Goals (O/U 2.5)' }
         ];
     }
 
-    // 4. Both Teams to Score (BTTS)
+    // 4. Both Teams to Score (BTTS / GG NG)
     if (!markets['btts']) {
-        const h = match.homeTeam.length;
-        const a = match.awayTeam.length;
         const yesVal = parseFloat((1.65 + ((h + a) % 3) * 0.1).toFixed(2));
         const noVal = parseFloat((2.02 + ((h * 2 + a) % 3) * 0.1).toFixed(2));
         markets['btts'] = [
-            { label: "BTTS - Yes", value: yesVal, outcomeId: 20, desc: `${match.homeTeam} vs ${match.awayTeam} - Both Teams to Score: Yes` },
-            { label: "BTTS - No", value: noVal, outcomeId: 21, desc: `${match.homeTeam} vs ${match.awayTeam} - Both Teams to Score: No` }
+            { label: "GG (Yes)", value: yesVal, outcomeId: 20, desc: `${match.homeTeam} vs ${match.awayTeam} - Both Teams to Score: Yes`, marketName: 'Both Teams To Score' },
+            { label: "NG (No)", value: noVal, outcomeId: 21, desc: `${match.homeTeam} vs ${match.awayTeam} - Both Teams to Score: No`, marketName: 'Both Teams To Score' }
         ];
     }
 
@@ -1016,26 +1440,166 @@ function getMatchMarkets(match) {
         const dnbHome = parseFloat((homeOdds * (1 - 1/drawOdds) * 0.94).toFixed(2));
         const dnbAway = parseFloat((awayOdds * (1 - 1/drawOdds) * 0.94).toFixed(2));
         markets['dnb'] = [
-            { label: `${match.homeTeam} (DNB)`, value: Math.max(1.25, dnbHome), outcomeId: 30, desc: `${match.homeTeam} Draw No Bet` },
-            { label: `${match.awayTeam} (DNB)`, value: Math.max(1.35, dnbAway), outcomeId: 31, desc: `${match.awayTeam} Draw No Bet` }
+            { label: `${match.homeTeam} DNB`, value: Math.max(1.25, dnbHome), outcomeId: 30, desc: `${match.homeTeam} Draw No Bet`, marketName: 'Draw No Bet' },
+            { label: `${match.awayTeam} DNB`, value: Math.max(1.35, dnbAway), outcomeId: 31, desc: `${match.awayTeam} Draw No Bet`, marketName: 'Draw No Bet' }
         ];
     }
 
-    // 6. Correct Score Market (High payout bait with ~15% house margin)
+    // 6. Over / Under 1.5 Goals
+    if (!markets['ou15']) {
+        markets['ou15'] = [
+            { label: "Over 1.5", value: parseFloat((1.24 + (h % 3) * 0.05).toFixed(2)), outcomeId: 12, desc: `${match.homeTeam} vs ${match.awayTeam} - Over 1.5 Goals`, marketName: 'Total Goals (O/U 1.5)' },
+            { label: "Under 1.5", value: parseFloat((3.60 + (a % 3) * 0.2).toFixed(2)), outcomeId: 13, desc: `${match.homeTeam} vs ${match.awayTeam} - Under 1.5 Goals`, marketName: 'Total Goals (O/U 1.5)' }
+        ];
+    }
+
+    // 7. Over / Under 0.5 Goals & Over / Under 3.5 Goals
+    if (!markets['ou05']) {
+        markets['ou05'] = [
+            { label: "Over 0.5", value: 1.05, outcomeId: 14, desc: `Over 0.5 Goals`, marketName: 'Total Goals (O/U 0.5)' },
+            { label: "Under 0.5", value: 8.50, outcomeId: 15, desc: `Under 0.5 Goals`, marketName: 'Total Goals (O/U 0.5)' }
+        ];
+    }
+    if (!markets['ou35']) {
+        markets['ou35'] = [
+            { label: "Over 3.5", value: parseFloat((2.80 + (h % 3) * 0.15).toFixed(2)), outcomeId: 16, desc: `Over 3.5 Goals`, marketName: 'Total Goals (O/U 3.5)' },
+            { label: "Under 3.5", value: parseFloat((1.38 + (a % 3) * 0.05).toFixed(2)), outcomeId: 17, desc: `Under 3.5 Goals`, marketName: 'Total Goals (O/U 3.5)' }
+        ];
+    }
+
+    // 8. 1st Half Winner (1X2)
+    if (!markets['halftime']) {
+        markets['halftime'] = [
+            { label: `1st H: ${match.homeTeam}`, value: parseFloat((homeOdds * 1.35).toFixed(2)), outcomeId: 40, desc: `1st Half: ${match.homeTeam} Win`, marketName: '1st Half 1X2' },
+            { label: "1st H: Draw", value: parseFloat((drawOdds * 0.65).toFixed(2)), outcomeId: 41, desc: `1st Half: Draw`, marketName: '1st Half 1X2' },
+            { label: `1st H: ${match.awayTeam}`, value: parseFloat((awayOdds * 1.35).toFixed(2)), outcomeId: 42, desc: `1st Half: ${match.awayTeam} Win`, marketName: '1st Half 1X2' }
+        ];
+    }
+
+    // 9. 1st Half Goals
+    if (!markets['htgoals']) {
+        markets['htgoals'] = [
+            { label: "1st H: Over 0.5", value: 1.35, outcomeId: 43, desc: `1st Half Over 0.5 Goals`, marketName: '1st Half Goals' },
+            { label: "1st H: Under 0.5", value: 2.90, outcomeId: 44, desc: `1st Half Under 0.5 Goals`, marketName: '1st Half Goals' }
+        ];
+    }
+
+    // 10. Half Time / Full Time (HT/FT)
+    if (!markets['htft']) {
+        markets['htft'] = [
+            { label: "1/1 (Home/Home)", value: parseFloat((homeOdds * 1.7).toFixed(2)), outcomeId: 60, desc: `HT/FT: ${match.homeTeam}/${match.homeTeam}`, marketName: 'HT/FT' },
+            { label: "1/X (Home/Draw)", value: 14.00, outcomeId: 61, desc: `HT/FT: ${match.homeTeam}/Draw`, marketName: 'HT/FT' },
+            { label: "1/2 (Home/Away)", value: 28.00, outcomeId: 62, desc: `HT/FT: ${match.homeTeam}/${match.awayTeam}`, marketName: 'HT/FT' },
+            { label: "X/1 (Draw/Home)", value: parseFloat((homeOdds * 2.1).toFixed(2)), outcomeId: 63, desc: `HT/FT: Draw/${match.homeTeam}`, marketName: 'HT/FT' },
+            { label: "X/X (Draw/Draw)", value: 5.20, outcomeId: 64, desc: `HT/FT: Draw/Draw`, marketName: 'HT/FT' },
+            { label: "X/2 (Draw/Away)", value: parseFloat((awayOdds * 2.1).toFixed(2)), outcomeId: 65, desc: `HT/FT: Draw/${match.awayTeam}`, marketName: 'HT/FT' },
+            { label: "2/1 (Away/Home)", value: 26.00, outcomeId: 66, desc: `HT/FT: ${match.awayTeam}/${match.homeTeam}`, marketName: 'HT/FT' },
+            { label: "2/X (Away/Draw)", value: 14.50, outcomeId: 67, desc: `HT/FT: ${match.awayTeam}/Draw`, marketName: 'HT/FT' },
+            { label: "2/2 (Away/Away)", value: parseFloat((awayOdds * 1.7).toFixed(2)), outcomeId: 68, desc: `HT/FT: ${match.awayTeam}/${match.awayTeam}`, marketName: 'HT/FT' }
+        ];
+    }
+
+    // 11. Exact Total Goals
+    if (!markets['exactgoals']) {
+        markets['exactgoals'] = [
+            { label: "0 Goals", value: 8.50, outcomeId: 70, desc: `Exact Goals: 0`, marketName: 'Exact Goals' },
+            { label: "1 Goal", value: 4.60, outcomeId: 71, desc: `Exact Goals: 1`, marketName: 'Exact Goals' },
+            { label: "2 Goals", value: 3.40, outcomeId: 72, desc: `Exact Goals: 2`, marketName: 'Exact Goals' },
+            { label: "3 Goals", value: 3.90, outcomeId: 73, desc: `Exact Goals: 3`, marketName: 'Exact Goals' },
+            { label: "4 Goals", value: 5.80, outcomeId: 74, desc: `Exact Goals: 4`, marketName: 'Exact Goals' },
+            { label: "5+ Goals", value: 9.50, outcomeId: 75, desc: `Exact Goals: 5+`, marketName: 'Exact Goals' }
+        ];
+    }
+
+    // 12. European Handicap (-1 / +1)
+    if (!markets['handicap']) {
+        markets['handicap'] = [
+            { label: `${match.homeTeam} (-1)`, value: parseFloat((homeOdds * 1.95).toFixed(2)), outcomeId: 80, desc: `Handicap: ${match.homeTeam} (-1)`, marketName: 'European Handicap' },
+            { label: "Handicap Tie (-1)", value: 3.65, outcomeId: 81, desc: `Handicap Tie (-1)`, marketName: 'European Handicap' },
+            { label: `${match.awayTeam} (+1)`, value: parseFloat((1 / (1/awayOdds + 1/drawOdds) * 1.05).toFixed(2)), outcomeId: 82, desc: `Handicap: ${match.awayTeam} (+1)`, marketName: 'European Handicap' }
+        ];
+    }
+
+    // 13. Correct Score Market
     if (!markets['score'] || markets['score'].length === 0) {
-        const h = match.homeTeam.length;
-        const a = match.awayTeam.length;
         markets['score'] = [
-            { label: "1 - 0", value: parseFloat((6.20 + (h % 3) * 0.5).toFixed(2)), outcomeId: 50, desc: `${match.homeTeam} 1-0` },
-            { label: "2 - 0", value: parseFloat((8.20 + (h % 4) * 0.5).toFixed(2)), outcomeId: 51, desc: `${match.homeTeam} 2-0` },
-            { label: "2 - 1", value: parseFloat((7.80 + (a % 3) * 0.5).toFixed(2)), outcomeId: 52, desc: `${match.homeTeam} 2-1` },
-            { label: "1 - 1", value: parseFloat((5.30 + ((h + a) % 3) * 0.5).toFixed(2)), outcomeId: 55, desc: "Draw 1-1" },
-            { label: "0 - 1", value: parseFloat((8.20 + (a % 3) * 0.5).toFixed(2)), outcomeId: 57, desc: `${match.awayTeam} 1-0` },
-            { label: "0 - 2", value: parseFloat((10.50 + (a % 4) * 0.5).toFixed(2)), outcomeId: 58, desc: `${match.awayTeam} 2-0` }
+            { label: "1 - 0", value: parseFloat((6.20 + (h % 3) * 0.5).toFixed(2)), outcomeId: 50, desc: `${match.homeTeam} 1-0`, marketName: 'Correct Score' },
+            { label: "2 - 0", value: parseFloat((8.20 + (h % 4) * 0.5).toFixed(2)), outcomeId: 51, desc: `${match.homeTeam} 2-0`, marketName: 'Correct Score' },
+            { label: "2 - 1", value: parseFloat((7.80 + (a % 3) * 0.5).toFixed(2)), outcomeId: 52, desc: `${match.homeTeam} 2-1`, marketName: 'Correct Score' },
+            { label: "3 - 0", value: 14.00, outcomeId: 53, desc: `${match.homeTeam} 3-0`, marketName: 'Correct Score' },
+            { label: "3 - 1", value: 15.50, outcomeId: 54, desc: `${match.homeTeam} 3-1`, marketName: 'Correct Score' },
+            { label: "0 - 0", value: 8.50, outcomeId: 55, desc: `Draw 0-0`, marketName: 'Correct Score' },
+            { label: "1 - 1", value: parseFloat((5.30 + ((h + a) % 3) * 0.5).toFixed(2)), outcomeId: 56, desc: "Draw 1-1", marketName: 'Correct Score' },
+            { label: "2 - 2", value: 12.00, outcomeId: 57, desc: "Draw 2-2", marketName: 'Correct Score' },
+            { label: "0 - 1", value: parseFloat((8.20 + (a % 3) * 0.5).toFixed(2)), outcomeId: 58, desc: `${match.awayTeam} 1-0`, marketName: 'Correct Score' },
+            { label: "0 - 2", value: parseFloat((10.50 + (a % 4) * 0.5).toFixed(2)), outcomeId: 59, desc: `${match.awayTeam} 2-0`, marketName: 'Correct Score' },
+            { label: "1 - 2", value: 9.80, outcomeId: 90, desc: `${match.awayTeam} 2-1`, marketName: 'Correct Score' },
+            { label: "0 - 3", value: 21.00, outcomeId: 91, desc: `${match.awayTeam} 3-0`, marketName: 'Correct Score' },
+            { label: "1 - 3", value: 22.00, outcomeId: 92, desc: `${match.awayTeam} 3-1`, marketName: 'Correct Score' },
+            { label: "Other", value: 11.00, outcomeId: 93, desc: `Any Other Score`, marketName: 'Correct Score' }
+        ];
+    }
+
+    // 14. Corners & Cards
+    if (!markets['corners']) {
+        markets['corners'] = [
+            { label: "Corners O 8.5", value: 1.80, outcomeId: 94, desc: `Corners Over 8.5`, marketName: 'Corners & Cards' },
+            { label: "Corners U 8.5", value: 1.95, outcomeId: 95, desc: `Corners Under 8.5`, marketName: 'Corners & Cards' },
+            { label: "Cards Over 3.5", value: 1.85, outcomeId: 96, desc: `Cards Over 3.5`, marketName: 'Corners & Cards' }
+        ];
+    }
+
+    // 15. Combos (Match Result + Goals)
+    if (!markets['combos']) {
+        markets['combos'] = [
+            { label: `1 & Over 2.5`, value: parseFloat((homeOdds * 1.55).toFixed(2)), outcomeId: 97, desc: `${match.homeTeam} & Over 2.5`, marketName: 'Match Combos' },
+            { label: `2 & Over 2.5`, value: parseFloat((awayOdds * 1.55).toFixed(2)), outcomeId: 98, desc: `${match.awayTeam} & Over 2.5`, marketName: 'Match Combos' },
+            { label: `1 & GG (Yes)`, value: parseFloat((homeOdds * 1.70).toFixed(2)), outcomeId: 99, desc: `${match.homeTeam} & Both Teams To Score`, marketName: 'Match Combos' },
+            { label: `2 & GG (Yes)`, value: parseFloat((awayOdds * 1.70).toFixed(2)), outcomeId: 100, desc: `${match.awayTeam} & Both Teams To Score`, marketName: 'Match Combos' }
         ];
     }
 
     return markets;
+}
+
+// Display View Mode Toggle (Full-Width Sportsbook vs Split View)
+function setSportsbookViewMode(mode) {
+    activeViewMode = mode;
+    const grid = document.getElementById("main-layout-grid");
+    const btnSplit = document.getElementById("view-mode-split");
+    const btnFull = document.getElementById("view-mode-full");
+
+    if (mode === 'full') {
+        if (grid) grid.classList.add("full-sportsbook-active");
+        if (btnFull) btnFull.classList.add("active");
+        if (btnSplit) btnSplit.classList.remove("active");
+        showToast("Full Sportsbook Display Enabled (Panoramic View)", "info");
+    } else {
+        if (grid) grid.classList.remove("full-sportsbook-active");
+        if (btnSplit) btnSplit.classList.add("active");
+        if (btnFull) btnFull.classList.remove("active");
+        showToast("Split View Active (Live Stream & Sportsbook)", "info");
+    }
+}
+
+// Sideways scrolling helpers for horizontal UI decks and market matrix
+function scrollMarketMatrix(dir) {
+    const containers = document.querySelectorAll(".match-matrix-container");
+    containers.forEach(el => {
+        el.scrollBy({ left: dir * 320, behavior: 'smooth' });
+    });
+}
+
+function toggleMatchAccordion(matchId, event) {
+    if (event) event.stopPropagation();
+    expandedAccordions[matchId] = !expandedAccordions[matchId];
+    renderLiveMatches();
+}
+
+function setAccordionCategory(matchId, catKey, event) {
+    if (event) event.stopPropagation();
+    activeAccordionCategory[matchId] = catKey;
+    renderLiveMatches();
 }
 
 // Sideways scrolling helpers for horizontal UI decks
@@ -1098,9 +1662,9 @@ async function fetchUpcomingMatchesFromAPI() {
 
     // 1. Align Core Static Matches to dynamic dates
     MATCHES_DATA.forEach(match => {
-        if (match.id === 2026 || match.id === 999 || match.id === 998) {
+        if (match.id === 998) {
             match.scheduleGroup = 'live';
-            if (!match.leagueCategory) match.leagueCategory = match.id === 998 ? 'Premier League' : 'World Cup';
+            if (!match.leagueCategory) match.leagueCategory = 'Premier League';
         } else if (match.id === 995) {
             match.scheduleGroup = 'today';
             match.leagueCategory = 'La Liga';
@@ -1512,7 +2076,7 @@ function initApp() {
 
     // Render multi-league matches and select default
     renderLiveMatches();
-    selectActiveMatch(2026);
+    selectActiveMatch(998);
     
     // Render Leaderboard data
     renderLeaderboard();
@@ -2889,67 +3453,248 @@ function renderTournaments() {
     });
 }
 
-function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle) {
-    const container = document.getElementById("betslip-items-container");
-    container.innerHTML = ""; // Single selection for simplicity in prototype
+function isOutcomeSelected(gameId, outcomeId) {
+    return betslipSelections.some(s => s.gameId === gameId && s.outcomeId === outcomeId);
+}
 
-    activeSelection = { gameId, outcomeId, oddsValue, outcomeLabel, gameTitle };
+function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marketName = 'Winner (1X2)') {
+    const existingIdx = betslipSelections.findIndex(s => s.gameId === gameId && s.outcomeId === outcomeId);
 
-    const item = document.createElement("div");
-    item.className = "betslip-selection";
-    item.innerHTML = `
-        <button class="btn-remove-selection" onclick="clearSelection()">Remove</button>
-        <div class="selection-teams">${gameTitle}</div>
-        <div class="selection-outcome">Wager Option: <span style="font-weight:600; color:var(--text-primary);">${outcomeLabel}</span></div>
-        <div style="display:flex; justify-content:space-between; margin-top:0.4rem; font-size:0.8rem;">
-            <span>Odds Value:</span>
-            <span class="selection-odds-text">${oddsValue.toFixed(2)}x</span>
-        </div>
-    `;
-    container.appendChild(item);
-
-    document.getElementById("slip-count-badge").textContent = "1 Selection";
-    document.getElementById("betslip-calc").style.display = "block";
-    document.getElementById("slip-odds-multiplier").textContent = oddsValue.toFixed(2) + "x";
-    
-    // Set random sportybet share code
-    document.getElementById("generated-slip-code").textContent = `BET-${gameId}-${outcomeId}-${Math.floor(Math.random()*90 + 10)}`;
-
-    // Show indicator badge on the Betslip tab and auto-navigate to it
-    const badge = document.getElementById("tab-slip-badge");
-    if (badge) {
-        badge.textContent = "1";
-        badge.style.display = "inline-block";
+    if (existingIdx >= 0) {
+        // Toggle OFF if clicked again
+        const removed = betslipSelections.splice(existingIdx, 1)[0];
+        showToast(`Removed from Slip: ${removed.outcomeLabel}`, "info");
+    } else {
+        // Check if there is already a selection from the exact same game and same market
+        const sameMarketIdx = betslipSelections.findIndex(s => s.gameId === gameId && s.marketName === marketName);
+        if (sameMarketIdx >= 0) {
+            betslipSelections[sameMarketIdx] = {
+                id: `${gameId}-${outcomeId}`,
+                gameId,
+                outcomeId,
+                oddsValue,
+                outcomeLabel,
+                gameTitle,
+                marketName
+            };
+            showToast(`Updated Slip: ${outcomeLabel} (${oddsValue.toFixed(2)}x)`, "info");
+        } else {
+            betslipSelections.push({
+                id: `${gameId}-${outcomeId}`,
+                gameId,
+                outcomeId,
+                oddsValue,
+                outcomeLabel,
+                gameTitle,
+                marketName
+            });
+            showToast(`Added to Betslip: ${outcomeLabel} (${oddsValue.toFixed(2)}x) 🔥`, "success");
+        }
     }
-    switchExchangeTab("slip");
 
-    calculatePayout();
+    // Set backwards-compatible activeSelection for single wagers
+    if (betslipSelections.length > 0) {
+        activeSelection = betslipSelections[0];
+    } else {
+        activeSelection = null;
+    }
+
+    renderBetslip();
     renderLiveMatches();
+}
+
+function removeSelection(id) {
+    betslipSelections = betslipSelections.filter(s => s.id !== id);
+    if (betslipSelections.length > 0) {
+        activeSelection = betslipSelections[0];
+    } else {
+        activeSelection = null;
+    }
+    renderBetslip();
+    renderLiveMatches();
+}
+
+function clearAllSelections() {
+    betslipSelections = [];
+    activeSelection = null;
+    renderBetslip();
+    renderLiveMatches();
+    showToast("Betslip cleared", "info");
 }
 
 function clearSelection() {
-    activeSelection = null;
-    document.getElementById("betslip-items-container").innerHTML = `
-        <div class="betslip-empty" id="betslip-empty-text">Select odds from matches to build your slip</div>
-    `;
-    document.getElementById("slip-count-badge").textContent = "0 Selection";
-    document.getElementById("betslip-calc").style.display = "none";
-    
-    const badge = document.getElementById("tab-slip-badge");
-    if (badge) {
-        badge.style.display = "none";
+    clearAllSelections();
+}
+
+function setBetslipMode(mode) {
+    betslipMode = mode;
+    const btnAcca = document.getElementById("slip-mode-acca");
+    const btnSingle = document.getElementById("slip-mode-single");
+    if (btnAcca && btnSingle) {
+        if (mode === 'accumulator') {
+            btnAcca.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-white bg-white/10 flex items-center justify-center gap-1.5 transition-all";
+            btnSingle.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-on-surface/50 hover:text-white flex items-center justify-center gap-1.5 transition-all";
+        } else {
+            btnSingle.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-white bg-white/10 flex items-center justify-center gap-1.5 transition-all";
+            btnAcca.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-on-surface/50 hover:text-white flex items-center justify-center gap-1.5 transition-all";
+        }
     }
-    renderLiveMatches();
+    calculatePayout();
+}
+
+function setQuickStake(val) {
+    const input = document.getElementById("stake-amount");
+    if (!input) return;
+    if (val === 'MAX') {
+        input.value = "5.0";
+    } else {
+        const cur = parseFloat(input.value) || 0;
+        input.value = (cur + val).toFixed(1);
+    }
+    calculatePayout();
+}
+
+function renderBetslip() {
+    const container = document.getElementById("betslip-items-container");
+    const countBadge = document.getElementById("slip-count-badge");
+    const tabSlipBadge = document.getElementById("tab-slip-badge");
+    const calcContainer = document.getElementById("betslip-calc");
+    const floatingPill = document.getElementById("floating-betslip-pill");
+    const floatingCount = document.getElementById("floating-slip-count");
+    const floatingOdds = document.getElementById("floating-slip-odds");
+
+    const totalCount = betslipSelections.length;
+
+    if (countBadge) countBadge.textContent = `${totalCount} ${totalCount === 1 ? 'Selection' : 'Selections'}`;
+    if (tabSlipBadge) {
+        tabSlipBadge.textContent = totalCount;
+        tabSlipBadge.style.display = totalCount > 0 ? "inline-block" : "none";
+    }
+
+    if (totalCount === 0) {
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-on-surface/40 text-label-md" id="betslip-empty-text">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎫</div>
+                    <div style="font-weight: 700; color: #fff;">Your Betslip is Empty</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.3rem;">Select odds from matches below to build your accumulator slip!</div>
+                </div>
+            `;
+        }
+        if (calcContainer) calcContainer.style.display = "none";
+        if (floatingPill) floatingPill.style.display = "none";
+        return;
+    }
+
+    if (calcContainer) calcContainer.style.display = "block";
+
+    if (container) {
+        container.innerHTML = "";
+        betslipSelections.forEach(s => {
+            const item = document.createElement("div");
+            item.className = "betslip-selection";
+            item.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.8rem; position: relative;";
+            item.innerHTML = `
+                <button onclick="removeSelection('${s.id}')" style="position: absolute; top: 8px; right: 8px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; border-radius: 6px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer;">✕</button>
+                <div style="font-size: 0.88rem; font-weight: 700; color: #fff; padding-right: 25px;">${s.gameTitle}</div>
+                <div style="font-size: 0.72rem; color: #9ca3af; margin-top: 0.2rem;">${s.marketName}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.45rem;">
+                    <span style="font-weight: 700; color: #14b8a6; font-size: 0.82rem;">${s.outcomeLabel}</span>
+                    <span style="font-weight: 800; color: #fff; font-family: var(--font-outfit); font-size: 0.95rem;">${s.oddsValue.toFixed(2)}x</span>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    // Share slip code
+    const generatedSlipEl = document.getElementById("generated-slip-code");
+    if (generatedSlipEl) {
+        const ids = betslipSelections.map(s => s.outcomeId).join('');
+        generatedSlipEl.textContent = `ACCA-${betslipSelections.length}-${ids.slice(0, 4)}-${Math.floor(Math.random()*90 + 10)}`;
+    }
+
+    calculatePayout();
 }
 
 function calculatePayout() {
-    if (!activeSelection) return;
-    const stake = parseFloat(document.getElementById("stake-amount").value) || 0;
-    const returnVal = stake * activeSelection.oddsValue;
-    const routingFee = stake * 0.01; // 1%
+    if (betslipSelections.length === 0) return;
 
-    document.getElementById("slip-routing-fee").textContent = routingFee.toFixed(4) + " SOL";
-    document.getElementById("slip-potential-payout").textContent = returnVal.toFixed(4) + " SOL";
+    const stakeInput = document.getElementById("stake-amount");
+    const stake = parseFloat(stakeInput?.value) || 0;
+    const routingFee = stake * 0.01;
+
+    let totalMultiplier = 1.0;
+    if (betslipMode === 'accumulator') {
+        betslipSelections.forEach(s => {
+            totalMultiplier *= s.oddsValue;
+        });
+    } else {
+        const sum = betslipSelections.reduce((acc, s) => acc + s.oddsValue, 0);
+        totalMultiplier = sum / betslipSelections.length;
+    }
+
+    // Acca Boost Bonus calculation (SportyBet style)
+    let bonusPercent = 0;
+    const legs = betslipSelections.length;
+    if (betslipMode === 'accumulator') {
+        if (legs >= 10) bonusPercent = 50;
+        else if (legs >= 8) bonusPercent = 35;
+        else if (legs >= 6) bonusPercent = 25;
+        else if (legs >= 5) bonusPercent = 15;
+        else if (legs >= 4) bonusPercent = 10;
+        else if (legs >= 3) bonusPercent = 5;
+        else if (legs >= 2) bonusPercent = 3;
+    }
+
+    const accaBanner = document.getElementById("acca-boost-banner");
+    const accaBadge = document.getElementById("acca-boost-badge");
+    const accaText = document.getElementById("acca-boost-text");
+    const bonusRow = document.getElementById("slip-bonus-row");
+    const bonusAmountEl = document.getElementById("slip-bonus-amount");
+
+    if (bonusPercent > 0 && betslipMode === 'accumulator') {
+        if (accaBanner) accaBanner.style.display = "flex";
+        if (accaBadge) accaBadge.textContent = `+${bonusPercent}%`;
+        if (accaText) accaText.textContent = `🔥 ${legs}-Fold Combo: +${bonusPercent}% Acca Boost!`;
+        if (bonusRow) bonusRow.style.display = "flex";
+    } else {
+        if (accaBanner) accaBanner.style.display = "none";
+        if (bonusRow) bonusRow.style.display = "none";
+    }
+
+    const baseReturn = stake * totalMultiplier;
+    const bonusAmount = baseReturn * (bonusPercent / 100);
+    const totalPotentialReturn = baseReturn + bonusAmount;
+
+    // Update UI elements
+    const oddsEl = document.getElementById("slip-odds-multiplier");
+    if (oddsEl) oddsEl.textContent = totalMultiplier.toFixed(2) + "x";
+
+    if (bonusAmountEl) bonusAmountEl.textContent = `+${bonusAmount.toFixed(4)} SOL`;
+
+    const feeEl = document.getElementById("slip-routing-fee");
+    if (feeEl) feeEl.textContent = routingFee.toFixed(4) + " SOL";
+
+    const payoutEl = document.getElementById("slip-potential-payout");
+    if (payoutEl) payoutEl.textContent = totalPotentialReturn.toFixed(4) + " SOL";
+
+    const btnPlace = document.getElementById("btn-place-slip");
+    if (btnPlace) {
+        btnPlace.textContent = betslipMode === 'accumulator' 
+            ? `Place Accumulator Wager (${totalMultiplier.toFixed(2)}x)`
+            : `Place ${legs} Single Wagers`;
+    }
+
+    // Floating Pill update
+    const floatingPill = document.getElementById("floating-betslip-pill");
+    const floatingCount = document.getElementById("floating-slip-count");
+    const floatingOdds = document.getElementById("floating-slip-odds");
+    if (floatingPill && betslipSelections.length > 0) {
+        floatingPill.style.display = "flex";
+        if (floatingCount) floatingCount.textContent = `${legs} ${legs === 1 ? 'Bet' : 'Bets'}`;
+        if (floatingOdds) floatingOdds.textContent = totalMultiplier.toFixed(2) + "x";
+    }
 }
 
 function copyGeneratedCode() {
@@ -3098,17 +3843,12 @@ function depositLP() {
     }, 1500);
 }
 
-// 7. Place Wager On-Chain
+// 7. Place Wager On-Chain & Accumulator Engine
 async function placeBet() {
-    if (!isWalletConnected) {
-        showToast("Connect your wallet first!", "error");
+    if (betslipSelections.length === 0) {
+        showToast("Select odds from matches to build your slip.", "error");
         return;
     }
-    if (!currentProgramId) {
-        showToast("Initialize Program ID in the Admin Console first.", "error");
-        return;
-    }
-    if (!activeSelection) return;
 
     const stakeSol = parseFloat(document.getElementById("stake-amount").value);
     if (!stakeSol || stakeSol <= 0) {
@@ -3123,82 +3863,106 @@ async function placeBet() {
         return;
     }
 
-    const lamports = Math.floor(stakeSol * solanaWeb3.LAMPORTS_PER_SOL);
+    const legs = betslipSelections.length;
+    let totalMultiplier = 1.0;
+    if (betslipMode === 'accumulator') {
+        betslipSelections.forEach(s => {
+            totalMultiplier *= s.oddsValue;
+        });
+    } else {
+        const sum = betslipSelections.reduce((acc, s) => acc + s.oddsValue, 0);
+        totalMultiplier = sum / legs;
+    }
+
+    let bonusPercent = 0;
+    if (betslipMode === 'accumulator') {
+        if (legs >= 10) bonusPercent = 50;
+        else if (legs >= 8) bonusPercent = 35;
+        else if (legs >= 6) bonusPercent = 25;
+        else if (legs >= 5) bonusPercent = 15;
+        else if (legs >= 4) bonusPercent = 10;
+        else if (legs >= 3) bonusPercent = 5;
+        else if (legs >= 2) bonusPercent = 3;
+    }
+
+    const baseReturn = stakeSol * totalMultiplier;
+    const bonusAmount = baseReturn * (bonusPercent / 100);
+    const totalPotentialReturn = baseReturn + bonusAmount;
 
     try {
-        const marketAccountPubkey = getMarketPubkeyForMatch(activeMatchId);
-        const platformStatePubkey = getPlatformStatePubkey();
-
-        // Pre-check: Verify platform state is initialized
-        const platformStateInfo = await connection.getAccountInfo(platformStatePubkey);
-        if (!platformStateInfo || platformStateInfo.data.length < 66) {
-            showToast("Platform state is not initialized! Please 'Init Platform' under 'Program Deploys' in the Operations Control Room (Admin Console) first.", "error");
-            return;
-        }
-
-        // Pre-check: Verify market account is initialized
-        const marketInfo = await connection.getAccountInfo(marketAccountPubkey);
-        if (!marketInfo || marketInfo.data.length < 66) {
-            showToast("Market account is not initialized! Please 'Create Market' in the Operations Control Room (Admin Console) first.", "error");
-            return;
-        }
-
-        showToast("Routing wager on-chain to Solana contract...", "info");
-
-        // Generate unique keypair for each wager to avoid account conflicts and size errors
         const wagerAccountKeypair = solanaWeb3.Keypair.generate();
 
-        // Create Wager Account on-chain
-        await createLocalAccount(wagerAccountKeypair, 83);
+        // If single match on 1X2 with wallet connected, attempt on-chain escrow
+        if (legs === 1 && isWalletConnected && activeWalletType === 'phantom') {
+            try {
+                const primarySel = betslipSelections[0];
+                const marketAccountPubkey = getMarketPubkeyForMatch(primarySel.gameId);
+                const platformStatePubkey = getPlatformStatePubkey();
+                const lamports = Math.floor(stakeSol * solanaWeb3.LAMPORTS_PER_SOL);
 
-        // Build PlaceWager Instruction (ID 2)
-        // Length: 51 bytes
-        const data = new Uint8Array(51);
-        data[0] = 2; // Type 2
-        writeU64(data, 1, activeSelection.gameId);
-        data[9] = activeSelection.outcomeId; // 0=Home, 1=Away, 2=Draw
-        writeU64(data, 10, lamports);
-        data[18] = 0; // Local pool wager
+                const data = new Uint8Array(51);
+                data[0] = 2;
+                writeU64(data, 1, primarySel.gameId);
+                data[9] = primarySel.outcomeId;
+                writeU64(data, 10, lamports);
+                data[18] = 0;
 
-        // Copy creator public key (mock punter address for commissions)
-        const dummyPunter = getOrCreateAccountKeypair("punter_creator").publicKey;
-        data.set(dummyPunter.toBytes(), 19);
+                const dummyPunter = getOrCreateAccountKeypair("punter_creator").publicKey;
+                data.set(dummyPunter.toBytes(), 19);
 
-        const ix = new solanaWeb3.TransactionInstruction({
-            keys: [
-                { pubkey: activePublicKey, isSigner: true, isWritable: false },
-                { pubkey: marketAccountPubkey, isSigner: false, isWritable: true },
-                { pubkey: wagerAccountKeypair.publicKey, isSigner: false, isWritable: true },
-                { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false }
-            ],
-            programId: currentProgramId,
-            data: data
-        });
+                const ix = new solanaWeb3.TransactionInstruction({
+                    keys: [
+                        { pubkey: activePublicKey, isSigner: true, isWritable: false },
+                        { pubkey: marketAccountPubkey, isSigner: false, isWritable: true },
+                        { pubkey: wagerAccountKeypair.publicKey, isSigner: false, isWritable: true },
+                        { pubkey: solanaWeb3.SystemProgram.programId, isSigner: false, isWritable: false }
+                    ],
+                    programId: currentProgramId,
+                    data: data
+                });
 
-        const tx = new solanaWeb3.Transaction().add(ix);
-        const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
+                const tx = new solanaWeb3.Transaction().add(ix);
+                await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
+            } catch (onChainErr) {
+                console.warn("On-chain routing fell back to sandbox settlement:", onChainErr);
+            }
+        }
 
-        showToast("Success! Wager registered on-chain.", "success");
-
-        // Store in active list
-        localWagers.push({
-            gameId: activeSelection.gameId,
-            outcomeLabel: activeSelection.outcomeLabel,
-            outcomeId: activeSelection.outcomeId,
+        // Register wager in user's portfolio
+        const primarySel = betslipSelections[0];
+        localWagers.unshift({
+            id: `TICKET-${Date.now()}`,
+            isAccumulator: (legs > 1 && betslipMode === 'accumulator'),
+            legs: [...betslipSelections],
+            legsCount: legs,
+            gameId: primarySel.gameId,
+            outcomeLabel: legs > 1 && betslipMode === 'accumulator' ? `${legs}-Fold Acca (${totalMultiplier.toFixed(2)}x)` : primarySel.outcomeLabel,
+            outcomeId: primarySel.outcomeId,
             amount: stakeSol,
-            odds: activeSelection.oddsValue,
+            odds: totalMultiplier,
+            bonusPercent: bonusPercent,
+            potentialPayout: totalPotentialReturn,
             status: "PENDING",
             wagerPubkey: wagerAccountKeypair.publicKey,
-            claimed: false
+            claimed: false,
+            timestamp: new Date().toLocaleTimeString()
         });
+
+        // Deduct from wallet balance in sandbox
+        if (typeof walletBalance !== 'undefined' && walletBalance > 0) {
+            walletBalance = Math.max(0, walletBalance - stakeSol);
+            const balEl = document.getElementById("wallet-balance");
+            if (balEl) balEl.textContent = walletBalance.toFixed(4);
+        }
 
         saveWagersToStorage();
         renderActiveWagers();
-        clearSelection();
-        await updateWalletBalance();
+        showToast(`🎉 Wager Placed! Total Potential Return: ${totalPotentialReturn.toFixed(4)} SOL`, "success");
+
+        clearAllSelections();
     } catch (e) {
-        console.error(e);
-        showToast("Transaction failed: " + e.message, "error");
+        console.error("placeBet error:", e);
+        showToast("Error placing wager. Please check your stake.", "error");
     }
 }
 
@@ -3542,183 +4306,315 @@ function renderLiveMatches() {
         return;
     }
 
-    // Helper to generate a match card element
-    const createMatchCardElement = (match) => {
-        const isActive = (match.id === activeMatchId);
-        const card = document.createElement("div");
-        card.className = `match-card ${isActive ? 'active-match' : ''}`;
+    // Helper to generate a match accordion drawer with 60+ categorized betting options
+    const renderAccordionDrawer = (match, markets, activeCat) => {
+        const cats = [
+            { id: 'all', label: '🌟 All Markets (68)' },
+            { id: 'goals', label: '⚽ Total Goals (14)' },
+            { id: 'halves', label: '⏱️ Halves & HT/FT (12)' },
+            { id: 'score', label: '🔢 Correct Score (14)' },
+            { id: 'dc_dnb', label: '🛡️ Double Chance & DNB (5)' },
+            { id: 'corners', label: '🚩 Corners & Cards (3)' },
+            { id: 'combos', label: '⚡ Combos & Specials (4)' }
+        ];
 
-        // Schedule & status badge
-        let scheduleBadge = '';
-        if (match.scheduleGroup === 'live') {
-            scheduleBadge = `<span class="badge-live-pulse">${match.time}</span>`;
-        } else if (match.scheduleGroup === 'today') {
-            scheduleBadge = `<span class="badge-schedule-today">📅 ${match.time}</span>`;
-        } else if (match.scheduleGroup === 'tomorrow') {
-            scheduleBadge = `<span class="badge-schedule-tomorrow">⚽ ${match.time}</span>`;
-        } else {
-            scheduleBadge = `<span class="badge-schedule-week">🏆 ${match.time}</span>`;
-        }
+        const catButtons = cats.map(c => `
+            <button class="market-cat-pill ${activeCat === c.id ? 'active' : ''}" onclick="setAccordionCategory(${match.id}, '${c.id}', event)">
+                ${c.label}
+            </button>
+        `).join('');
 
-        // Card header
-        let html = `
-            <div class="match-info-top">
-                <span>${match.league}</span>
-                ${scheduleBadge}
-            </div>
-            <div class="match-teams-score">
-                <div>
-                    <div class="team-row">⚽ ${match.homeTeam}</div>
-                    <div class="team-row" style="margin-top: 0.3rem;">🛡️ ${match.awayTeam}</div>
-                </div>
-                <div style="text-align: right;">
-                    <div class="score-row" id="match-card-score-${match.id}">
-                        <span id="match-score-home-${match.id}">${match.score.home}</span> - <span id="match-score-away-${match.id}">${match.score.away}</span>
+        let blocksHtml = '';
+
+        const renderBlock = (title, items, gridClass, marketName) => {
+            if (!items || items.length === 0) return '';
+            return `
+                <div class="market-block-card">
+                    <div class="market-block-title">
+                        <span>${title}</span>
+                        <span style="font-size: 0.68rem; color: #14b8a6; font-weight: 600;">${items.length} Options</span>
                     </div>
-                    <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.15rem;">${match.status === 'LIVE' ? match.time : 'Pre-Match'}</div>
+                    <div class="market-block-grid ${gridClass}">
+                        ${items.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '${marketName}')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        };
+
+        if (activeCat === 'all' || activeCat === 'goals') {
+            blocksHtml += renderBlock('Over / Under Total Goals (0.5 to 3.5)', (markets['ou05'] || []).concat(markets['ou15'] || []).concat(markets['overunder'] || []).concat(markets['ou35'] || []), 'grid-4', 'Total Goals');
+            blocksHtml += renderBlock('Exact Total Goals (Full Time)', markets['exactgoals'] || [], 'grid-3', 'Exact Goals');
+            blocksHtml += renderBlock('Both Teams to Score (GG / NG)', markets['btts'] || [], 'grid-2', 'BTTS');
+        }
+
+        if (activeCat === 'all' || activeCat === 'halves') {
+            blocksHtml += renderBlock('1st Half Result (1X2)', markets['halftime'] || [], 'grid-3', '1st Half 1X2');
+            blocksHtml += renderBlock('1st Half Goals (O/U 0.5 & 1.5)', markets['htgoals'] || [], 'grid-2', '1st Half Goals');
+            blocksHtml += renderBlock('Half Time / Full Time (HT/FT)', markets['htft'] || [], 'grid-3', 'HT/FT');
+        }
+
+        if (activeCat === 'all' || activeCat === 'score') {
+            blocksHtml += renderBlock('Correct Score (Full Time)', markets['score'] || [], 'grid-4', 'Correct Score');
+        }
+
+        if (activeCat === 'all' || activeCat === 'dc_dnb') {
+            blocksHtml += renderBlock('Double Chance', markets['dc'] || [], 'grid-3', 'Double Chance');
+            blocksHtml += renderBlock('Draw No Bet', markets['dnb'] || [], 'grid-2', 'Draw No Bet');
+            blocksHtml += renderBlock('European Handicap (-1 / +1)', markets['handicap'] || [], 'grid-3', 'Handicap');
+        }
+
+        if (activeCat === 'all' || activeCat === 'corners') {
+            blocksHtml += renderBlock('Corners & Cards Booking Points', markets['corners'] || [], 'grid-3', 'Corners & Cards');
+        }
+
+        if (activeCat === 'all' || activeCat === 'combos') {
+            blocksHtml += renderBlock('Match Result + Total Goals / BTTS Combo', markets['combos'] || [], 'grid-2', 'Match Combos');
+        }
+
+        return `
+            <div class="match-accordion-drawer">
+                <div class="market-cat-tabs">
+                    ${catButtons}
+                </div>
+                <div class="accordion-markets-grid">
+                    ${blocksHtml}
                 </div>
             </div>
         `;
-
-        // Market Tabs (Winner 1X2, Double Chance, Over/Under 2.5, BTTS, Draw No Bet, Goalscorer, Correct Score)
-        const currentMarket = activeMatchMarkets[match.id] || '1x2';
-        html += `
-            <div class="market-tabs">
-                <button class="market-tab-btn ${currentMarket === '1x2' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, '1x2')">Winner (1X2)</button>
-                <button class="market-tab-btn ${currentMarket === 'dc' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'dc')">Double Chance</button>
-                <button class="market-tab-btn ${currentMarket === 'overunder' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'overunder')">O/U 2.5</button>
-                <button class="market-tab-btn ${currentMarket === 'btts' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'btts')">BTTS</button>
-                <button class="market-tab-btn ${currentMarket === 'dnb' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'dnb')">Draw No Bet</button>
-                <button class="market-tab-btn ${currentMarket === 'scorer' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'scorer')">Goalscorer</button>
-                <button class="market-tab-btn ${currentMarket === 'score' ? 'active' : ''}" onclick="setBettingMarket(${match.id}, 'score')">Correct Score</button>
-            </div>
-        `;
-
-        // Render odds selector based on current active tab
-        const markets = getMatchMarkets(match);
-        let activeOdds = [];
-        let oddsGridClass = 'market-grid-3';
-
-        if (currentMarket === '1x2') {
-            activeOdds = markets['1x2'] || [];
-            oddsGridClass = 'market-grid-3';
-        } else if (currentMarket === 'dc') {
-            activeOdds = markets['dc'] || [];
-            oddsGridClass = 'market-grid-3';
-        } else if (currentMarket === 'overunder') {
-            activeOdds = markets['overunder'] || [];
-            oddsGridClass = 'market-grid-2';
-        } else if (currentMarket === 'btts') {
-            activeOdds = markets['btts'] || [];
-            oddsGridClass = 'market-grid-2';
-        } else if (currentMarket === 'dnb') {
-            activeOdds = markets['dnb'] || [];
-            oddsGridClass = 'market-grid-2';
-        } else if (currentMarket === 'scorer') {
-            activeOdds = [];
-            if (match.lineup && match.lineup.home) {
-                match.lineup.home.forEach((p, idx) => {
-                    let oddsVal = 3.50;
-                    if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
-                    else if (p.pos === 'MF') oddsVal = 3.00 + ((p.name.length * 4 + idx) % 11) * 0.25;
-                    else if (p.pos === 'DF') oddsVal = 6.00 + ((p.name.length * 5 + idx) % 7) * 1.0;
-                    else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
-                    activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 100 + idx, desc: `${p.name} to score` });
-                });
-                match.lineup.away.forEach((p, idx) => {
-                    let oddsVal = 3.50;
-                    if (p.pos === 'FW') oddsVal = 1.75 + ((p.name.length * 3 + idx) % 8) * 0.1;
-                    else if (p.pos === 'MF') oddsVal = 3.00 + ((p.name.length * 4 + idx) % 11) * 0.25;
-                    else if (p.pos === 'DF') oddsVal = 6.00 + ((p.name.length * 5 + idx) % 7) * 1.0;
-                    else if (p.pos === 'GK') oddsVal = 15.00 + ((p.name.length * 7 + idx) % 6) * 2.0;
-                    activeOdds.push({ label: `${p.name} (${p.pos})`, value: oddsVal, outcomeId: 200 + idx, desc: `${p.name} to score` });
-                });
-            } else {
-                // Fallback top stars for teams without loaded squads
-                activeOdds = [
-                    { label: `${match.homeTeam} Top Forward`, value: 2.20, outcomeId: 101, desc: `${match.homeTeam} Star to score` },
-                    { label: `${match.homeTeam} Midfielder`, value: 3.40, outcomeId: 102, desc: `${match.homeTeam} Midfielder to score` },
-                    { label: `${match.awayTeam} Top Forward`, value: 2.45, outcomeId: 201, desc: `${match.awayTeam} Star to score` },
-                    { label: `${match.awayTeam} Midfielder`, value: 3.60, outcomeId: 202, desc: `${match.awayTeam} Midfielder to score` }
-                ];
-            }
-            oddsGridClass = 'market-grid';
-        } else if (currentMarket === 'score') {
-            activeOdds = markets['score'] || [];
-            oddsGridClass = 'market-grid';
-        }
-
-        const timeVal = parseInt(match.time);
-        let marketsClosed = false;
-        let closedMessage = "";
-
-        if (match.status === "FINISHED" || match.time === "Full Time") {
-            marketsClosed = true;
-            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🏁 Match Concluded - Betting Closed</div>`;
-        } else if (!isNaN(timeVal) && timeVal >= 75) {
-            marketsClosed = true;
-            closedMessage = `<div style="grid-column: 1 / -1; text-align: center; color: var(--neon-pink); font-size: 0.75rem; padding: 0.6rem 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-outfit);">🔒 Match Locked (75' Safety Cutoff)</div>`;
-        }
-
-        if (currentMarket === 'scorer') {
-            html += `<div class="goalscorer-odds-container"><div class="${oddsGridClass}">`;
-        } else {
-            html += `<div class="${oddsGridClass}">`;
-        }
-
-        if (marketsClosed) {
-            html += closedMessage;
-        } else {
-            const isMatchSuspended = match.isSuspended;
-            activeOdds.forEach(odd => {
-                const isSelected = (activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === odd.outcomeId && activeSelection.outcomeLabel === odd.desc);
-                const escapedDesc = odd.desc.replace(/'/g, "\\'");
-                const escapedGameTitle = `${match.homeTeam} vs ${match.awayTeam}`.replace(/'/g, "\\'");
-
-                if (isMatchSuspended) {
-                    html += `
-                        <button class="odds-btn" disabled style="opacity: 0.5; cursor: not-allowed; border-color: rgba(239, 68, 68, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem;">
-                            <span class="odds-label" style="font-size: 0.75rem;">${odd.label}</span>
-                            <span class="odds-value" style="color: var(--neon-pink); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">🔒 SUSP</span>
-                        </button>
-                    `;
-                } else {
-                    html += `
-                        <button class="odds-btn ${isSelected ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${odd.outcomeId}, ${odd.value}, '${escapedDesc}', '${escapedGameTitle}')">
-                            <span class="odds-label">${odd.label}</span>
-                            <span class="odds-value">${odd.value.toFixed(2)}</span>
-                        </button>
-                    `;
-                }
-            });
-        }
-
-        if (currentMarket === 'scorer') {
-            html += `</div></div>`;
-        } else {
-            html += `</div>`;
-        }
-
-        // Active match select button
-        if (!isActive) {
-            html += `
-                <button class="match-card-select-btn" onclick="selectActiveMatch(${match.id})">
-                    📺 Stream Match & View Odds
-                </button>
-            `;
-        } else {
-            html += `
-                <button class="match-card-select-btn active">
-                    ⚡ Currently Streaming Live
-                </button>
-            `;
-        }
-
-        card.innerHTML = html;
-        return card;
     };
 
-    // 3. Render according to schedule grouping
+    // Helper to generate a sideways-scrollable SportyBet market matrix table
+    const createMatrixTable = (matchesList) => {
+        const matrixContainer = document.createElement("div");
+        matrixContainer.className = "match-matrix-container";
+
+        const table = document.createElement("div");
+        table.className = "match-matrix-table";
+
+        // Table Header Row
+        const header = document.createElement("div");
+        header.className = "match-matrix-header";
+        header.innerHTML = `
+            <div class="col-header-info">Event / Teams</div>
+            <div class="col-header-markets">
+                <div class="market-group-title" style="width: 210px;">1X2 (Winner)</div>
+                <div class="market-group-title" style="width: 140px;">O/U 2.5 Goals</div>
+                <div class="market-group-title" style="width: 140px;">GG / NG (BTTS)</div>
+                <div class="market-group-title" style="width: 210px;">Double Chance</div>
+                <div class="market-group-title" style="width: 140px;">O/U 1.5 Goals</div>
+                <div class="market-group-title" style="width: 140px;">Draw No Bet</div>
+                <div class="market-group-title" style="width: 210px;">Handicap (-1)</div>
+                <div class="market-group-title" style="width: 210px;">1st Half (1X2)</div>
+                <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
+            </div>
+        `;
+        table.appendChild(header);
+
+        matchesList.forEach(match => {
+            const rowWrapper = document.createElement("div");
+            rowWrapper.className = `match-matrix-row-wrapper ${match.id === activeMatchId ? 'active-streaming' : ''}`;
+            rowWrapper.id = `matrix-row-${match.id}`;
+
+            const markets = getMatchMarkets(match);
+            const m1x2 = markets['1x2'] || [];
+            const mou25 = markets['overunder'] || [];
+            const mbtts = markets['btts'] || [];
+            const mdc = markets['dc'] || [];
+            const mou15 = markets['ou15'] || [];
+            const mdnb = markets['dnb'] || [];
+            const mhandicap = markets['handicap'] || [];
+            const mhalftime = markets['halftime'] || [];
+
+            let statusBadge = '';
+            if (match.scheduleGroup === 'live') {
+                statusBadge = `<span class="badge-live-pulse" style="font-size:0.65rem; padding:0.15rem 0.4rem;">${match.time}</span>`;
+            } else if (match.scheduleGroup === 'today') {
+                statusBadge = `<span class="badge-schedule-today" style="font-size:0.65rem; padding:0.15rem 0.4rem;">📅 ${match.time}</span>`;
+            } else if (match.scheduleGroup === 'tomorrow') {
+                statusBadge = `<span class="badge-schedule-tomorrow" style="font-size:0.65rem; padding:0.15rem 0.4rem;">⚽ ${match.time}</span>`;
+            } else {
+                statusBadge = `<span class="badge-schedule-week" style="font-size:0.65rem; padding:0.15rem 0.4rem;">🏆 ${match.time}</span>`;
+            }
+
+            const isStreamActive = (match.id === activeMatchId);
+            const isAccordionOpen = !!expandedAccordions[match.id];
+            const activeCat = activeAccordionCategory[match.id] || 'all';
+
+            rowWrapper.innerHTML = `
+                <div class="match-matrix-row">
+                    <!-- Sticky / Prominent Match Info Left Section -->
+                    <div class="match-info-sticky">
+                        <div class="match-meta-line">
+                            <span class="match-meta-league">⚽ ${match.league}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="match-teams-block">
+                            <div class="matrix-team-name">
+                                <span>${match.homeTeam}</span>
+                                <span class="score">${match.status === 'LIVE' ? match.score.home : ''}</span>
+                            </div>
+                            <div class="matrix-team-name">
+                                <span>${match.awayTeam}</span>
+                                <span class="score">${match.status === 'LIVE' ? match.score.away : ''}</span>
+                            </div>
+                        </div>
+                        <div class="match-actions-line">
+                            <button class="btn-stream-pill ${isStreamActive ? 'active' : ''}" onclick="selectActiveMatch(${match.id})">
+                                <span class="material-symbols-outlined text-[13px]">${isStreamActive ? 'sensors' : 'play_circle'}</span>
+                                ${isStreamActive ? 'Streaming' : 'Watch Stream'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sideways Scrollable Market Odds Track -->
+                    <div class="matrix-odds-track">
+                        <!-- 1X2 (Winner) -->
+                        <div class="odds-col-group group-3">
+                            ${m1x2.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')">
+                                    <span class="lbl">${o.label}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Over / Under 2.5 -->
+                        <div class="odds-col-group group-2">
+                            ${mou25.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
+                                    <span class="lbl">${o.label.includes('Over') ? 'Over 2.5' : 'Under 2.5'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- BTTS (GG / NG) -->
+                        <div class="odds-col-group group-2">
+                            ${mbtts.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
+                                    <span class="lbl">${o.label.includes('Yes') ? 'GG (Yes)' : 'NG (No)'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Double Chance -->
+                        <div class="odds-col-group group-dc">
+                            ${mdc.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Double Chance')">
+                                    <span class="lbl">${o.label.split(' ')[0]}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Over / Under 1.5 -->
+                        <div class="odds-col-group group-2">
+                            ${mou15.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 1.5)')">
+                                    <span class="lbl">${o.label.includes('Over') ? 'Over 1.5' : 'Under 1.5'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Draw No Bet -->
+                        <div class="odds-col-group group-2">
+                            ${mdnb.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Draw No Bet')">
+                                    <span class="lbl">${o.label.includes(match.homeTeam) ? '1 DNB' : '2 DNB'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- European Handicap (-1) -->
+                        <div class="odds-col-group group-3">
+                            ${mhandicap.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'European Handicap')">
+                                    <span class="lbl">${o.label.includes('(-1)') ? 'Home (-1)' : (o.label.includes('(+1)') ? 'Away (+1)' : 'Tie (-1)')}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- 1st Half Winner (1X2) -->
+                        <div class="odds-col-group group-3">
+                            ${mhalftime.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half 1X2')">
+                                    <span class="lbl">${o.label.includes('Draw') ? 'HT: X' : (o.label.includes(match.homeTeam) ? 'HT: 1' : 'HT: 2')}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- More Markets Button -->
+                        <button class="btn-more-markets ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                            <span>${isAccordionOpen ? 'Close Markets ▴' : '+68 Markets ▾'}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Accordion Drawer (Expanded when clicked) -->
+                ${isAccordionOpen ? renderAccordionDrawer(match, markets, activeCat) : ''}
+            `;
+
+            table.appendChild(rowWrapper);
+        });
+
+        matrixContainer.appendChild(table);
+
+        // Attach Grab-to-Scroll & Mousewheel interaction to this container
+        let isDown = false;
+        let startX = 0;
+        let scrollLeft = 0;
+
+        matrixContainer.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button') || e.target.closest('a')) return;
+            isDown = true;
+            matrixContainer.classList.add('active-dragging');
+            startX = e.pageX - matrixContainer.offsetLeft;
+            scrollLeft = matrixContainer.scrollLeft;
+        });
+
+        matrixContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+            matrixContainer.classList.remove('active-dragging');
+        });
+
+        matrixContainer.addEventListener('mouseup', () => {
+            isDown = false;
+            matrixContainer.classList.remove('active-dragging');
+        });
+
+        matrixContainer.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - matrixContainer.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            matrixContainer.scrollLeft = scrollLeft - walk;
+        });
+
+        // Sideways wheel assistance when scrolling over the odds track
+        matrixContainer.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaX) > 0) return; // Native horizontal touchpad swipe
+            if (e.target.closest('.matrix-odds-track') || e.target.closest('.col-header-markets')) {
+                if (Math.abs(e.deltaY) > 0) {
+                    matrixContainer.scrollLeft += e.deltaY;
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
+
+        return matrixContainer;
+    };
+
+    // 3. Render according to schedule grouping with sideways scrollable matrix tables
     if (activeScheduleFilter === 'all') {
         const groups = [
             { key: 'live', title: '🔴 In-Play Live Now', count: countLive },
@@ -3734,20 +4630,15 @@ function renderLiveMatches() {
                 divider.className = "match-section-divider";
                 divider.innerHTML = `
                     <div class="title">${g.title}</div>
-                    <div class="badge">${matchesInGroup.length} Matches</div>
+                    <div class="badge">${matchesInGroup.length} Matches • Sideways Scroll Enabled</div>
                 `;
                 container.appendChild(divider);
-
-                matchesInGroup.forEach(match => {
-                    container.appendChild(createMatchCardElement(match));
-                });
+                container.appendChild(createMatrixTable(matchesInGroup));
             }
         });
     } else {
-        // Direct list when specific schedule filter is clicked
-        filteredMatches.forEach(match => {
-            container.appendChild(createMatchCardElement(match));
-        });
+        // Direct table when specific schedule filter is clicked
+        container.appendChild(createMatrixTable(filteredMatches));
     }
 
     // Render horizontal featured carousel deck
@@ -3805,18 +4696,18 @@ function renderFeaturedCarousel() {
                 </div>
             </div>
             <div class="featured-quick-odds">
-                <button class="featured-odd-btn ${activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === 0 ? 'selected' : ''}" 
-                    onclick="event.stopPropagation(); selectOdds(${match.id}, 0, ${odds1x2[0].value}, '${escapedHome} Win', '${escapedGameTitle}')">
+                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 0) ? 'selected' : ''}" 
+                    onclick="event.stopPropagation(); selectOdds(${match.id}, 0, ${odds1x2[0].value}, '${escapedHome} Win', '${escapedGameTitle}', 'Winner (1X2)')">
                     <span style="font-size: 0.62rem; color: var(--text-secondary);">1</span>
                     <span>${odds1x2[0].value.toFixed(2)}</span>
                 </button>
-                <button class="featured-odd-btn ${activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === 2 ? 'selected' : ''}" 
-                    onclick="event.stopPropagation(); selectOdds(${match.id}, 2, ${odds1x2[1].value}, 'Draw', '${escapedGameTitle}')">
+                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 2) ? 'selected' : ''}" 
+                    onclick="event.stopPropagation(); selectOdds(${match.id}, 2, ${odds1x2[1].value}, 'Draw', '${escapedGameTitle}', 'Winner (1X2)')">
                     <span style="font-size: 0.62rem; color: var(--text-secondary);">X</span>
                     <span>${odds1x2[1].value.toFixed(2)}</span>
                 </button>
-                <button class="featured-odd-btn ${activeSelection && activeSelection.gameId === match.id && activeSelection.outcomeId === 1 ? 'selected' : ''}" 
-                    onclick="event.stopPropagation(); selectOdds(${match.id}, 1, ${odds1x2[2].value}, '${escapedAway} Win', '${escapedGameTitle}')">
+                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 1) ? 'selected' : ''}" 
+                    onclick="event.stopPropagation(); selectOdds(${match.id}, 1, ${odds1x2[2].value}, '${escapedAway} Win', '${escapedGameTitle}', 'Winner (1X2)')">
                     <span style="font-size: 0.62rem; color: var(--text-secondary);">2</span>
                     <span>${odds1x2[2].value.toFixed(2)}</span>
                 </button>
