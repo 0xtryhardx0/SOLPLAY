@@ -2879,6 +2879,10 @@ function renderBetslip() {
         tabSlipBadge.textContent = totalCount;
         tabSlipBadge.style.display = totalCount > 0 ? "inline-block" : "none";
     }
+    const headerSlipCounter = document.getElementById("header-slip-counter");
+    if (headerSlipCounter) {
+        headerSlipCounter.textContent = totalCount;
+    }
 
     if (totalCount === 0) {
         if (container) {
@@ -3554,6 +3558,26 @@ function triggerGoalBanner(teamName, side, scorer = "") {
     }, 4000);
 }
 
+let matchSearchQuery = "";
+
+function handleMatchSearch(query) {
+    matchSearchQuery = (query || "").trim().toLowerCase();
+    const clearBtn = document.getElementById("clear-search-btn");
+    if (clearBtn) {
+        clearBtn.style.display = matchSearchQuery ? "block" : "none";
+    }
+    renderLiveMatches();
+}
+
+function clearMatchSearch() {
+    const input = document.getElementById("header-match-search");
+    if (input) input.value = "";
+    matchSearchQuery = "";
+    const clearBtn = document.getElementById("clear-search-btn");
+    if (clearBtn) clearBtn.style.display = "none";
+    renderLiveMatches();
+}
+
 // Render live match cards dynamically with complete betting platform filtering
 function renderLiveMatches() {
     const container = document.getElementById("content-live-list");
@@ -3567,7 +3591,7 @@ function renderLiveMatches() {
 
     const dates = getSportsScheduleDates();
 
-    // 1. Calculate live counts for all schedule categories respecting active league
+    // 1. Calculate live counts for all schedule categories respecting active league and search
     const leagueFilterPass = (m) => {
         if (activeLeagueFilter === 'all') return true;
         const leagueStr = ((m.league || '') + ' ' + (m.leagueCategory || '')).toLowerCase();
@@ -3592,13 +3616,17 @@ function renderLiveMatches() {
     const elWeek = document.getElementById("count-pill-week");
     if (elWeek) elWeek.textContent = countWeek;
 
-    // 2. Filter matches based on user's active filters
+    // 2. Filter matches based on user's active filters and search query
     const filteredMatches = MATCHES_DATA.filter(match => {
         if (!leagueFilterPass(match)) return false;
         if (activeScheduleFilter === 'live' && match.scheduleGroup !== 'live') return false;
         if (activeScheduleFilter === 'today' && match.scheduleGroup !== 'today') return false;
         if (activeScheduleFilter === 'tomorrow' && match.scheduleGroup !== 'tomorrow') return false;
         if (activeScheduleFilter === 'week' && match.scheduleGroup !== 'week') return false;
+        if (matchSearchQuery) {
+            const searchHaystack = `${match.homeTeam} ${match.awayTeam} ${match.league} ${match.leagueCategory || ''}`.toLowerCase();
+            if (!searchHaystack.includes(matchSearchQuery)) return false;
+        }
         return true;
     });
 

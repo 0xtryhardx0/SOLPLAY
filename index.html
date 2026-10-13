@@ -551,103 +551,126 @@ void main() {
 <!-- Ambient Mesh Backdrop -->
 <div class="ambient-glow-mesh"></div>
 
-<!-- Top Protocol Live Ticker -->
-<div class="w-full bg-[#0a0d1a] border-b border-white/5 py-1.5 px-4 text-xs font-mono flex items-center justify-between text-on-surface/70 z-50 relative">
-    <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-white font-bold">SOLANA DEVNET:</span>
-        <span class="text-emerald-400 font-semibold">400ms Sub-Second Blocks</span>
-        <span class="text-white/30">•</span>
-        <span>Anchor Program <code class="text-primary font-mono text-[11px]">84AV...dAk</code></span>
-        <span class="text-white/30">•</span>
-        <span class="text-secondary">Free Devnet Parlay Contest Live</span>
+<!-- Top Protocol Utility Strip -->
+<div class="w-full bg-[#080a14] border-b border-white/[0.06] py-1 px-4 lg:px-6 text-[11px] font-mono flex items-center justify-between text-on-surface/60 z-50 relative">
+    <div class="flex items-center gap-3 overflow-x-auto whitespace-nowrap">
+        <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
+            Solana Devnet
+        </span>
+        <span class="text-white/20">•</span>
+        <span class="text-white/70">400ms Sub-Second Escrows</span>
+        <span class="text-white/20 hidden sm:inline">•</span>
+        <span class="text-teal-400 hidden sm:inline flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">bolt</span>
+            Pyth & Autonomous Oracles Live
+        </span>
+        <span class="text-white/20 hidden md:inline">•</span>
+        <span class="text-white/50 hidden md:inline" id="header-live-clock">⏰ 16:25 WAT</span>
     </div>
-    <div class="hidden md:flex items-center gap-3 text-[11px]">
-        <span class="text-white/50">Wagering Edge: <strong class="text-white">0% Platform Fee</strong></span>
-        <span class="text-white/30">|</span>
-        <a href="https://github.com/0xtryhardx0/SOLPLAY" target="_blank" class="text-primary hover:text-white transition-colors">GitHub Repo &rarr;</a>
+    <div class="flex items-center gap-3 text-[11px]">
+        <div class="flex items-center gap-1.5 bg-white/[0.04] px-2 py-0.5 rounded border border-white/5">
+            <span class="text-white/40">Odds:</span>
+            <select id="odds-format-select" class="bg-transparent border-none text-[11px] text-secondary font-bold cursor-pointer outline-none p-0">
+                <option value="decimal" selected class="bg-[#0e101d] text-white">Decimal (2.10)</option>
+                <option value="fractional" class="bg-[#0e101d] text-white">Fractional (11/10)</option>
+                <option value="american" class="bg-[#0e101d] text-white">American (+110)</option>
+            </select>
+        </div>
+        <span class="text-white/20 hidden lg:inline">•</span>
+        <span class="text-white/60 hidden lg:inline">Platform Take: <strong class="text-emerald-400 font-bold">0% Fee</strong></span>
+        <span class="text-white/20 hidden sm:inline">•</span>
+        <a href="https://github.com/0xtryhardx0/SOLPLAY" target="_blank" class="text-primary hover:text-white transition-colors flex items-center gap-0.5 font-bold">
+            <span>Repo</span>
+            <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+        </a>
     </div>
 </div>
 
-<!-- Header Navigation -->
-<header class="sticky top-0 z-50 w-full glass-panel border-b border-white/5 backdrop-blur-3xl px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-8">
-        <h1 class="text-headline-md font-black tracking-tighter cursor-pointer flex items-center gap-2" onclick="location.reload()">
-            <span class="iridescent-gradient">⚡ SolPlay</span>
-            <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/30">EXCHANGE & ACCUMULATORS</span>
+<!-- Main Top Navigation Header -->
+<header class="sticky top-0 z-50 w-full border-b border-white/[0.08] backdrop-blur-2xl px-4 lg:px-8 py-2.5 flex items-center justify-between" style="background: rgba(10, 12, 22, 0.88); box-shadow: 0 4px 20px rgba(0,0,0,0.35);">
+    <!-- Left: Brand Logo & Main Navigation -->
+    <div class="flex items-center gap-6 xl:gap-8">
+        <h1 class="text-headline-md font-black tracking-tight cursor-pointer flex items-center gap-2 select-none" onclick="location.reload()">
+            <span class="iridescent-gradient text-xl lg:text-2xl font-black">⚡ SolPlay</span>
+            <span class="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30">PRO SPORTSBOOK</span>
         </h1>
-        <div class="flex items-center gap-2 px-3 py-1.5 glass-panel rounded-full cursor-pointer hover:bg-white/5 transition-colors">
-            <span class="w-2 h-2 rounded-full bg-secondary pulse-green"></span>
-            <select id="network-rpc-select" onchange="switchNetwork()" class="bg-transparent border-none focus:ring-0 text-label-sm uppercase tracking-widest text-secondary/80 font-bold cursor-pointer outline-none py-0 pl-1 pr-6">
-                <option value="devnet" selected class="bg-surface text-white">🚀 Devnet</option>
-                <option value="localnet" class="bg-surface text-white">💻 Localnet</option>
-            </select>
-        </div>
-        <div id="oracle-status-badge" class="hidden md:flex items-center gap-2 px-3 py-1.5 glass-panel rounded-full border border-teal-500/35" style="background: rgba(13, 148, 136, 0.12);">
-            <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse" style="box-shadow: 0 0 8px #2dd4bf;"></span>
-            <span class="text-[10px] uppercase font-black tracking-widest text-teal-300">🤖 Autonomous Oracle Connected</span>
-        </div>
+
+        <!-- Primary Sport Nav Links -->
+        <nav class="hidden md:flex items-center gap-1.5 lg:gap-2">
+            <button onclick="switchTab('sports')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/10 border border-white/10 hover:bg-white/15 transition-all flex items-center gap-1.5">
+                <span>⚽ Sports</span>
+            </button>
+            <button onclick="switchTab('sports'); filterMatchesBySchedule('today')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Today's UCL</span>
+            </button>
+            <button onclick="switchTab('sports'); filterMatchesBySchedule('tomorrow')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all">
+                <span>Tomorrow</span>
+            </button>
+            <button onclick="switchTab('wagers')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1">
+                <span>📊 My Wagers</span>
+            </button>
+            <button onclick="switchTab('leaderboard')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1">
+                <span>🥇 Leaderboard</span>
+            </button>
+        </nav>
     </div>
 
-    <!-- Floating Navigation Menu -->
-    <nav class="hidden lg:flex items-center gap-8">
-        <button onclick="switchTab('sports')" class="text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">Bet Now</button>
-        
-        <!-- Markets Dropdown -->
-        <div class="relative group">
-            <button class="flex items-center gap-1 text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 transition-all uppercase tracking-widest outline-none">
-                Markets
-                <span class="material-symbols-outlined text-[14px]">keyboard_arrow_down</span>
-            </button>
-            <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl glass-panel border border-white/5 backdrop-blur-3xl py-2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200">
-                <button onclick="selectActiveMatch(998); switchTab('sports')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
-                <button onclick="switchTab('sports'); switchBettingTab('tournaments')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🎮 E-Sports</button>
-                <button onclick="switchTab('sports'); switchBettingTab('custom')" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">🎯 Custom Pools</button>
-            </div>
-        </div>
+    <!-- Center: Global Match & Team Search Bar -->
+    <div class="hidden sm:flex items-center relative flex-1 max-w-xs lg:max-w-md mx-4">
+        <span class="material-symbols-outlined absolute left-3 text-on-surface/40 text-[18px]">search</span>
+        <input type="text" id="header-match-search" oninput="handleMatchSearch(this.value)" placeholder="Search matches, teams, leagues..." class="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-9 pr-8 py-1.5 text-xs text-white placeholder-on-surface/40 outline-none focus:border-secondary focus:bg-white/[0.08] transition-all font-sans">
+        <button onclick="clearMatchSearch()" id="clear-search-btn" class="absolute right-2.5 text-on-surface/40 hover:text-white text-xs font-bold" style="display: none;">✕</button>
+    </div>
 
-        <!-- Live Events Dropdown -->
-        <div class="relative group">
-            <button class="flex items-center gap-1 text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 transition-all uppercase tracking-widest outline-none">
-                Live Events
-                <span class="material-symbols-outlined text-[14px]">keyboard_arrow_down</span>
-            </button>
-            <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl glass-panel border border-white/5 backdrop-blur-3xl py-2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200">
-                <button onclick="document.getElementById('stream-title').scrollIntoView({behavior: 'smooth'})" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">📹 Watch stream</button>
-                <button onclick="openCDNModal()" class="w-full text-left px-4 py-2 text-label-sm text-on-surface/70 hover:text-white hover:bg-white/5 transition-colors">⚡ CDN Speedtest</button>
-            </div>
-        </div>
-
-        <button onclick="switchTab('wagers')" class="text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">Portfolio</button>
-        <button onclick="switchTab('leaderboard')" class="text-label-sm font-bold text-on-surface/60 hover:text-white hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">Leaderboard</button>
-    </nav>
-
-    <div class="flex items-center gap-4">
-        <!-- Balance Display -->
-        <div class="hidden md:flex items-center gap-3 px-4 py-2 glass-panel rounded-xl" id="sol-balance-container" style="display: none;">
-            <div class="flex flex-col items-end">
-                <span class="text-label-sm text-on-surface/50 leading-none">Wallet Balance</span>
-                <span class="text-label-md font-bold text-secondary"><span id="wallet-balance">0.0000</span> SOL</span>
-            </div>
-            <div class="w-[1px] h-6 bg-white/10"></div>
-            <button class="text-label-sm text-primary hover:text-white transition-colors" id="btn-airdrop" onclick="requestAirdrop()">Faucet</button>
-        </div>
-
-        <!-- Wallet Type Selector -->
-        <div class="flex items-center gap-3 px-4 py-2 glass-panel rounded-xl">
-            <select id="wallet-type-select" onchange="changeWalletType()" class="bg-transparent border-none focus:ring-0 text-label-sm text-primary font-bold cursor-pointer outline-none">
-                <option value="sandbox" class="bg-surface text-white">💻 Sandbox</option>
-                <option value="phantom" class="bg-surface text-white">👻 Phantom</option>
+    <!-- Right: Wallet, Network, Slip Trigger & Profile -->
+    <div class="flex items-center gap-2.5 lg:gap-3.5">
+        <!-- Compact Network Select Pill -->
+        <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03]">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-green"></span>
+            <select id="network-rpc-select" onchange="switchNetwork()" class="bg-transparent border-none focus:ring-0 text-[11px] font-bold text-white/80 cursor-pointer outline-none p-0 pr-1">
+                <option value="devnet" selected class="bg-[#0e101d] text-white">Devnet</option>
+                <option value="localnet" class="bg-[#0e101d] text-white">Localnet</option>
             </select>
         </div>
 
-        <button class="liquid-button px-6 py-2.5 rounded-xl text-label-md font-bold text-white glass-shine flex items-center gap-2" id="btn-connect-wallet" onclick="toggleWallet()">
-            <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
-            Connect Wallet
+        <!-- Wallet Balance with Instant Faucet -->
+        <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg border border-white/10 bg-white/[0.03]" id="sol-balance-container">
+            <div class="flex items-center gap-1.5">
+                <span class="text-[10px] text-on-surface/50 font-bold uppercase">Bal:</span>
+                <span class="text-xs font-black text-secondary font-mono"><span id="wallet-balance">0.0000</span> SOL</span>
+            </div>
+            <button class="text-[10px] bg-primary/20 hover:bg-primary/30 text-teal-300 px-1.5 py-0.5 rounded font-bold border border-teal-500/30 transition-colors" id="btn-airdrop" onclick="requestAirdrop()">+ Faucet</button>
+        </div>
+
+        <!-- Persistent Quick Betslip Header Button with Counter Badge -->
+        <button onclick="switchTab('slip')" class="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-white font-bold text-xs transition-all shadow-md select-none cursor-pointer">
+            <span class="material-symbols-outlined text-[16px] text-secondary">receipt_long</span>
+            <span class="hidden sm:inline">Slip</span>
+            <span id="header-slip-counter" class="bg-secondary text-black font-black text-[10px] px-1.5 py-0.2 rounded-full min-w-[16px] text-center">0</span>
         </button>
 
-        <div class="w-10 h-10 rounded-full border border-white/10 glass-panel flex items-center justify-center overflow-hidden">
-            <img class="w-full h-full object-cover" alt="Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD84NlTGN-rzIHqUCFHEqifyhL8Dn-FszPA-cKItpU16y4Ul5b8CYNLsjNbZCdaOSKFbx0UKq42abqe6guIbCFfOFDGbNKInyY-xSbSEbDO67356DxBWPatY1iwDOah76qoWsKnyqWIxzBQhDHajD5Igkx7YZTbe5tx6KzPXbdKoPPBi2HxJXmy4IzIsv5D-m7n-39j2dctCwUlqJiaspdrmimRpzzvnjcVJcnaco0ug-N0YMso31lIjvlfqzaToskQ2fTeBOUeSYGa"/>
+        <!-- Wallet Mode Toggle (Sandbox / Phantom) -->
+        <div class="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03]">
+            <select id="wallet-type-select" onchange="changeWalletType()" class="bg-transparent border-none focus:ring-0 text-[11px] text-primary font-bold cursor-pointer outline-none p-0">
+                <option value="sandbox" class="bg-[#0e101d] text-white">💻 Sandbox</option>
+                <option value="phantom" class="bg-[#0e101d] text-white">👻 Phantom</option>
+            </select>
+        </div>
+
+        <!-- Main Connect Wallet Button -->
+        <button class="liquid-button px-4 lg:px-5 py-1.5 rounded-xl text-xs font-bold text-white glass-shine flex items-center gap-1.5 shadow-lg" id="btn-connect-wallet" onclick="toggleWallet()">
+            <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
+            <span id="btn-connect-label">Connect</span>
+        </button>
+
+        <!-- User Profile Avatar with VIP Tag -->
+        <div class="relative group cursor-pointer" onclick="switchTab('wagers')">
+            <div class="w-8 h-8 rounded-full border border-white/15 bg-white/5 flex items-center justify-center overflow-hidden">
+                <img class="w-full h-full object-cover" alt="Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD84NlTGN-rzIHqUCFHEqifyhL8Dn-FszPA-cKItpU16y4Ul5b8CYNLsjNbZCdaOSKFbx0UKq42abqe6guIbCFfOFDGbNKInyY-xSbSEbDO67356DxBWPatY1iwDOah76qoWsKnyqWIxzBQhDHajD5Igkx7YZTbe5tx6KzPXbdKoPPBi2HxJXmy4IzIsv5D-m7n-39j2dctCwUlqJiaspdrmimRpzzvnjcVJcnaco0ug-N0YMso31lIjvlfqzaToskQ2fTeBOUeSYGa"/>
+            </div>
+            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0a0c16] flex items-center justify-center text-[7px] font-black text-black">✓</span>
         </div>
     </div>
 </header>
