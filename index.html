@@ -779,7 +779,7 @@ void main() {
                             <div id="player-live-time" class="text-sm text-on-surface/60 font-medium">45:00</div>
                         </div>
                         <div class="absolute inset-x-0 bottom-16 p-4 flex justify-between items-center pointer-events-auto">
-                            <button class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-label-sm cursor-pointer transition-colors" onclick="mockPlayPause()">⏸ Pause Simulation</button>
+                            <button style="display: none;" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-label-sm cursor-pointer transition-colors" onclick="mockPlayPause()">⏸ Pause Simulation</button>
                             <span class="text-label-sm text-secondary font-bold">Stream Health: High Bitrate</span>
                         </div>
                     </div>
@@ -905,9 +905,9 @@ void main() {
                 <!-- Sportsbook Panel -->
                 <div class="flex flex-col gap-6 tab-panel" id="panel-sports">
                     <div class="flex items-center gap-4 border-b border-white/5 pb-2">
-                        <button id="tab-live" onclick="switchBettingTab('live')" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1 active">Live Matches</button>
-                        <button id="tab-custom" onclick="switchBettingTab('custom')" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1">Custom Pools</button>
-                        <button id="tab-tournaments" onclick="switchBettingTab('tournaments')" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1">🎮 Tournaments</button>
+                        <button id="tab-live" onclick="switchBettingTab('live')" class="text-label-md font-bold text-white border-b-2 border-secondary pb-1 active">⚽ Global Sports Fixtures & In-Play</button>
+                        <button id="tab-custom" onclick="switchBettingTab('custom')" style="display: none;" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1">Custom Pools</button>
+                        <button id="tab-tournaments" onclick="switchBettingTab('tournaments')" style="display: none;" class="text-label-md font-bold text-on-surface/40 hover:text-white transition-colors pb-1">🎮 Tournaments</button>
                     </div>
 
                     <!-- Live matches -->
@@ -938,15 +938,46 @@ void main() {
                                 </button>
                             </div>
 
-                            <!-- League Badges Sub-Bar -->
-                            <div class="league-filter-bar" id="league-filter-bar">
-                                <button class="league-badge-btn active" id="league-btn-all" onclick="filterMatchesByLeague('all')">All Leagues</button>
-                                <button class="league-badge-btn" id="league-btn-epl" onclick="filterMatchesByLeague('Premier League')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
-                                <button class="league-badge-btn" id="league-btn-ucl" onclick="filterMatchesByLeague('Champions League')">⭐ Champions League</button>
-                                <button class="league-badge-btn" id="league-btn-laliga" onclick="filterMatchesByLeague('La Liga')">🇪🇸 La Liga</button>
-                                <button class="league-badge-btn" id="league-btn-seriea" onclick="filterMatchesByLeague('Serie A')">🇮🇹 Serie A</button>
-                                <button class="league-badge-btn" id="league-btn-bundesliga" onclick="filterMatchesByLeague('Bundesliga')">🇩🇪 Bundesliga</button>
-                                <button class="league-badge-btn" id="league-btn-worldcup" onclick="filterMatchesByLeague('World Cup')">🌍 World Cup</button>
+                            <!-- League Badges Sub-Bar with Sideways Scroll Controls -->
+                            <div class="scroll-nav-wrapper">
+                                <button onclick="scrollLeagues(-1)" class="scroll-arrow-btn" title="Scroll Left">◀</button>
+                                <div class="league-filter-bar flex-1" id="league-filter-bar">
+                                    <button class="league-badge-btn active" id="league-btn-all" onclick="filterMatchesByLeague('all')">All Leagues</button>
+                                    <button class="league-badge-btn" id="league-btn-epl" onclick="filterMatchesByLeague('Premier League')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+                                    <button class="league-badge-btn" id="league-btn-ucl" onclick="filterMatchesByLeague('Champions League')">⭐ Champions League</button>
+                                    <button class="league-badge-btn" id="league-btn-laliga" onclick="filterMatchesByLeague('La Liga')">🇪🇸 La Liga</button>
+                                    <button class="league-badge-btn" id="league-btn-seriea" onclick="filterMatchesByLeague('Serie A')">🇮🇹 Serie A</button>
+                                    <button class="league-badge-btn" id="league-btn-bundesliga" onclick="filterMatchesByLeague('Bundesliga')">🇩🇪 Bundesliga</button>
+                                    <button class="league-badge-btn" id="league-btn-ligue1" onclick="filterMatchesByLeague('Ligue 1')">🇫🇷 Ligue 1</button>
+                                    <button class="league-badge-btn" id="league-btn-uel" onclick="filterMatchesByLeague('Europa League')">⭐ Europa League</button>
+                                    <button class="league-badge-btn" id="league-btn-championship" onclick="filterMatchesByLeague('Championship')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship</button>
+                                    <button class="league-badge-btn" id="league-btn-eredivisie" onclick="filterMatchesByLeague('Eredivisie')">🇳🇱 Eredivisie</button>
+                                    <button class="league-badge-btn" id="league-btn-primeira" onclick="filterMatchesByLeague('Primeira Liga')">🇵🇹 Primeira Liga</button>
+                                    <button class="league-badge-btn" id="league-btn-superlig" onclick="filterMatchesByLeague('Süper Lig')">🇹🇷 Süper Lig</button>
+                                    <button class="league-badge-btn" id="league-btn-saudi" onclick="filterMatchesByLeague('Saudi Pro')">🇸🇦 Saudi Pro</button>
+                                    <button class="league-badge-btn" id="league-btn-mls" onclick="filterMatchesByLeague('MLS')">🇺🇸 MLS</button>
+                                    <button class="league-badge-btn" id="league-btn-brazil" onclick="filterMatchesByLeague('Série A')">🇧🇷 Série A</button>
+                                    <button class="league-badge-btn" id="league-btn-worldcup" onclick="filterMatchesByLeague('World Cup')">🌍 World Cup / Int'l</button>
+                                </div>
+                                <button onclick="scrollLeagues(1)" class="scroll-arrow-btn" title="Scroll Right">▶</button>
+                            </div>
+                        </div>
+
+                        <!-- Horizontal Featured Matches Deck (SportyBet / Bet9ja Style) -->
+                        <div id="featured-carousel-deck" class="featured-matches-carousel-container">
+                            <div class="featured-carousel-header">
+                                <div class="featured-carousel-title">
+                                    <span style="color: var(--neon-pink);">🔥</span>
+                                    <span>Top In-Play & Featured Highlights</span>
+                                    <span class="text-[10px] text-secondary font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10">SWIPE ➔</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <button onclick="scrollFeatured(-1)" class="scroll-arrow-btn" title="Scroll Left">◀</button>
+                                    <button onclick="scrollFeatured(1)" class="scroll-arrow-btn" title="Scroll Right">▶</button>
+                                </div>
+                            </div>
+                            <div class="horizontal-matches-scroll" id="featured-matches-scroll">
+                                <!-- Populated dynamically with horizontal cards and quick 1X2 odds -->
                             </div>
                         </div>
 
@@ -1433,8 +1464,8 @@ void main() {
     }
 </script>
 
-<!-- Floating Demo & Testing Control Center -->
-<div id="demo-controls-wrapper" class="fixed bottom-6 right-6 z-50 font-sans flex flex-col items-end gap-3">
+<!-- Floating Demo & Testing Control Center (Hidden to present clean real sportsbook view) -->
+<div id="demo-controls-wrapper" style="display: none;" class="fixed bottom-6 right-6 z-50 font-sans flex flex-col items-end gap-3">
     <!-- Expanded control panel -->
     <div id="demo-controls-panel" class="hidden w-80 rounded-2xl glass-panel border border-white/10 backdrop-blur-3xl p-5 flex flex-col gap-4 shadow-2xl" style="background: rgba(10, 10, 20, 0.9); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
         <div class="flex justify-between items-center border-b border-white/10 pb-2">

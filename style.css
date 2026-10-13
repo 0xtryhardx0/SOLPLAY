@@ -1845,6 +1845,196 @@ body {
     margin-top: 0.4rem;
 }
 
+/* ========================================================
+   SIDEWAYS HORIZONTAL SCROLLING & SPORTYBET CAROUSEL DECK
+   ======================================================== */
+.scroll-nav-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+}
+
+.scroll-arrow-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 11px;
+    user-select: none;
+}
+
+.scroll-arrow-btn:hover {
+    background: rgba(20, 184, 166, 0.25);
+    border-color: #14b8a6;
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.scroll-arrow-btn:active {
+    transform: scale(0.95);
+}
+
+/* Smooth Sideways Scrolling with Thin Neon Scrollbars */
+.schedule-filter-bar,
+.league-filter-bar,
+.horizontal-matches-scroll {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(20, 184, 166, 0.35) transparent;
+}
+
+.schedule-filter-bar::-webkit-scrollbar,
+.league-filter-bar::-webkit-scrollbar,
+.horizontal-matches-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.schedule-filter-bar::-webkit-scrollbar-track,
+.league-filter-bar::-webkit-scrollbar-track,
+.horizontal-matches-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+}
+
+.schedule-filter-bar::-webkit-scrollbar-thumb,
+.league-filter-bar::-webkit-scrollbar-thumb,
+.horizontal-matches-scroll::-webkit-scrollbar-thumb {
+    background: rgba(20, 184, 166, 0.4);
+    border-radius: 4px;
+}
+
+.schedule-filter-bar::-webkit-scrollbar-thumb:hover,
+.league-filter-bar::-webkit-scrollbar-thumb:hover,
+.horizontal-matches-scroll::-webkit-scrollbar-thumb:hover {
+    background: #14b8a6;
+}
+
+/* Horizontal Featured Matches Deck (SportyBet / Bet9ja Style) */
+.featured-matches-carousel-container {
+    margin-bottom: 1.25rem;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.05), rgba(168, 85, 247, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 0.85rem;
+    backdrop-filter: blur(12px);
+}
+
+.featured-carousel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.featured-carousel-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-family: var(--font-outfit);
+}
+
+.featured-card {
+    min-width: 250px;
+    max-width: 270px;
+    flex-shrink: 0;
+    background: rgba(15, 15, 25, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.8rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.featured-card:hover {
+    border-color: rgba(20, 184, 166, 0.55);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.featured-card.active {
+    border-color: #14b8a6;
+    box-shadow: 0 0 16px rgba(20, 184, 166, 0.35);
+    background: rgba(20, 184, 166, 0.08);
+}
+
+.featured-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+.featured-card-teams {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.35;
+}
+
+.featured-quick-odds {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+    margin-top: 0.2rem;
+}
+
+.featured-odd-btn {
+    padding: 0.4rem 0.2rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.featured-odd-btn:hover {
+    background: rgba(20, 184, 166, 0.2);
+    border-color: #14b8a6;
+    color: #fff;
+}
+
+.featured-odd-btn.selected {
+    background: #14b8a6;
+    color: #07070a;
+    border-color: #14b8a6;
+}
+
+
 
 
 
