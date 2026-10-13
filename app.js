@@ -1383,9 +1383,9 @@ function initApp() {
     fetchUpcomingMatchesFromAPI();
     setInterval(fetchUpcomingMatchesFromAPI, 180000);
 
-    // Render multi-league matches and select default
+    // Render multi-league matches and select default without auto-scrolling
     renderLiveMatches();
-    selectActiveMatch(1001);
+    selectActiveMatch(1001, false);
     
     // Render Leaderboard data
     renderLeaderboard();
@@ -2774,10 +2774,18 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marke
         const removed = betslipSelections.splice(existingIdx, 1)[0];
         showToast(`Removed from Slip: ${removed.outcomeLabel}`, "info");
     } else {
-        // Check if there is already a selection from the exact same game and same market
-        const sameMarketIdx = betslipSelections.findIndex(s => s.gameId === gameId && s.marketName === marketName);
-        if (sameMarketIdx >= 0) {
-            betslipSelections[sameMarketIdx] = {
+        // Enforce maximum ticket limit: 50 selections per betslip (SportyBet standard)
+        if (betslipSelections.length >= 50) {
+            showToast("Maximum ticket limit reached: 50 selections per betslip (SportyBet standard limit)", "error");
+            return;
+        }
+
+        // Enforce standard accumulator rule: 1 option per game (Related Contingencies rule)
+        // If a selection already exists for this exact match, replace it with the new market choice
+        const sameGameIdx = betslipSelections.findIndex(s => s.gameId === gameId);
+        if (sameGameIdx >= 0) {
+            const prevPick = betslipSelections[sameGameIdx];
+            betslipSelections[sameGameIdx] = {
                 id: `${gameId}-${outcomeId}`,
                 gameId,
                 outcomeId,
@@ -2786,7 +2794,7 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marke
                 gameTitle,
                 marketName
             };
-            showToast(`Updated Slip: ${outcomeLabel} (${oddsValue.toFixed(2)}x)`, "info");
+            showToast(`Updated pick for ${gameTitle}: replaced "${prevPick.outcomeLabel}" with "${outcomeLabel}" (${oddsValue.toFixed(2)}x)`, "info");
         } else {
             betslipSelections.push({
                 id: `${gameId}-${outcomeId}`,
@@ -3801,9 +3809,13 @@ function renderLiveMatches() {
                             </div>
                         </div>
                         <div class="match-actions-line">
-                            <button class="btn-stream-pill ${isStreamActive ? 'active' : ''}" onclick="selectActiveMatch(${match.id})">
+                            <button class="btn-stream-pill ${isStreamActive ? 'active' : ''}" onclick="watchMatchStream(${match.id}, event)" title="Open live stream on LiveSports808 & launch SolPlay player">
                                 <span class="material-symbols-outlined text-[13px]">${isStreamActive ? 'sensors' : 'play_circle'}</span>
-                                ${isStreamActive ? 'Streaming' : 'Watch Stream'}
+                                ${isStreamActive ? 'Streaming ↗' : 'Watch Stream ↗'}
+                            </button>
+                            <button class="btn-stream-pill btn-stream-solplay" onclick="selectActiveMatch(${match.id}, true)" title="Open SolPlay Match Center (Radar, Squads & Stats)">
+                                <span class="material-symbols-outlined text-[13px]">view_quilt</span>
+                                SolPlay View
                             </button>
                         </div>
                     </div>
@@ -4053,7 +4065,7 @@ function renderFeaturedCarousel() {
     });
 }
 
-function selectActiveMatch(matchId) {
+function selectActiveMatch(matchId, shouldScroll = true) {
     activeMatchId = matchId;
     let match = MATCHES_DATA.find(m => m.id === matchId);
     let isTournament = false;
@@ -4076,6 +4088,12 @@ function selectActiveMatch(matchId) {
     }
     
     if (!match) return;
+
+    // Automatically ensure Split View is enabled if user was in Panoramic Full mode
+    const grid = document.getElementById("main-layout-grid");
+    if (grid && grid.classList.contains("full-sportsbook-active")) {
+        setSportsbookViewMode('split');
+    }
     
     // Update live player scoreboard
     const liveScoreEl = document.getElementById("player-live-score");
@@ -4090,6 +4108,13 @@ function selectActiveMatch(matchId) {
     
     document.getElementById("stream-title").textContent = `${match.homeTeam} vs ${match.awayTeam} - Routed Feed`;
     
+    // Update external stream button href in video header
+    const externalStreamLink = document.getElementById("player-external-stream-link");
+    if (externalStreamLink) {
+        externalStreamLink.href = `${activeSports808Mirror}/`;
+        externalStreamLink.title = `Watch ${match.homeTeam} vs ${match.awayTeam} live on LiveSports808`;
+    }
+
     if (isTournament && tournament) {
         // Automatically set player to HLS direct and load the stream
         const playerFrame = document.getElementById("video-iframe-player");
@@ -4116,6 +4141,40 @@ function selectActiveMatch(matchId) {
     // Update match center tabs (Lineups and Timeline)
     renderMatchLineups();
     renderMatchTimeline();
+
+    // Smooth scroll to video stream player and trigger pulse
+    if (shouldScroll) {
+        const streamContainer = document.getElementById("left-streaming-pane") || document.getElementById("video-player-container");
+        if (streamContainer) {
+            streamContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            streamContainer.classList.remove("stream-active-glow");
+            void streamContainer.offsetWidth;
+            streamContainer.classList.add("stream-active-glow");
+            setTimeout(() => streamContainer.classList.remove("stream-active-glow"), 2500);
+        }
+    }
+}
+
+function watchMatchStream(matchId, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    const match = MATCHES_DATA.find(m => m.id === matchId) || TOURNAMENTS_DATA.find(t => t.id === matchId);
+    if (!match) return;
+
+    // 1. Activate match in SolPlay (switches view mode to split, syncs live match center and player)
+    selectActiveMatch(matchId, true);
+
+    // 2. Open live streaming portal in a new tab with no-referrer
+    const streamUrl = `${activeSports808Mirror}/`;
+    window.open(streamUrl, '_blank', 'noopener,noreferrer');
+    
+    showToast(`Launching Live Stream: ${match.homeTeam || match.title} on LiveSports808! 📺`, "success");
+}
+
+function openExternalMatchStream(matchId, event) {
+    watchMatchStream(matchId, event);
 }
 
 function updateStreamProvidersForMatch(match) {
