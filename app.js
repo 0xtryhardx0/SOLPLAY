@@ -79,14 +79,24 @@ const MATCHES_DATA = [
         id: 1001,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "live",
         homeTeam: "Arsenal",
         awayTeam: "Lille",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 1.45, draw: 4.60, away: 7.20 },
+        time: "68'",
+        status: "LIVE",
+        score: { home: 2, away: 1 },
+        odds: { home: 1.25, draw: 5.10, away: 11.50 },
         formation: { home: "4-3-3", away: "4-2-3-1" },
+        stats: {
+            possession: { home: 58, away: 42 },
+            shots: { home: 14, away: 7 },
+            onTarget: { home: 6, away: 3 },
+            attacks: { home: 68, away: 38 },
+            corners: { home: 7, away: 2 },
+            fouls: { home: 7, away: 11 },
+            cards: { home: 1, away: 2 },
+            offsides: { home: 2, away: 1 }
+        },
         lineup: {
             home: [
                 { num: 22, name: "David Raya", pos: "GK" },
@@ -120,44 +130,93 @@ const MATCHES_DATA = [
             away: ["Vito Mannone", "Aissa Mandi", "Mitchel Bakker", "Angel Gomes", "Matias Fernandez-Pardo", "Mohamed Bayo"]
         },
         timeline: [
-            { time: "Pre-Match", type: "info", desc: "UEFA Champions League Matchday 2 • Emirates Stadium, London", icon: "🏟️" }
+            { time: "0'", type: "start", desc: "Kick-off at Emirates Stadium!", icon: "🏁" },
+            { time: "23'", type: "goal", desc: "GOAL! Arsenal 1 - 0 Lille. Bukayo Saka curling finish into bottom left corner.", icon: "⚽" },
+            { time: "41'", type: "goal", desc: "GOAL! Arsenal 1 - 1 Lille. Jonathan David clinical counter-attack strike.", icon: "⚽" },
+            { time: "45+2'", type: "halftime", desc: "Half-time break • 1 - 1", icon: "⏸️" },
+            { time: "58'", type: "card", desc: "Yellow card: Benjamin Andre (Lille) for foul on Odegaard.", icon: "🟨" },
+            { time: "64'", type: "goal", desc: "GOAL! Arsenal 2 - 1 Lille. Kai Havertz powerful header from Declan Rice corner!", icon: "⚽" }
         ]
     },
     {
         id: 1002,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "live",
         homeTeam: "Atlético Madrid",
         awayTeam: "Manchester United",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 2.10, draw: 3.40, away: 3.45 }
+        time: "54'",
+        status: "LIVE",
+        score: { home: 1, away: 0 },
+        odds: { home: 1.55, draw: 3.60, away: 6.80 },
+        stats: {
+            possession: { home: 49, away: 51 },
+            shots: { home: 9, away: 8 },
+            onTarget: { home: 4, away: 2 },
+            attacks: { home: 44, away: 52 },
+            corners: { home: 4, away: 5 },
+            fouls: { home: 12, away: 9 },
+            cards: { home: 2, away: 1 },
+            offsides: { home: 1, away: 2 }
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Match started at Estadio Metropolitano.", icon: "🏁" },
+            { time: "34'", type: "goal", desc: "GOAL! Atlético 1 - 0 Man United. Antoine Griezmann venomous volley!", icon: "⚽" }
+        ]
     },
     {
         id: 1003,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "live",
         homeTeam: "Galatasaray",
         awayTeam: "Barcelona",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 4.20, draw: 3.90, away: 1.78 }
+        time: "38'",
+        status: "LIVE",
+        score: { home: 0, away: 2 },
+        odds: { home: 16.00, draw: 6.50, away: 1.15 },
+        stats: {
+            possession: { home: 36, away: 64 },
+            shots: { home: 4, away: 12 },
+            onTarget: { home: 1, away: 7 },
+            attacks: { home: 28, away: 75 },
+            corners: { home: 2, away: 6 },
+            fouls: { home: 8, away: 5 },
+            cards: { home: 2, away: 0 },
+            offsides: { home: 3, away: 1 }
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Kick-off in Istanbul.", icon: "🏁" },
+            { time: "14'", type: "goal", desc: "GOAL! Galatasaray 0 - 1 Barcelona. Lamine Yamal solo brilliance!", icon: "⚽" },
+            { time: "29'", type: "goal", desc: "GOAL! Galatasaray 0 - 2 Barcelona. Robert Lewandowski tap-in.", icon: "⚽" }
+        ]
     },
     {
         id: 1004,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "live",
         homeTeam: "Inter Milan",
         awayTeam: "Club Brugge",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 1.50, draw: 4.30, away: 6.50 }
+        time: "81'",
+        status: "LIVE",
+        score: { home: 1, away: 1 },
+        odds: { home: 2.30, draw: 1.85, away: 4.80 },
+        stats: {
+            possession: { home: 62, away: 38 },
+            shots: { home: 16, away: 5 },
+            onTarget: { home: 5, away: 2 },
+            attacks: { home: 82, away: 31 },
+            corners: { home: 9, away: 2 },
+            fouls: { home: 10, away: 13 },
+            cards: { home: 1, away: 3 },
+            offsides: { home: 2, away: 0 }
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Kick-off at San Siro.", icon: "🏁" },
+            { time: "52'", type: "goal", desc: "GOAL! Inter 1 - 0 Club Brugge. Lautaro Martínez header.", icon: "⚽" },
+            { time: "71'", type: "goal", desc: "GOAL! Inter 1 - 1 Club Brugge. Andreas Skov Olsen equalizer!", icon: "⚽" }
+        ]
     },
     {
         id: 1005,
@@ -363,13 +422,30 @@ const MATCHES_DATA = [
         id: 1022,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "week",
+        scheduleGroup: "live",
         homeTeam: "Benfica",
         awayTeam: "Celtic",
-        time: "Thu 20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 1.60, draw: 4.00, away: 5.20 }
+        time: "74'",
+        status: "LIVE",
+        score: { home: 2, away: 2 },
+        odds: { home: 2.10, draw: 2.60, away: 3.80 },
+        stats: {
+            possession: { home: 55, away: 45 },
+            shots: { home: 11, away: 9 },
+            onTarget: { home: 4, away: 4 },
+            attacks: { home: 59, away: 47 },
+            corners: { home: 6, away: 4 },
+            fouls: { home: 11, away: 14 },
+            cards: { home: 1, away: 2 },
+            offsides: { home: 2, away: 1 }
+        },
+        timeline: [
+            { time: "0'", type: "start", desc: "Kick-off at Estádio da Luz.", icon: "🏁" },
+            { time: "18'", type: "goal", desc: "GOAL! Benfica 1 - 0 Celtic. Angel Di Maria penalty.", icon: "⚽" },
+            { time: "33'", type: "goal", desc: "GOAL! Benfica 1 - 1 Celtic. Kyogo Furuhashi equalizer.", icon: "⚽" },
+            { time: "56'", type: "goal", desc: "GOAL! Benfica 2 - 1 Celtic. Vangelis Pavlidis finish.", icon: "⚽" },
+            { time: "68'", type: "goal", desc: "GOAL! Benfica 2 - 2 Celtic. Nicolas Kühn thunderbolt!", icon: "⚽" }
+        ]
     },
     {
         id: 1023,
@@ -1383,10 +1459,14 @@ function initApp() {
     fetchUpcomingMatchesFromAPI();
     setInterval(fetchUpcomingMatchesFromAPI, 180000);
 
-    // Render multi-league matches and select default without auto-scrolling
+    // Render multi-league matches and select default match without auto-scrolling
     renderLiveMatches();
     selectActiveMatch(1001, false);
+    renderMatchStats();
     
+    // Start real-time auto-updating live match simulation & dynamic in-play odds engine
+    startLiveMatchSimulationEngine();
+
     // Render Leaderboard data
     renderLeaderboard();
 
@@ -2766,7 +2846,42 @@ function isOutcomeSelected(gameId, outcomeId) {
     return betslipSelections.some(s => s.gameId === gameId && s.outcomeId === outcomeId);
 }
 
+let activeSlipMode = 'acca'; // 'acca' (SportyBet standard accumulator) or 'builder' (Same Game Multi)
+
+function setBetslipMode(mode) {
+    activeSlipMode = mode;
+    betslipMode = (mode === 'builder') ? 'builder' : 'accumulator';
+    
+    const btnAcca = document.getElementById("btn-mode-acca");
+    const btnBuilder = document.getElementById("btn-mode-builder");
+    const builderBanner = document.getElementById("builder-info-banner");
+    const accaBanner = document.getElementById("acca-boost-banner");
+    
+    if (btnAcca && btnBuilder) {
+        if (mode === 'builder') {
+            btnBuilder.classList.add("active");
+            btnAcca.classList.remove("active");
+            if (builderBanner) builderBanner.classList.remove("hidden");
+            if (accaBanner) accaBanner.style.display = "none";
+            showToast("BetBuilder Active: Combine multiple outcomes from the same match! 🎯", "info");
+        } else {
+            btnAcca.classList.add("active");
+            btnBuilder.classList.remove("active");
+            if (builderBanner) builderBanner.classList.add("hidden");
+            showToast("Accumulator Mode Active: Cross-match parlays with Acca Boost! ⚡", "info");
+        }
+    }
+    renderBetslip();
+    calculatePayout();
+}
+
 function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marketName = 'Winner (1X2)') {
+    const match = MATCHES_DATA.find(m => m.id === gameId);
+    if (match && match.isLocked) {
+        showToast("Market temporarily suspended during live event 🔒. Please wait for reopening.", "error");
+        return;
+    }
+
     const existingIdx = betslipSelections.findIndex(s => s.gameId === gameId && s.outcomeId === outcomeId);
 
     if (existingIdx >= 0) {
@@ -2774,42 +2889,76 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marke
         const removed = betslipSelections.splice(existingIdx, 1)[0];
         showToast(`Removed from Slip: ${removed.outcomeLabel}`, "info");
     } else {
-        // Enforce maximum ticket limit: 50 selections per betslip (SportyBet standard)
+        // Enforce maximum ticket limit: 50 selections per betslip
         if (betslipSelections.length >= 50) {
-            showToast("Maximum ticket limit reached: 50 selections per betslip (SportyBet standard limit)", "error");
+            showToast("Maximum ticket limit reached: 50 selections per betslip", "error");
             return;
         }
 
-        // Enforce standard accumulator rule: 1 option per game (Related Contingencies rule)
-        // If a selection already exists for this exact match, replace it with the new market choice
-        const sameGameIdx = betslipSelections.findIndex(s => s.gameId === gameId);
-        if (sameGameIdx >= 0) {
-            const prevPick = betslipSelections[sameGameIdx];
-            betslipSelections[sameGameIdx] = {
-                id: `${gameId}-${outcomeId}`,
-                gameId,
-                outcomeId,
-                oddsValue,
-                outcomeLabel,
-                gameTitle,
-                marketName
-            };
-            showToast(`Updated pick for ${gameTitle}: replaced "${prevPick.outcomeLabel}" with "${outcomeLabel}" (${oddsValue.toFixed(2)}x)`, "info");
+        if (activeSlipMode === 'builder') {
+            // BetBuilder Mode: Same-Game Multi allows multiple picks on the SAME match
+            const otherGamePick = betslipSelections.find(s => s.gameId !== gameId);
+            if (otherGamePick) {
+                showToast(`BetBuilder focuses on 1 match (${gameTitle}). Starting new BetBuilder slip! 🎯`, "info");
+                betslipSelections = [];
+            }
+
+            // Check if user selected another option in the exact same market category (e.g. Home vs Away)
+            const sameMarketIdx = betslipSelections.findIndex(s => s.gameId === gameId && s.marketName === marketName);
+            if (sameMarketIdx >= 0) {
+                const prev = betslipSelections[sameMarketIdx];
+                betslipSelections[sameMarketIdx] = {
+                    id: `${gameId}-${outcomeId}`,
+                    gameId,
+                    outcomeId,
+                    oddsValue,
+                    outcomeLabel,
+                    gameTitle,
+                    marketName
+                };
+                showToast(`Updated BetBuilder pick for ${marketName}: ${outcomeLabel} (${oddsValue.toFixed(2)}x)`, "info");
+            } else {
+                betslipSelections.push({
+                    id: `${gameId}-${outcomeId}`,
+                    gameId,
+                    outcomeId,
+                    oddsValue,
+                    outcomeLabel,
+                    gameTitle,
+                    marketName
+                });
+                showToast(`Added to BetBuilder: ${outcomeLabel} (${oddsValue.toFixed(2)}x) 🎯`, "success");
+            }
         } else {
-            betslipSelections.push({
-                id: `${gameId}-${outcomeId}`,
-                gameId,
-                outcomeId,
-                oddsValue,
-                outcomeLabel,
-                gameTitle,
-                marketName
-            });
-            showToast(`Added to Betslip: ${outcomeLabel} (${oddsValue.toFixed(2)}x) 🔥`, "success");
+            // Standard Accumulator Mode: 1 pick per match rule (SportyBet standard)
+            const sameGameIdx = betslipSelections.findIndex(s => s.gameId === gameId);
+            if (sameGameIdx >= 0) {
+                const prevPick = betslipSelections[sameGameIdx];
+                betslipSelections[sameGameIdx] = {
+                    id: `${gameId}-${outcomeId}`,
+                    gameId,
+                    outcomeId,
+                    oddsValue,
+                    outcomeLabel,
+                    gameTitle,
+                    marketName
+                };
+                showToast(`Updated pick for ${gameTitle}: replaced "${prevPick.outcomeLabel}" with "${outcomeLabel}" (${oddsValue.toFixed(2)}x)`, "info");
+            } else {
+                betslipSelections.push({
+                    id: `${gameId}-${outcomeId}`,
+                    gameId,
+                    outcomeId,
+                    oddsValue,
+                    outcomeLabel,
+                    gameTitle,
+                    marketName
+                });
+                showToast(`Added to Betslip: ${outcomeLabel} (${oddsValue.toFixed(2)}x) 🔥`, "success");
+            }
         }
     }
 
-    // Set backwards-compatible activeSelection for single wagers
     if (betslipSelections.length > 0) {
         activeSelection = betslipSelections[0];
     } else {
@@ -2843,22 +2992,6 @@ function clearSelection() {
     clearAllSelections();
 }
 
-function setBetslipMode(mode) {
-    betslipMode = mode;
-    const btnAcca = document.getElementById("slip-mode-acca");
-    const btnSingle = document.getElementById("slip-mode-single");
-    if (btnAcca && btnSingle) {
-        if (mode === 'accumulator') {
-            btnAcca.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-white bg-white/10 flex items-center justify-center gap-1.5 transition-all";
-            btnSingle.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-on-surface/50 hover:text-white flex items-center justify-center gap-1.5 transition-all";
-        } else {
-            btnSingle.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-white bg-white/10 flex items-center justify-center gap-1.5 transition-all";
-            btnAcca.className = "flex-1 py-1.5 rounded-lg text-label-sm font-bold text-on-surface/50 hover:text-white flex items-center justify-center gap-1.5 transition-all";
-        }
-    }
-    calculatePayout();
-}
-
 function setQuickStake(val) {
     const input = document.getElementById("stake-amount");
     if (!input) return;
@@ -2879,6 +3012,7 @@ function renderBetslip() {
     const floatingPill = document.getElementById("floating-betslip-pill");
     const floatingCount = document.getElementById("floating-slip-count");
     const floatingOdds = document.getElementById("floating-slip-odds");
+    const btnPlaceSlip = document.getElementById("btn-place-slip");
 
     const totalCount = betslipSelections.length;
 
@@ -2892,13 +3026,17 @@ function renderBetslip() {
         headerSlipCounter.textContent = totalCount;
     }
 
+    if (btnPlaceSlip) {
+        btnPlaceSlip.textContent = (activeSlipMode === 'builder') ? "Place BetBuilder Wager 🎯" : "Place Accumulator Wager ⚡";
+    }
+
     if (totalCount === 0) {
         if (container) {
             container.innerHTML = `
                 <div class="text-center py-8 text-on-surface/40 text-label-md" id="betslip-empty-text">
                     <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎫</div>
                     <div style="font-weight: 700; color: #fff;">Your Betslip is Empty</div>
-                    <div style="font-size: 0.8rem; margin-top: 0.3rem;">Select odds from matches below to build your accumulator slip!</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.3rem;">Select odds from matches below to build your ticket!</div>
                 </div>
             `;
         }
@@ -2911,6 +3049,21 @@ function renderBetslip() {
 
     if (container) {
         container.innerHTML = "";
+        
+        // If BetBuilder mode is active and we have picks, show BetBuilder header badge
+        if (activeSlipMode === 'builder') {
+            const builderHead = document.createElement("div");
+            builderHead.className = "flex items-center justify-between p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 mb-2";
+            builderHead.innerHTML = `
+                <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[15px]">all_inclusive</span>
+                    <span>BetBuilder: ${betslipSelections[0].gameTitle}</span>
+                </span>
+                <span class="builder-badge">${betslipSelections.length} Picks</span>
+            `;
+            container.appendChild(builderHead);
+        }
+
         betslipSelections.forEach(s => {
             const item = document.createElement("div");
             item.className = "betslip-selection";
@@ -2932,7 +3085,8 @@ function renderBetslip() {
     const generatedSlipEl = document.getElementById("generated-slip-code");
     if (generatedSlipEl) {
         const ids = betslipSelections.map(s => s.outcomeId).join('');
-        generatedSlipEl.textContent = `ACCA-${betslipSelections.length}-${ids.slice(0, 4)}-${Math.floor(Math.random()*90 + 10)}`;
+        const prefix = (activeSlipMode === 'builder') ? 'BUILDER' : 'ACCA';
+        generatedSlipEl.textContent = `${prefix}-${betslipSelections.length}-${ids.slice(0, 4)}-${Math.floor(Math.random()*90 + 10)}`;
     }
 
     calculatePayout();
@@ -2946,7 +3100,15 @@ function calculatePayout() {
     const routingFee = stake * 0.01;
 
     let totalMultiplier = 1.0;
-    if (betslipMode === 'accumulator') {
+    if (activeSlipMode === 'builder') {
+        // BetBuilder compounding with correlation covariance adjustment
+        let rawProduct = 1.0;
+        betslipSelections.forEach(s => { rawProduct *= s.oddsValue; });
+        const legs = betslipSelections.length;
+        // Covariance discount factor (standard bookmaker correlation discount for same-game multi)
+        const discount = legs > 1 ? Math.pow(0.88, legs - 1) : 1.0;
+        totalMultiplier = Math.max(1.10, parseFloat((rawProduct * discount).toFixed(2)));
+    } else if (betslipMode === 'accumulator') {
         betslipSelections.forEach(s => {
             totalMultiplier *= s.oddsValue;
         });
@@ -2958,7 +3120,7 @@ function calculatePayout() {
     // Acca Boost Bonus calculation (SportyBet style)
     let bonusPercent = 0;
     const legs = betslipSelections.length;
-    if (betslipMode === 'accumulator') {
+    if (activeSlipMode === 'acca' && betslipMode === 'accumulator') {
         if (legs >= 10) bonusPercent = 50;
         else if (legs >= 8) bonusPercent = 35;
         else if (legs >= 6) bonusPercent = 25;
@@ -2974,7 +3136,7 @@ function calculatePayout() {
     const bonusRow = document.getElementById("slip-bonus-row");
     const bonusAmountEl = document.getElementById("slip-bonus-amount");
 
-    if (bonusPercent > 0 && betslipMode === 'accumulator') {
+    if (bonusPercent > 0 && activeSlipMode === 'acca') {
         if (accaBanner) accaBanner.style.display = "flex";
         if (accaBadge) accaBadge.textContent = `+${bonusPercent}%`;
         if (accaText) accaText.textContent = `🔥 ${legs}-Fold Combo: +${bonusPercent}% Acca Boost!`;
@@ -3790,6 +3952,21 @@ function renderLiveMatches() {
             const isAccordionOpen = !!expandedAccordions[match.id];
             const activeCat = activeAccordionCategory[match.id] || 'all';
 
+            const isLocked = !!match.isLocked;
+            const renderOddBox = (o, marketTitle) => {
+                const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                const trendClass = o.trend === 'up' ? 'odd-trend-up' : (o.trend === 'down' ? 'odd-trend-down' : '');
+                const arrow = o.trend === 'up' ? '<span class="odd-arrow-up">▲</span>' : (o.trend === 'down' ? '<span class="odd-arrow-down">▼</span>' : '');
+                return `
+                    <button class="matrix-odd-box ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''} ${trendClass}" 
+                            onclick="${isLocked ? '' : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '${marketTitle}')`}"
+                            ${isLocked ? 'disabled title="Market temporarily suspended"' : ''}>
+                        <span class="lbl">${isLocked ? '🔒 Susp' : o.label}</span>
+                        <span class="val">${isLocked ? '---' : o.value.toFixed(2)} ${arrow}</span>
+                    </button>
+                `;
+            };
+
             rowWrapper.innerHTML = `
                 <div class="match-matrix-row">
                     <!-- Sticky / Prominent Match Info Left Section -->
@@ -3800,18 +3977,18 @@ function renderLiveMatches() {
                         </div>
                         <div class="match-teams-block">
                             <div class="matrix-team-name">
-                                <span>${match.homeTeam}</span>
-                                <span class="score">${match.status === 'LIVE' ? match.score.home : ''}</span>
+                                <span class="truncate">${match.homeTeam}</span>
+                                ${match.status === 'LIVE' ? `<span class="matrix-score-pill">${match.score.home}</span>` : ''}
                             </div>
                             <div class="matrix-team-name">
-                                <span>${match.awayTeam}</span>
-                                <span class="score">${match.status === 'LIVE' ? match.score.away : ''}</span>
+                                <span class="truncate">${match.awayTeam}</span>
+                                ${match.status === 'LIVE' ? `<span class="matrix-score-pill">${match.score.away}</span>` : ''}
                             </div>
                         </div>
                         <div class="match-actions-line">
-                            <button class="btn-stream-pill ${isStreamActive ? 'active' : ''}" onclick="watchMatchStream(${match.id}, event)" title="Open live stream on LiveSports808 & launch SolPlay player">
+                            <button class="btn-stream-pill ${isStreamActive ? 'active' : ''}" onclick="watchMatchStream(${match.id}, event)" title="Watch direct live stream on SolPlay">
                                 <span class="material-symbols-outlined text-[13px]">${isStreamActive ? 'sensors' : 'play_circle'}</span>
-                                ${isStreamActive ? 'Streaming ↗' : 'Watch Stream ↗'}
+                                ${isStreamActive ? 'Streaming' : 'Watch Stream'}
                             </button>
                             <button class="btn-stream-pill btn-stream-solplay" onclick="selectActiveMatch(${match.id}, true)" title="Open SolPlay Match Center (Radar, Squads & Stats)">
                                 <span class="material-symbols-outlined text-[13px]">view_quilt</span>
@@ -3824,82 +4001,42 @@ function renderLiveMatches() {
                     <div class="matrix-odds-track">
                         <!-- 1X2 (Winner) -->
                         <div class="odds-col-group group-3">
-                            ${m1x2.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')">
-                                    <span class="lbl">${o.label}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${m1x2.map(o => renderOddBox(o, 'Winner (1X2)')).join('')}
                         </div>
 
                         <!-- Over / Under 2.5 -->
                         <div class="odds-col-group group-2">
-                            ${mou25.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
-                                    <span class="lbl">${o.label.includes('Over') ? 'Over 2.5' : 'Under 2.5'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${mou25.map(o => renderOddBox(o, 'Total Goals (O/U 2.5)')).join('')}
                         </div>
 
                         <!-- BTTS (GG / NG) -->
                         <div class="odds-col-group group-2">
-                            ${mbtts.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
-                                    <span class="lbl">${o.label.includes('Yes') ? 'GG (Yes)' : 'NG (No)'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${mbtts.map(o => renderOddBox(o, 'Both Teams To Score')).join('')}
                         </div>
 
                         <!-- Double Chance -->
                         <div class="odds-col-group group-dc">
-                            ${mdc.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Double Chance')">
-                                    <span class="lbl">${o.label.split(' ')[0]}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${mdc.map(o => renderOddBox(o, 'Double Chance')).join('')}
                         </div>
 
                         <!-- Over / Under 1.5 -->
                         <div class="odds-col-group group-2">
-                            ${mou15.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 1.5)')">
-                                    <span class="lbl">${o.label.includes('Over') ? 'Over 1.5' : 'Under 1.5'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${mou15.map(o => renderOddBox(o, 'Total Goals (O/U 1.5)')).join('')}
                         </div>
 
                         <!-- Draw No Bet -->
                         <div class="odds-col-group group-2">
-                            ${mdnb.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Draw No Bet')">
-                                    <span class="lbl">${o.label.includes(match.homeTeam) ? '1 DNB' : '2 DNB'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${mdnb.map(o => renderOddBox(o, 'Draw No Bet')).join('')}
                         </div>
 
                         <!-- European Handicap (-1) -->
                         <div class="odds-col-group group-3">
-                            ${mhandicap.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'European Handicap')">
-                                    <span class="lbl">${o.label.includes('(-1)') ? 'Home (-1)' : (o.label.includes('(+1)') ? 'Away (+1)' : 'Tie (-1)')}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${mhandicap.map(o => renderOddBox(o, 'European Handicap')).join('')}
                         </div>
 
                         <!-- 1st Half Winner (1X2) -->
                         <div class="odds-col-group group-3">
-                            ${mhalftime.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half 1X2')">
-                                    <span class="lbl">${o.label.includes('Draw') ? 'HT: X' : (o.label.includes(match.homeTeam) ? 'HT: 1' : 'HT: 2')}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${mhalftime.map(o => renderOddBox(o, '1st Half 1X2')).join('')}
                         </div>
 
                         <!-- More Markets Button -->
@@ -3924,37 +4061,36 @@ function renderLiveMatches() {
         let scrollLeft = 0;
 
         matrixContainer.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button') || e.target.closest('a')) return;
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
             isDown = true;
             matrixContainer.classList.add('active-dragging');
-            startX = e.pageX - matrixContainer.offsetLeft;
+            startX = e.clientX;
             scrollLeft = matrixContainer.scrollLeft;
         });
 
-        matrixContainer.addEventListener('mouseleave', () => {
-            isDown = false;
-            matrixContainer.classList.remove('active-dragging');
+        window.addEventListener('mouseup', () => {
+            if (isDown) {
+                isDown = false;
+                matrixContainer.classList.remove('active-dragging');
+            }
         });
 
-        matrixContainer.addEventListener('mouseup', () => {
-            isDown = false;
-            matrixContainer.classList.remove('active-dragging');
-        });
-
-        matrixContainer.addEventListener('mousemove', (e) => {
+        window.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
-            const x = e.pageX - matrixContainer.offsetLeft;
-            const walk = (x - startX) * 1.5;
+            const walk = (e.clientX - startX) * 1.5;
             matrixContainer.scrollLeft = scrollLeft - walk;
         });
 
-        // Universal sideways wheel scrolling: anywhere over the table or sticky area
+        // Universal sideways wheel scrolling: does not trap page scrolling if at boundaries
         matrixContainer.addEventListener('wheel', (e) => {
-            if (Math.abs(e.deltaX) > 0) return; // Native horizontal touchpad swipe
+            if (Math.abs(e.deltaX) > 0) return; // Native horizontal swipe
             if (e.shiftKey) return; // Native shift+wheel
-            if (Math.abs(e.deltaY) > 0) {
-                matrixContainer.scrollLeft += e.deltaY * 1.5;
+            const maxScroll = matrixContainer.scrollWidth - matrixContainer.clientWidth;
+            const canScrollRight = (e.deltaY > 0 && matrixContainer.scrollLeft < maxScroll - 5);
+            const canScrollLeft = (e.deltaY < 0 && matrixContainer.scrollLeft > 5);
+            if (canScrollRight || canScrollLeft) {
+                matrixContainer.scrollLeft += e.deltaY * 1.3;
                 e.preventDefault();
             }
         }, { passive: false });
@@ -4138,7 +4274,8 @@ function selectActiveMatch(matchId, shouldScroll = true) {
     
     renderLiveMatches();
     
-    // Update match center tabs (Lineups and Timeline)
+    // Update match center tabs (Stats & 2D Radar, Lineups, and Timeline)
+    renderMatchStats();
     renderMatchLineups();
     renderMatchTimeline();
 
@@ -4155,6 +4292,26 @@ function selectActiveMatch(matchId, shouldScroll = true) {
     }
 }
 
+function loadDirectMatchStream(match) {
+    const video = document.getElementById("hls-video-player");
+    const playerFrame = document.getElementById("video-iframe-player");
+    const mockPlayer = document.getElementById("mock-video-player");
+    
+    // Direct live sports HLS streams
+    const streamUrl = match.streamUrl || "https://africa24.vedge.infomaniak.com/livecast/ik:africa24sport/manifest.m3u8";
+    
+    if (playerFrame) playerFrame.style.display = "none";
+    if (mockPlayer) mockPlayer.style.display = "none";
+    
+    if (video) {
+        video.style.display = "block";
+        initHlsPlayer(video, streamUrl);
+    }
+    
+    const providerSelect = document.getElementById("stream-provider-select");
+    if (providerSelect) providerSelect.value = "1";
+}
+
 function watchMatchStream(matchId, event) {
     if (event) {
         event.stopPropagation();
@@ -4163,18 +4320,25 @@ function watchMatchStream(matchId, event) {
     const match = MATCHES_DATA.find(m => m.id === matchId) || TOURNAMENTS_DATA.find(t => t.id === matchId);
     if (!match) return;
 
-    // 1. Activate match in SolPlay (switches view mode to split, syncs live match center and player)
+    // 1. Automatically switch to Split View so the player and sportsbook sit side-by-side
+    setSportsbookViewMode('split');
+
+    // 2. Activate match in SolPlay (syncs scoreboard, squads, stats, and 2D radar)
     selectActiveMatch(matchId, true);
 
-    // 2. Open live streaming portal in a new tab with no-referrer
-    const streamUrl = `${activeSports808Mirror}/`;
-    window.open(streamUrl, '_blank', 'noopener,noreferrer');
-    
-    showToast(`Launching Live Stream: ${match.homeTeam || match.title} on LiveSports808! 📺`, "success");
+    // 3. Instantly load & play the live stream right inside SolPlay! Zero redirects, zero popups!
+    loadDirectMatchStream(match);
+
+    showToast(`📺 Live Stream Loaded: ${match.homeTeam || match.title} vs ${match.awayTeam || ''} (Direct SolPlay Stream)`, "success");
 }
 
 function openExternalMatchStream(matchId, event) {
-    watchMatchStream(matchId, event);
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    const streamUrl = `${activeSports808Mirror}/`;
+    window.open(streamUrl, '_blank', 'noopener,noreferrer');
 }
 
 function updateStreamProvidersForMatch(match) {
@@ -4738,57 +4902,371 @@ function renderMatchStats() {
     }
     
     // Dynamic match stats
-    const homePoss = match.stats && match.stats.possession ? match.stats.possession.home : 54;
+    const homePoss = match.stats && match.stats.possession ? match.stats.possession.home : 58;
     const awayPoss = 100 - homePoss;
-    const homeShots = match.stats && match.stats.shots ? match.stats.shots.home : 13;
-    const awayShots = match.stats && match.stats.shots ? match.stats.shots.away : 8;
-    const homeOnTarget = Math.round(homeShots * 0.45);
-    const awayOnTarget = Math.round(awayShots * 0.4);
-    const homeAttacks = match.stats && match.stats.attacks ? match.stats.attacks.home : 62;
-    const awayAttacks = match.stats && match.stats.attacks ? match.stats.attacks.away : 41;
-    const homeCorners = match.stats && match.stats.corners ? match.stats.corners.home : 6;
+    const homeShots = match.stats && match.stats.shots ? match.stats.shots.home : 14;
+    const awayShots = match.stats && match.stats.shots ? match.stats.shots.away : 7;
+    const homeOnTarget = match.stats && match.stats.onTarget ? match.stats.onTarget.home : Math.round(homeShots * 0.45);
+    const awayOnTarget = match.stats && match.stats.onTarget ? match.stats.onTarget.away : Math.round(awayShots * 0.4);
+    const homeAttacks = match.stats && match.stats.attacks ? match.stats.attacks.home : 68;
+    const awayAttacks = match.stats && match.stats.attacks ? match.stats.attacks.away : 38;
+    const homeCorners = match.stats && match.stats.corners ? match.stats.corners.home : 7;
     const awayCorners = match.stats && match.stats.corners ? match.stats.corners.away : 3;
+    const homeFouls = match.stats && match.stats.fouls ? match.stats.fouls.home : 7;
+    const awayFouls = match.stats && match.stats.fouls ? match.stats.fouls.away : 11;
+    const homeCards = match.stats && match.stats.cards ? match.stats.cards.home : 1;
+    const awayCards = match.stats && match.stats.cards ? match.stats.cards.away : 2;
+    const homeOffsides = match.stats && match.stats.offsides ? match.stats.offsides.home : 2;
+    const awayOffsides = match.stats && match.stats.offsides ? match.stats.offsides.away : 1;
+
+    const ballX = typeof ballPositionX !== 'undefined' ? ballPositionX : 62;
+    const ballY = typeof ballPositionY !== 'undefined' ? ballPositionY : 48;
 
     container.innerHTML = `
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px;">
-                <span style="color: #a855f7;">${match.homeTeam}</span>
-                <span style="color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">Ball Possession</span>
-                <span style="color: #06b6d4;">${match.awayTeam}</span>
+        <!-- Camel1.tv Inspired 2D Tactical Field Animation Component -->
+        <div class="tactical-pitch-card">
+            <div class="flex items-center justify-between mb-2">
+                <span id="radar-event-ticker" class="radar-action-pill">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>🔴 ${match.homeTeam}: Dangerous Attack (Final Third)</span>
+                </span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] text-white/70 font-mono font-bold">${match.time || 'LIVE'}</span>
+                    <span class="matrix-score-pill text-xs py-0.5 px-2">${match.score ? `${match.score.home} - ${match.score.away}` : '0 - 0'}</span>
+                </div>
             </div>
-            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; margin-bottom: 6px;">
-                <span>${homePoss}%</span>
-                <span>${awayPoss}%</span>
-            </div>
-            <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; display: flex;">
-                <div style="width: ${homePoss}%; background: linear-gradient(90deg, #a855f7, #c084fc);"></div>
-                <div style="width: ${awayPoss}%; background: linear-gradient(90deg, #22d3ee, #06b6d4);"></div>
+            
+            <div class="relative w-full overflow-hidden rounded-xl border border-emerald-500/30 shadow-inner">
+                <svg class="tactical-field-svg" viewBox="0 0 600 240">
+                    <!-- Emerald Pitch Background -->
+                    <rect width="600" height="240" fill="#042f1f" />
+                    <!-- Grass Stripes -->
+                    <rect x="0" y="0" width="100" height="240" fill="rgba(255,255,255,0.02)" />
+                    <rect x="200" y="0" width="100" height="240" fill="rgba(255,255,255,0.02)" />
+                    <rect x="400" y="0" width="100" height="240" fill="rgba(255,255,255,0.02)" />
+                    
+                    <!-- Touchlines & Markings -->
+                    <rect x="20" y="15" width="560" height="210" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <line x1="300" y1="15" x2="300" y2="225" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <circle cx="300" cy="120" r="40" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <circle cx="300" cy="120" r="3" fill="rgba(255,255,255,0.6)" />
+                    
+                    <!-- Left Penalty Area (Home) -->
+                    <rect x="20" y="55" width="80" height="130" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <rect x="20" y="80" width="30" height="80" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <circle cx="70" cy="120" r="2.5" fill="rgba(255,255,255,0.6)" />
+                    
+                    <!-- Right Penalty Area (Away) -->
+                    <rect x="500" y="55" width="80" height="130" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <rect x="550" y="80" width="30" height="80" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <circle cx="530" cy="120" r="2.5" fill="rgba(255,255,255,0.6)" />
+
+                    <!-- Goal Mouths -->
+                    <rect x="10" y="95" width="10" height="50" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.5" />
+                    <rect x="580" y="95" width="10" height="50" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.5" />
+
+                    <!-- Team Direction Labels -->
+                    <text x="35" y="35" fill="#c084fc" font-size="11" font-weight="bold">${match.homeTeam} ➔</text>
+                    <text x="565" y="35" fill="#2dd4bf" font-size="11" font-weight="bold" text-anchor="end">⬅ ${match.awayTeam}</text>
+
+                    <!-- Animated Real-time Match Ball -->
+                    <circle id="radar-ball-glow" cx="${ballX}%" cy="${ballY}%" r="12" fill="rgba(250, 204, 21, 0.4)" />
+                    <circle id="radar-ball-dot" cx="${ballX}%" cy="${ballY}%" r="5" fill="#facc15" stroke="#ffffff" stroke-width="1.5" />
+                </svg>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.8rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
-                <span style="font-weight: 700;">${homeShots} (${homeOnTarget})</span>
-                <span style="color: var(--text-secondary);">Shots (On Target)</span>
-                <span style="font-weight: 700;">${awayShots} (${awayOnTarget})</span>
+        <!-- Camel1.tv Comparative Match Stats -->
+        <div class="flex flex-col gap-2.5">
+            <!-- Ball Possession -->
+            <div class="camel-stat-row">
+                <div class="camel-stat-header">
+                    <span style="color: #c084fc;">${homePoss}%</span>
+                    <span class="camel-stat-label">Ball Possession</span>
+                    <span style="color: #2dd4bf;">${awayPoss}%</span>
+                </div>
+                <div class="camel-stat-bar-container">
+                    <div class="camel-stat-bar-home" style="width: ${homePoss}%;"></div>
+                    <div class="camel-stat-bar-away" style="width: ${awayPoss}%;"></div>
+                </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
-                <span style="font-weight: 700;">${homeAttacks}</span>
-                <span style="color: var(--text-secondary);">Dangerous Attacks</span>
-                <span style="font-weight: 700;">${awayAttacks}</span>
+
+            <!-- Total Shots & On Target -->
+            <div class="camel-stat-row">
+                <div class="camel-stat-header">
+                    <span>${homeShots} <span class="text-xs text-white/50">(${homeOnTarget})</span></span>
+                    <span class="camel-stat-label">Shots (On Target)</span>
+                    <span>${awayShots} <span class="text-xs text-white/50">(${awayOnTarget})</span></span>
+                </div>
+                <div class="camel-stat-bar-container">
+                    <div class="camel-stat-bar-home" style="width: ${Math.round((homeShots / (homeShots + awayShots || 1)) * 100)}%;"></div>
+                    <div class="camel-stat-bar-away" style="width: ${Math.round((awayShots / (homeShots + awayShots || 1)) * 100)}%;"></div>
+                </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
-                <span style="font-weight: 700;">${homeCorners}</span>
-                <span style="color: var(--text-secondary);">Corner Kicks</span>
-                <span style="font-weight: 700;">${awayCorners}</span>
+
+            <!-- Dangerous Attacks -->
+            <div class="camel-stat-row">
+                <div class="camel-stat-header">
+                    <span>${homeAttacks}</span>
+                    <span class="camel-stat-label">Dangerous Attacks</span>
+                    <span>${awayAttacks}</span>
+                </div>
+                <div class="camel-stat-bar-container">
+                    <div class="camel-stat-bar-home" style="width: ${Math.round((homeAttacks / (homeAttacks + awayAttacks || 1)) * 100)}%;"></div>
+                    <div class="camel-stat-bar-away" style="width: ${Math.round((awayAttacks / (homeAttacks + awayAttacks || 1)) * 100)}%;"></div>
+                </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
-                <span style="font-weight: 700; color: #22c55e;">1.74</span>
-                <span style="color: var(--text-secondary);">Expected Goals (xG)</span>
-                <span style="font-weight: 700; color: #22c55e;">0.89</span>
+
+            <!-- Corner Kicks -->
+            <div class="camel-stat-row">
+                <div class="camel-stat-header">
+                    <span>${homeCorners}</span>
+                    <span class="camel-stat-label">Corner Kicks</span>
+                    <span>${awayCorners}</span>
+                </div>
+                <div class="camel-stat-bar-container">
+                    <div class="camel-stat-bar-home" style="width: ${Math.round((homeCorners / (homeCorners + awayCorners || 1)) * 100)}%;"></div>
+                    <div class="camel-stat-bar-away" style="width: ${Math.round((awayCorners / (homeCorners + awayCorners || 1)) * 100)}%;"></div>
+                </div>
+            </div>
+
+            <!-- Fouls & Cards -->
+            <div class="camel-stat-row">
+                <div class="camel-stat-header">
+                    <span>${homeFouls} <span class="text-xs text-yellow-400 font-bold">(${homeCards}🟨)</span></span>
+                    <span class="camel-stat-label">Fouls (Cards)</span>
+                    <span>${awayFouls} <span class="text-xs text-yellow-400 font-bold">(${awayCards}🟨)</span></span>
+                </div>
+            </div>
+
+            <!-- Offsides -->
+            <div class="camel-stat-row">
+                <div class="camel-stat-header">
+                    <span>${homeOffsides}</span>
+                    <span class="camel-stat-label">Offsides</span>
+                    <span>${awayOffsides}</span>
+                </div>
             </div>
         </div>
     `;
+}
+
+// ==========================================================================
+// REAL-TIME AUTO-UPDATING LIVE MATCH SIMULATION & DYNAMIC ODDS ENGINE
+// ==========================================================================
+
+let liveSimTimer = null;
+let liveSimTickCount = 0;
+let ballPositionX = 62;
+let ballPositionY = 48;
+let ballDirection = 1;
+
+function startLiveMatchSimulationEngine() {
+    if (liveSimTimer) clearInterval(liveSimTimer);
+    liveSimTimer = setInterval(() => {
+        tickLiveMatches();
+    }, 3500); // Ticks every 3.5 seconds for active, fluid in-game pacing
+}
+
+function tickLiveMatches() {
+    liveSimTickCount++;
+    const liveMatches = MATCHES_DATA.filter(m => m.scheduleGroup === 'live' || m.status === 'LIVE');
+    if (liveMatches.length === 0) return;
+
+    // 1. Advance minutes dynamically every ~4 ticks (~14 seconds)
+    if (liveSimTickCount % 4 === 0) {
+        liveMatches.forEach(m => {
+            const currentMin = parseInt(m.time);
+            if (!isNaN(currentMin) && currentMin < 90) {
+                m.time = `${currentMin + 1}'`;
+            }
+        });
+    }
+
+    // 2. Animate 2D pitch coordinates for the active match
+    const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
+    if (activeMatch && (activeMatch.scheduleGroup === 'live' || activeMatch.status === 'LIVE')) {
+        // Move ball smoothly between attacking zones
+        ballPositionX += (Math.random() * 14 - 7) * ballDirection;
+        ballPositionY = Math.min(82, Math.max(18, ballPositionY + (Math.random() * 12 - 6)));
+        
+        if (ballPositionX > 86) {
+            ballPositionX = 84;
+            ballDirection = -1;
+        } else if (ballPositionX < 14) {
+            ballPositionX = 16;
+            ballDirection = 1;
+        }
+
+        // Update tactical description and SVG ball position
+        const actionEl = document.getElementById("radar-event-ticker");
+        const dotEl = document.getElementById("radar-ball-dot");
+        const glowEl = document.getElementById("radar-ball-glow");
+        if (dotEl) {
+            dotEl.setAttribute("cx", `${ballPositionX}%`);
+            dotEl.setAttribute("cy", `${ballPositionY}%`);
+        }
+        if (glowEl) {
+            glowEl.setAttribute("cx", `${ballPositionX}%`);
+            glowEl.setAttribute("cy", `${ballPositionY}%`);
+        }
+        
+        if (actionEl && !activeMatch.isLocked) {
+            let zoneDesc = "";
+            if (ballPositionX > 65) {
+                zoneDesc = `🔴 ${activeMatch.homeTeam}: Dangerous Attack (Final Third)`;
+            } else if (ballPositionX < 35) {
+                zoneDesc = `⚡ ${activeMatch.awayTeam}: Fast Break (Counter-Attack)`;
+            } else {
+                zoneDesc = `⚽ Midfield Battle (${activeMatch.homeTeam} in possession)`;
+            }
+            actionEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>${zoneDesc}</span>`;
+        }
+
+        // Fluctuate in-game stats incrementally
+        if (activeMatch.stats && liveSimTickCount % 5 === 0) {
+            if (Math.random() > 0.4) {
+                if (ballPositionX > 50) activeMatch.stats.attacks.home++;
+                else activeMatch.stats.attacks.away++;
+            }
+            if (Math.random() > 0.75) {
+                if (ballPositionX > 70) activeMatch.stats.shots.home++;
+                else if (ballPositionX < 30) activeMatch.stats.shots.away++;
+            }
+            if (Math.random() > 0.85) {
+                if (ballPositionX > 75) activeMatch.stats.corners.home++;
+                else if (ballPositionX < 25) activeMatch.stats.corners.away++;
+            }
+        }
+    }
+
+    // 3. Realistic dynamic goal trigger (approx every 20 ticks = 70s)
+    if (liveSimTickCount % 20 === 0) {
+        // Pick one live match randomly to score
+        const targetMatch = liveMatches[Math.floor(Math.random() * liveMatches.length)];
+        if (targetMatch && !targetMatch.isLocked) {
+            triggerLiveMatchGoal(targetMatch);
+        }
+    } else {
+        // 4. Subtle dynamic in-play odds adjustments (time decay & probability shift)
+        liveMatches.forEach(m => {
+            if (!m.isLocked && Math.random() > 0.45) {
+                adjustDynamicOddsForMatch(m);
+            }
+        });
+    }
+
+    // Update scoreboard & DOM elements without disrupting user scrolling
+    updateLiveDomElements();
+}
+
+function triggerLiveMatchGoal(match) {
+    const isHome = (Math.random() > 0.45);
+    const scoringTeam = isHome ? match.homeTeam : match.awayTeam;
+    
+    // Temporarily lock markets for goal review (SportyBet / Bet365 in-play suspension standard)
+    match.isLocked = true;
+    
+    // Update score
+    if (isHome) match.score.home++;
+    else match.score.away++;
+    
+    const minStr = match.time || "72'";
+    
+    // Add timeline event
+    if (!match.timeline) match.timeline = [];
+    match.timeline.unshift({
+        time: minStr,
+        type: "goal",
+        desc: `⚽ GOAL! ${scoringTeam} scores! (${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam})`,
+        icon: "⚽"
+    });
+    
+    showToast(`⚽ GOAL! ${scoringTeam} has scored! (${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam}) 🔒 Markets Suspended`, "success");
+    
+    // Update live DOM
+    updateLiveDomElements();
+    if (activeMatchId === match.id) {
+        renderMatchTimeline();
+        renderMatchStats();
+    }
+    renderLiveMatches();
+    
+    // Reopen markets after 8 seconds with updated dynamic odds
+    setTimeout(() => {
+        match.isLocked = false;
+        recalculateMatchOddsAfterGoal(match, isHome);
+        updateLiveDomElements();
+        renderLiveMatches();
+        showToast(`🔓 Markets Reopened with Dynamic In-Play Odds for ${match.homeTeam} vs ${match.awayTeam}`, "info");
+    }, 8000);
+}
+
+function recalculateMatchOddsAfterGoal(match, isHomeGoal) {
+    const goalDiff = match.score.home - match.score.away;
+    if (goalDiff > 0) {
+        // Home leading: home odds shorten drastically, away lengthens
+        match.odds.home = Math.max(1.08, parseFloat((1.35 / (1 + goalDiff * 0.4)).toFixed(2)));
+        match.odds.draw = parseFloat((3.60 + goalDiff * 1.8).toFixed(2));
+        match.odds.away = parseFloat((match.odds.away * 1.6 + 2.0).toFixed(2));
+    } else if (goalDiff < 0) {
+        // Away leading: away odds shorten, home lengthens
+        const absDiff = Math.abs(goalDiff);
+        match.odds.away = Math.max(1.08, parseFloat((1.35 / (1 + absDiff * 0.4)).toFixed(2)));
+        match.odds.draw = parseFloat((3.60 + absDiff * 1.8).toFixed(2));
+        match.odds.home = parseFloat((match.odds.home * 1.6 + 2.0).toFixed(2));
+    } else {
+        // Tied
+        match.odds.draw = 2.10;
+        match.odds.home = 2.60;
+        match.odds.away = 2.75;
+    }
+}
+
+function adjustDynamicOddsForMatch(match) {
+    const isHomeLeading = match.score.home > match.score.away;
+    const isAwayLeading = match.score.away > match.score.home;
+    
+    if (isHomeLeading && match.odds.home > 1.08) {
+        // Time decay: as clock ticks with lead, winner odds reduce (shorten)
+        match.odds.home = parseFloat((match.odds.home - 0.01).toFixed(2));
+        match.odds.away = parseFloat((match.odds.away + 0.04).toFixed(2));
+    } else if (isAwayLeading && match.odds.away > 1.08) {
+        match.odds.away = parseFloat((match.odds.away - 0.01).toFixed(2));
+        match.odds.home = parseFloat((match.odds.home + 0.04).toFixed(2));
+    }
+}
+
+function updateLiveDomElements() {
+    // 1. Update player live score in video player box
+    const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
+    if (activeMatch) {
+        const homeScoreEl = document.getElementById("player-score-home");
+        const awayScoreEl = document.getElementById("player-score-away");
+        const liveTimeEl = document.getElementById("player-live-time");
+        if (homeScoreEl) homeScoreEl.textContent = activeMatch.score.home;
+        if (awayScoreEl) awayScoreEl.textContent = activeMatch.score.away;
+        if (liveTimeEl) liveTimeEl.textContent = activeMatch.time;
+    }
+
+    // 2. Update scores in visible table rows without rebuilding table DOM
+    MATCHES_DATA.forEach(m => {
+        const row = document.getElementById(`matrix-row-${m.id}`);
+        if (row && m.status === 'LIVE') {
+            const scoreEls = row.querySelectorAll(".matrix-score-pill");
+            if (scoreEls.length >= 2) {
+                scoreEls[0].textContent = m.score.home;
+                scoreEls[1].textContent = m.score.away;
+            }
+            const pulseEl = row.querySelector(".badge-live-pulse");
+            if (pulseEl) pulseEl.textContent = `🔴 ${m.time}`;
+        }
+    });
+
+    // 3. Update count pills
+    const countLive = MATCHES_DATA.filter(m => m.scheduleGroup === 'live').length;
+    const countPillLive = document.getElementById("count-pill-live");
+    if (countPillLive) countPillLive.textContent = countLive;
 }
 
 function renderMatchLineups() {

@@ -902,16 +902,34 @@ void main() {
             </section>
 
             <!-- Engagement Center -->
-            <section class="glass-panel rounded-2xl flex flex-col h-[500px]">
-                <div class="flex border-b border-white/5">
-                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-chat" onclick="switchMatchTab('chat')">CHATS</button>
-                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-lineups" onclick="switchMatchTab('lineups')">LINEUPS</button>
-                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-timeline" onclick="switchMatchTab('timeline')">TIMELINE</button>
-                    <button class="flex-1 py-4 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-stats" onclick="switchMatchTab('stats')">STATS</button>
+            <!-- Camel1.tv Inspired Match Center: 2D Radar & Stats directly under the stream box -->
+            <section class="glass-panel rounded-2xl flex flex-col h-[580px] overflow-hidden">
+                <div class="flex border-b border-white/5 bg-white/[0.02]">
+                    <button class="flex-1 py-3 text-label-md font-bold transition-all text-white border-b-2 border-secondary bg-white/5" id="btn-match-stats" onclick="switchMatchTab('stats')">⚽ 2D RADAR & STATS</button>
+                    <button class="flex-1 py-3 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-timeline" onclick="switchMatchTab('timeline')">⏱️ TIMELINE</button>
+                    <button class="flex-1 py-3 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-lineups" onclick="switchMatchTab('lineups')">👥 LINEUPS</button>
+                    <button class="flex-1 py-3 text-label-md font-bold transition-all text-on-surface/40 hover:text-white" id="btn-match-chat" onclick="switchMatchTab('chat')">💬 CHAT</button>
+                </div>
+
+                <!-- 2D Radar & Stats Panel (Camel1.tv Style) -->
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4" id="panel-match-stats">
+                    <div id="stats-scroll-container" class="space-y-4">
+                        <!-- Populated dynamically with 2D tactical pitch and comparative stats -->
+                    </div>
+                </div>
+
+                <!-- Timeline Panel -->
+                <div class="flex-1 overflow-y-auto p-6" id="panel-match-timeline" style="display: none;">
+                    <div id="timeline-scroll-container" class="space-y-4"></div>
+                </div>
+
+                <!-- Lineups Panel -->
+                <div class="flex-1 overflow-y-auto p-6" id="panel-match-lineups" style="display: none;">
+                    <div id="lineups-scroll-container" class="space-y-4"></div>
                 </div>
 
                 <!-- Chat Panel -->
-                <div class="flex-1 flex flex-col min-h-0" id="panel-match-chat">
+                <div class="flex-1 flex flex-col min-h-0" id="panel-match-chat" style="display: none;">
                     <div class="flex-1 overflow-y-auto p-6 space-y-4" id="chat-messages-container">
                         <!-- Messages populated dynamically -->
                     </div>
@@ -920,23 +938,6 @@ void main() {
                             <input class="flex-1 bg-transparent border-none focus:ring-0 text-body-md text-white" id="chat-msg-input" placeholder="Type your message or share code..." type="text" onkeydown="handleChatKey(event)"/>
                             <button class="material-symbols-outlined text-primary hover:scale-110 transition-transform" onclick="sendChatMessage()">send</button>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Lineups Panel -->
-                <div class="flex-1 overflow-y-auto p-6" id="panel-match-lineups" style="display: none;">
-                    <div id="lineups-scroll-container" class="space-y-4"></div>
-                </div>
-
-                <!-- Timeline Panel -->
-                <div class="flex-1 overflow-y-auto p-6" id="panel-match-timeline" style="display: none;">
-                    <div id="timeline-scroll-container" class="space-y-4"></div>
-                </div>
-
-                <!-- Live In-Match Stats Panel -->
-                <div class="flex-1 overflow-y-auto p-6" id="panel-match-stats" style="display: none;">
-                    <div id="stats-scroll-container" class="space-y-4">
-                        <!-- In-Match Stats populated dynamically -->
                     </div>
                 </div>
             </section>
@@ -1144,6 +1145,25 @@ void main() {
                                 </div>
                             </div>
                             <span class="acca-boost-percent" id="acca-boost-badge">+0%</span>
+                        </div>
+
+                        <!-- Betslip Mode Switcher: Multi/Accumulator vs BetBuilder -->
+                        <div class="betslip-mode-toggle" id="betslip-mode-toggle">
+                            <button id="btn-mode-acca" class="betslip-mode-btn active" onclick="setBetslipMode('acca')">
+                                <span>⚡ Multi / Accumulator</span>
+                            </button>
+                            <button id="btn-mode-builder" class="betslip-mode-btn" onclick="setBetslipMode('builder')">
+                                <span>🎯 BetBuilder (Same Game Multi)</span>
+                            </button>
+                        </div>
+
+                        <!-- BetBuilder Info Banner -->
+                        <div id="builder-info-banner" class="hidden p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between mb-3">
+                            <span class="flex items-center gap-1.5 font-bold">
+                                <span class="material-symbols-outlined text-[16px]">all_inclusive</span>
+                                <span>BetBuilder Active: Combine multiple picks from 1 game!</span>
+                            </span>
+                            <span class="builder-badge">Same Game Multi</span>
                         </div>
 
                         <!-- Betslip Selections List -->
