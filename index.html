@@ -548,17 +548,39 @@ void main() {
     <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#07070a]/50 to-[#07070a]"></div>
 </div>
 
+<!-- Ambient Mesh Backdrop -->
+<div class="ambient-glow-mesh"></div>
+
+<!-- Top Protocol Live Ticker -->
+<div class="w-full bg-[#0a0d1a] border-b border-white/5 py-1.5 px-4 text-xs font-mono flex items-center justify-between text-on-surface/70 z-50 relative">
+    <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-white font-bold">SOLANA DEVNET:</span>
+        <span class="text-emerald-400 font-semibold">400ms Sub-Second Blocks</span>
+        <span class="text-white/30">•</span>
+        <span>Anchor Program <code class="text-primary font-mono text-[11px]">84AV...dAk</code></span>
+        <span class="text-white/30">•</span>
+        <span class="text-secondary">Free Devnet Parlay Contest Live</span>
+    </div>
+    <div class="hidden md:flex items-center gap-3 text-[11px]">
+        <span class="text-white/50">Wagering Edge: <strong class="text-white">0% Platform Fee</strong></span>
+        <span class="text-white/30">|</span>
+        <a href="https://github.com/0xtryhardx0/SOLPLAY" target="_blank" class="text-primary hover:text-white transition-colors">GitHub Repo &rarr;</a>
+    </div>
+</div>
+
 <!-- Header Navigation -->
 <header class="sticky top-0 z-50 w-full glass-panel border-b border-white/5 backdrop-blur-3xl px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-8">
-        <h1 class="text-headline-md font-black tracking-tighter cursor-pointer" onclick="location.reload()">
+        <h1 class="text-headline-md font-black tracking-tighter cursor-pointer flex items-center gap-2" onclick="location.reload()">
             <span class="iridescent-gradient">⚡ SolPlay</span>
+            <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/30">EXCHANGE & ACCUMULATORS</span>
         </h1>
         <div class="flex items-center gap-2 px-3 py-1.5 glass-panel rounded-full cursor-pointer hover:bg-white/5 transition-colors">
             <span class="w-2 h-2 rounded-full bg-secondary pulse-green"></span>
             <select id="network-rpc-select" onchange="switchNetwork()" class="bg-transparent border-none focus:ring-0 text-label-sm uppercase tracking-widest text-secondary/80 font-bold cursor-pointer outline-none py-0 pl-1 pr-6">
+                <option value="devnet" selected class="bg-surface text-white">🚀 Devnet</option>
                 <option value="localnet" class="bg-surface text-white">💻 Localnet</option>
-                <option value="devnet" class="bg-surface text-white">🚀 Devnet</option>
             </select>
         </div>
         <div id="oracle-status-badge" class="hidden md:flex items-center gap-2 px-3 py-1.5 glass-panel rounded-full border border-teal-500/35" style="background: rgba(13, 148, 136, 0.12);">
@@ -643,17 +665,19 @@ void main() {
                     </div>
                     <div class="flex flex-col gap-2 items-end">
                         <div class="flex gap-2">
-                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-region-select" onchange="updateStreamProviders()">
+                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5 cursor-pointer" id="stream-region-select" onchange="updateStreamProviders()">
+                                <option value="africa" selected>🌍 Africa & Global</option>
                                 <option value="uk_eu">🇪🇺 UK & Europe</option>
                                 <option value="us_am">🇺🇸 US & Americas</option>
-                                <option value="africa">🌍 Africa</option>
-                                <option value="asia_in">🌏 Asia & India</option>
-                                <option value="mock" selected>⚡ Developer Mocks</option>
+                                <option value="asia_in">🌏 Asia & International</option>
                             </select>
-                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5" id="stream-provider-select" onchange="switchStreamProvider()">
-                                <option value="0">Server 1 (Red Bull TV - HLS)</option>
-                                <option value="1">Server 2 (HLS Direct Test Feed)</option>
-                                <option value="2">Server 3 (CBS News Live Mirror)</option>
+                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5 cursor-pointer" id="stream-provider-select" onchange="switchStreamProvider()">
+                                <option value="0">⚡ Live Stream 1 (Africa24 Sports HD)</option>
+                                <option value="1">⚡ Live Stream 2 (Red Bull Sports TV - 1080p)</option>
+                                <option value="2">⚡ Live Stream 3 (ACI Sport HD - Live Relay)</option>
+                                <option value="3">⚡ Live Stream 4 (Al Iraqia Sports HD - Football)</option>
+                                <option value="4">⚡ Live Stream 5 (Astrahan Sport HD - Stadium Feed)</option>
+                                <option value="5">📡 Live 2D Match Radar (Real-Time Coordinates)</option>
                             </select>
                             <div class="relative inline-block" id="cdn-dropdown-container">
                                 <button onclick="toggleCDNDropdown()" id="btn-cdn-dropdown" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-label-sm text-white transition-all font-bold select-none cursor-pointer">
@@ -731,44 +755,69 @@ void main() {
                                 </div>
                             </div>
                         </div>
-                        <div id="custom-stream-container" class="hidden w-full max-w-[320px] p-1.5 glass-panel rounded-lg flex gap-1.5 items-center border border-white/5" style="background: rgba(0,0,0,0.3);">
-                            <input type="text" id="custom-stream-url" placeholder="Paste .m3u8 HLS or YouTube URL..." class="bg-transparent border-none text-[10px] text-white focus:ring-0 flex-1 outline-none px-2 py-0.5 w-full" style="font-family: monospace;">
-                            <button onclick="loadCustomStream()" class="bg-primary hover:bg-primary-hover text-white text-[10px] px-3 py-1 rounded font-bold transition-all" style="background: linear-gradient(135deg, var(--neon-teal), #0d9488);">Load</button>
+                        <div id="custom-stream-container" class="hidden w-full max-w-[360px] p-1.5 glass-panel rounded-lg flex gap-1.5 items-center border border-white/5" style="background: rgba(0,0,0,0.3);">
+                            <input type="text" id="custom-stream-url" placeholder="Paste .m3u8 HLS or free sports stream URL..." class="bg-transparent border-none text-[11px] text-white focus:ring-0 flex-1 outline-none px-2 py-0.5 w-full font-mono">
+                            <button onclick="loadCustomStream()" class="bg-primary hover:bg-primary-hover text-white text-[11px] px-3 py-1 rounded font-bold transition-all" style="background: linear-gradient(135deg, var(--neon-teal), #0d9488);">Load</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Video Players -->
-                <div class="aspect-video relative bg-black/40 group overflow-hidden">
-                    <!-- YouTube & Live Stream Embed (Server 1) -->
-                    <iframe class="w-full h-full border-none" id="video-iframe-player" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="no-referrer" allowfullscreen style="display: none;"></iframe>
+                <!-- Video Players Container -->
+                <div class="aspect-video relative bg-black/60 group overflow-hidden rounded-b-xl border-t border-white/5" id="video-player-container">
+                    <!-- Live Sports Web Stream Embed (Server 1) -->
+                    <iframe class="w-full h-full border-none" id="video-iframe-player" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allowfullscreen style="display: none;"></iframe>
                     
                     <!-- Native HLS Video Stream Element (Server 2) -->
-                    <video class="w-full h-full object-cover" id="hls-video-player" controls autoplay muted style="display: none;"></video>
+                    <video class="w-full h-full object-cover" id="hls-video-player" playsinline autoplay muted style="display: none;"></video>
                     
-                    <!-- HLS / Animated Canvas Mock (Server 3) -->
-                    <div class="absolute inset-0 flex flex-col justify-center items-center bg-gradient-to-br from-indigo-950 to-slate-950 text-center" id="mock-video-player" style="display: none;">
+                    <!-- Live 2D Match Radar Fallback (Server 3) -->
+                    <div class="absolute inset-0 flex flex-col justify-center items-center bg-gradient-to-br from-indigo-950/90 to-slate-950/90 text-center" id="mock-video-player" style="display: none;">
                         <div class="z-10 p-4">
-                            <span class="bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse uppercase">LIVE STREAM</span>
+                            <span class="bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse uppercase tracking-wider">LIVE 2D RADAR FEED</span>
                             <div class="text-4xl lg:text-5xl font-black tracking-widest text-white my-4 drop-shadow-md" id="player-live-score">Arsenal <span id="player-score-home">0</span> - <span id="player-score-away">0</span> Chelsea</div>
                             <div id="player-live-time" class="text-sm text-on-surface/60 font-medium">45:00</div>
                         </div>
-                        <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-between items-center">
-                            <button class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-label-sm" onclick="mockPlayPause()">⏸ Pause</button>
-                            <span class="text-label-sm text-secondary font-bold">Stream Health: Excellent</span>
+                        <div class="absolute inset-x-0 bottom-16 p-4 flex justify-between items-center pointer-events-auto">
+                            <button class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-label-sm cursor-pointer transition-colors" onclick="mockPlayPause()">⏸ Pause Simulation</button>
+                            <span class="text-label-sm text-secondary font-bold">Stream Health: High Bitrate</span>
                         </div>
                     </div>
 
-                    <!-- Overlay UI Controls -->
-                    <div class="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between">
-                        <div class="flex items-center gap-6">
-                            <button class="material-symbols-outlined text-white text-[32px]">play_circle</button>
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-white text-[20px]">volume_up</span>
-                                <div class="w-24 h-1 bg-white/20 rounded-full overflow-hidden">
-                                    <div class="w-3/4 h-full bg-primary"></div>
-                                </div>
+                    <!-- Functional Glass Player Controls Bar -->
+                    <div id="custom-player-controls" class="absolute inset-x-0 bottom-0 p-3 lg:p-4 bg-gradient-to-t from-black/95 via-black/75 to-transparent flex items-center justify-between z-30 transition-all opacity-95 group-hover:opacity-100">
+                        <div class="flex items-center gap-3 lg:gap-4">
+                            <!-- Play / Pause Button -->
+                            <button id="player-play-btn" onclick="togglePlayerPlayPause()" title="Play / Pause (Space)" class="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-lg">
+                                <span class="material-symbols-outlined text-[22px] lg:text-[24px]" id="player-play-icon">play_arrow</span>
+                            </button>
+
+                            <!-- Volume Control Group -->
+                            <div class="flex items-center gap-2 group/vol bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-xl backdrop-blur-md">
+                                <button id="player-volume-btn" onclick="togglePlayerMute()" title="Mute / Unmute (M)" class="text-white/80 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-[20px]" id="player-volume-icon">volume_off</span>
+                                </button>
+                                <input type="range" id="player-volume-slider" min="0" max="1" step="0.05" value="0.75" oninput="handlePlayerVolumeChange(this.value)" class="w-16 lg:w-24 h-1.5 rounded-lg appearance-none cursor-pointer accent-[#14b8a6] bg-white/20" title="Volume">
+                                <span id="player-volume-label" class="text-[10px] font-mono text-white/70 w-7">75%</span>
                             </div>
+
+                            <!-- Live Broadcast Badge -->
+                            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/20 border border-red-500/40 text-[10px] lg:text-[11px] font-bold text-red-400">
+                                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                <span>LIVE</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Control Actions -->
+                        <div class="flex items-center gap-2">
+                            <span id="player-resolution-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/10 border border-white/10 text-emerald-400">1080p 60fps</span>
+                            
+                            <button onclick="reloadActiveStream()" title="Reload Stream Signal" class="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">refresh</span>
+                            </button>
+
+                            <button onclick="togglePlayerFullscreen()" title="Fullscreen (F)" class="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-[19px]">fullscreen</span>
+                            </button>
                         </div>
                     </div>
                 </div>

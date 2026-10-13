@@ -1011,7 +1011,7 @@ async function fetchUpcomingMatchesFromAPI() {
 // Initialize on page load
 function initApp() {
     // Connect to correct validator/network based on saved settings
-    const savedNetwork = localStorage.getItem("solplay_network") || "localnet";
+    const savedNetwork = localStorage.getItem("solplay_network") || "devnet";
     const rpcSelect = document.getElementById("network-rpc-select");
     if (rpcSelect) {
         rpcSelect.value = savedNetwork;
@@ -1478,7 +1478,7 @@ function parseStreamAccount(data) {
         url: url,
         region: region,
         description: "On-Chain stream mirror feed.",
-        type: url.includes("youtube.com") ? "youtube" : "external",
+        type: "hls",
         isActive: isActive
     };
 }
@@ -1489,46 +1489,49 @@ function getStreamsForMatchAndRegion(match, region) {
     else if (region === "us_am") suffix = " (US Feed)";
     else if (region === "africa") suffix = " (Africa Feed)";
     else if (region === "asia_in") suffix = " (Asia Feed)";
-    else suffix = " (Global)";
+    else suffix = " (Global HD)";
 
-    const hlsMirrors = [
-        { name: `⚡ Live Mirror 1 (Red Bull TV - Action Sports)${suffix}`, url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", description: "Free Action Sports live streaming mirror.", type: "hls" },
-        { name: `⚡ Live Mirror 2 (CBS News Live Mirror)${suffix}`, url: "https://cbsn-us.cbsnstream.cbsnews.com/main/manifest.m3u8", description: "Free CBS News live streaming mirror.", type: "hls" },
-        { name: `⚡ Live Mirror 3 (HLS Direct Test Feed)${suffix}`, url: "https://stream.mux.com/v69El17P02tUkUg1sQeT293m38ZFO02581J/medium.m3u8", description: "Mux HD livestream test mirror.", type: "hls" }
+    // High-performance verified live sports feeds (NO YouTube)
+    const verifiedSportsFeeds = [
+        { 
+            name: `⚡ Live Stream 1 (Africa24 Sports HD)${suffix}`, 
+            url: "https://africa24.vedge.infomaniak.com/livecast/ik:africa24sport/manifest.m3u8", 
+            description: "Live continuous sports and football broadcast. High bitrate HLS direct.", 
+            type: "hls" 
+        },
+        { 
+            name: `⚡ Live Stream 2 (Red Bull Sports TV - 1080p)${suffix}`, 
+            url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8", 
+            description: "High-definition 60fps action sports livestream. Zero latency mirror.", 
+            type: "hls" 
+        },
+        { 
+            name: `⚡ Live Stream 3 (ACI Sport HD - Live Relay)${suffix}`, 
+            url: "https://webstream.multistream.it/memfs/e2cb3629-c1a2-495b-b43a-9eb386f04ed8.m3u8", 
+            description: "Live European sports tournament transmission feed.", 
+            type: "hls" 
+        },
+        { 
+            name: `⚡ Live Stream 4 (Al Iraqia Sports HD - Football)${suffix}`, 
+            url: "https://imn-live.esite-lab.com/hls/iraqia-sports-1.m3u8", 
+            description: "Direct football league coverage and stadium match stream.", 
+            type: "hls" 
+        },
+        { 
+            name: `⚡ Live Stream 5 (Astrahan Sport HD - Stadium Feed)${suffix}`, 
+            url: "https://streaming.astrakhan.ru/astrakhanrusporthd/playlist.m3u8", 
+            description: "Continuous stadium match broadcast feed.", 
+            type: "hls" 
+        },
+        { 
+            name: `📡 Live 2D Match Radar (Real-Time Coordinates)`, 
+            url: "", 
+            description: "Real-time tactical pitch radar, live ball physics and in-game events.", 
+            type: "mock" 
+        }
     ];
 
-    if (region === 'mock') {
-        return hlsMirrors;
-    }
-    
-    let externalStreams = [];
-    if (match.id === 2026 || match.id === 999) { // World Cup / Portugal vs Uzbekistan
-        externalStreams = [
-            { name: `🏆 World Cup Stream 1 (VIPLeague - Free)${suffix}`, url: "https://www.vipleague.pm/", description: "Direct World Cup live stream feed. Free stream access.", type: "external" },
-            { name: `🏆 World Cup Stream 2 (FootyBite - Free)${suffix}`, url: "https://footybite.to/", description: "Aggregated live stream portal. Standard quality.", type: "external" },
-            { name: `🏆 World Cup Stream 3 (SportSurge - Free)${suffix}`, url: "https://sportsurge.net/", description: "P2P streaming portal. Recommended for desktop.", type: "external" },
-            { name: `🏆 World Cup Stream 4 (HesGoal - Free)${suffix}`, url: "http://www.hesgoal.com/", description: "Lightweight, low-latency mobile feed.", type: "external" }
-        ];
-    } else if (match.id === 997) { // Saudi Pro League
-        externalStreams = [
-            { name: `🇸🇦 Al Nassr vs Al Hilal (VIPRow - Free)${suffix}`, url: "https://www.viprow.nu/", description: "Saudi Pro League direct feed. Free access.", type: "external" },
-            { name: `🇸🇦 Al Nassr vs Al Hilal (CricFree - Free)${suffix}`, url: "https://cricfree.live/", description: "Ad-supported mirror for Arab football league.", type: "external" }
-        ];
-    } else if (match.id === 996) { // MLS
-        externalStreams = [
-            { name: `🇺🇸 Inter Miami vs LA Galaxy (VIPLeague - Free)${suffix}`, url: "https://www.vipleague.pm/", description: "MLS US stream. 100% free.", type: "external" },
-            { name: `🇺🇸 Inter Miami vs LA Galaxy (SportSurge - Free)${suffix}`, url: "https://sportsurge.net/", description: "Ad-free P2P aggregator for MLS matches.", type: "external" }
-        ];
-    } else { // Other matches
-        externalStreams = [
-            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (VIPLeague - Free)${suffix}`, url: "https://www.vipleague.pm/", description: `Direct stream for ${match.homeTeam} vs ${match.awayTeam}. Free stream access.`, type: "external" },
-            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (FootyBite - Free)${suffix}`, url: "https://footybite.to/", description: "Aggregated live stream portal. Standard quality.", type: "external" },
-            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (SportSurge - Free)${suffix}`, url: "https://sportsurge.net/", description: "P2P streaming portal. Recommended for desktop.", type: "external" },
-            { name: `⚽ ${match.homeTeam} vs ${match.awayTeam} (HesGoal - Free)${suffix}`, url: "http://www.hesgoal.com/", description: "Lightweight, low-latency mobile feed.", type: "external" }
-        ];
-    }
-
-    return [...hlsMirrors, ...externalStreams];
+    return verifiedSportsFeeds;
 }
 
 function updateStreamProviders() {
@@ -1546,9 +1549,7 @@ function updateStreamProviders() {
     // Clear previous options
     providerSelect.innerHTML = "";
     
-    const match = MATCHES_DATA.find(m => m.id === activeMatchId);
-    if (!match) return;
-    
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId) || MATCHES_DATA[0];
     const streams = getStreamsForMatchAndRegion(match, selectedRegion);
     
     // Merge on-chain streams registered via admin
@@ -1567,10 +1568,10 @@ function updateStreamProviders() {
     // Add Custom option
     const customOpt = document.createElement("option");
     customOpt.value = "custom";
-    customOpt.textContent = "🔗 Custom Stream URL";
+    customOpt.textContent = "🔗 Enter Custom Stream URL";
     providerSelect.appendChild(customOpt);
     
-    // Restore preferred provider selection if it matches one of the new options
+    // Restore preferred provider selection if it matches one of the options
     const preferredProviderVal = localStorage.getItem("solplay_preferred_provider_val");
     if (preferredProviderVal !== null) {
         if (preferredProviderVal === "custom") {
@@ -1615,30 +1616,29 @@ function loadCustomStream() {
     const mockPlayer = document.getElementById("mock-video-player");
     const video = document.getElementById("hls-video-player");
     
-    document.getElementById("stream-title").textContent = `Custom Stream Link - Live Feed`;
+    document.getElementById("stream-title").textContent = `Custom Live Stream — Active Feed`;
     
     if (url.includes(".m3u8") || url.includes("m3u8")) {
-        playerFrame.style.display = "none";
-        mockPlayer.style.display = "none";
-        video.style.display = "block";
-        initHlsPlayer(video, url);
+        // Direct HLS stream
+        if (playerFrame) playerFrame.style.display = "none";
+        if (mockPlayer) mockPlayer.style.display = "none";
+        if (video) {
+            video.style.display = "block";
+            initHlsPlayer(video, url);
+        }
         showToast("Custom HLS Stream Loaded Successfully!", "success");
     } else {
-        let embedUrl = url;
-        if (url.includes("youtube.com/watch?v=")) {
-            const vidId = url.split("v=")[1].split("&")[0];
-            embedUrl = `https://www.youtube.com/embed/${vidId}?autoplay=1&mute=1`;
-        } else if (url.includes("youtu.be/")) {
-            const vidId = url.split("youtu.be/")[1].split("?")[0];
-            embedUrl = `https://www.youtube.com/embed/${vidId}?autoplay=1&mute=1`;
+        // Free Sports Stream Embed portal (displayed in-frame with sandboxing)
+        if (video) {
+            video.style.display = "none";
+            destroyHlsPlayer();
         }
-        
-        video.style.display = "none";
-        mockPlayer.style.display = "none";
-        playerFrame.style.display = "block";
-        playerFrame.src = embedUrl;
-        destroyHlsPlayer();
-        showToast("Custom Embed Stream Loaded Successfully!", "success");
+        if (mockPlayer) mockPlayer.style.display = "none";
+        if (playerFrame) {
+            playerFrame.style.display = "block";
+            playerFrame.src = url;
+        }
+        showToast("Live Web Stream Loaded In-Frame!", "success");
     }
 }
 
@@ -1667,6 +1667,7 @@ function switchStreamProvider() {
     
     const playerFrame = document.getElementById("video-iframe-player");
     const mockPlayer = document.getElementById("mock-video-player");
+    const video = document.getElementById("hls-video-player");
     
     document.getElementById("stream-title").textContent = `${provider.name} - Routed Live`;
     
@@ -1676,60 +1677,186 @@ function switchStreamProvider() {
         existingRoutingBlock.remove();
     }
 
-    if (provider.type === "youtube") {
-        playerFrame.style.display = "block";
-        mockPlayer.style.display = "none";
-        document.getElementById("hls-video-player").style.display = "none";
-        playerFrame.src = provider.url;
-        destroyHlsPlayer();
-    } else if (provider.type === "hls") {
-        // Real-time HLS Video streaming
-        playerFrame.style.display = "none";
-        mockPlayer.style.display = "none";
-        const video = document.getElementById("hls-video-player");
-        video.style.display = "block";
-        
-        initHlsPlayer(video, provider.url);
-    } else if (provider.type === "external") {
-        // Show Live Graphical Tracker and Open Link Button
-        playerFrame.style.display = "none";
-        mockPlayer.style.display = "flex";
-        document.getElementById("hls-video-player").style.display = "none";
-        destroyHlsPlayer();
-        
-        // Add open link button info block to mock player
-        const routingBlock = document.createElement("div");
-        routingBlock.id = "routing-info-block";
-        routingBlock.className = "stream-routing-info";
-        routingBlock.innerHTML = `
-            <span class="provider-desc" style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; display: block; margin-bottom: 0.5rem; line-height: 1.4;">
-                ${provider.description}
-            </span>
-            <a href="${provider.url}" class="btn-primary" target="_blank" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--neon-pink), #db2777); box-shadow: var(--glow-pink); padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600;">
-                🚀 Route Feed & Launch Portal
-            </a>
-        `;
-        
-        // Insert right under score
-        mockPlayer.insertBefore(routingBlock, mockPlayer.querySelector(".stream-controls"));
+    if (provider.type === "hls") {
+        // Real-time HLS Video streaming directly in SolPlay
+        if (playerFrame) playerFrame.style.display = "none";
+        if (mockPlayer) mockPlayer.style.display = "none";
+        if (video) {
+            video.style.display = "block";
+            initHlsPlayer(video, provider.url);
+        }
+    } else if (provider.type === "embed") {
+        // Direct web stream embed in-frame
+        if (video) {
+            video.style.display = "none";
+            destroyHlsPlayer();
+        }
+        if (mockPlayer) mockPlayer.style.display = "none";
+        if (playerFrame) {
+            playerFrame.style.display = "block";
+            playerFrame.src = provider.url;
+        }
     } else {
-        // Mock HLS or E-Sports Mock
-        playerFrame.style.display = "none";
-        mockPlayer.style.display = "flex";
-        document.getElementById("hls-video-player").style.display = "none";
-        destroyHlsPlayer();
-        
-        const descBlock = document.createElement("div");
-        descBlock.id = "routing-info-block";
-        descBlock.className = "stream-routing-info";
-        descBlock.innerHTML = `
-            <span class="provider-desc" style="font-size: 0.8rem; color: var(--text-secondary); max-width: 280px; display: block; margin-bottom: 0.5rem; line-height: 1.4;">
-                ${provider.description}
-            </span>
-        `;
-        mockPlayer.insertBefore(descBlock, mockPlayer.querySelector(".stream-controls"));
+        // Live 2D Match Radar Simulator
+        if (playerFrame) playerFrame.style.display = "none";
+        if (video) {
+            video.style.display = "none";
+            destroyHlsPlayer();
+        }
+        if (mockPlayer) mockPlayer.style.display = "flex";
     }
 }
+
+// =========================================================
+// CUSTOM STREAM PLAYER CONTROLS (PLAY/PAUSE, VOLUME, FULLSCREEN)
+// =========================================================
+
+function togglePlayerPlayPause() {
+    const video = document.getElementById("hls-video-player");
+    const playIcon = document.getElementById("player-play-icon");
+    if (!video) return;
+    
+    if (video.style.display !== "none") {
+        if (video.paused) {
+            video.play().then(() => {
+                if (playIcon) playIcon.textContent = "pause";
+                showToast("Stream Playing", "info");
+            }).catch(e => {
+                console.warn("Autoplay unmute required:", e);
+                video.muted = false;
+                video.play();
+                if (playIcon) playIcon.textContent = "pause";
+            });
+        } else {
+            video.pause();
+            if (playIcon) playIcon.textContent = "play_arrow";
+            showToast("Stream Paused", "info");
+        }
+    } else {
+        // If mock player is visible
+        mockPlayPause();
+    }
+}
+
+function togglePlayerMute() {
+    const video = document.getElementById("hls-video-player");
+    const volIcon = document.getElementById("player-volume-icon");
+    const volSlider = document.getElementById("player-volume-slider");
+    const volLabel = document.getElementById("player-volume-label");
+    if (!video) return;
+    
+    video.muted = !video.muted;
+    if (video.muted) {
+        if (volIcon) volIcon.textContent = "volume_off";
+        if (volLabel) volLabel.textContent = "0%";
+        if (volSlider) volSlider.value = 0;
+        showToast("Audio Muted", "info");
+    } else {
+        if (volIcon) volIcon.textContent = "volume_up";
+        const restoreVol = video.volume > 0 ? video.volume : 0.75;
+        video.volume = restoreVol;
+        if (volSlider) volSlider.value = restoreVol;
+        if (volLabel) volLabel.textContent = `${Math.round(restoreVol * 100)}%`;
+        showToast("Audio Unmuted", "info");
+    }
+}
+
+function handlePlayerVolumeChange(val) {
+    const video = document.getElementById("hls-video-player");
+    const volIcon = document.getElementById("player-volume-icon");
+    const volLabel = document.getElementById("player-volume-label");
+    if (!video) return;
+    
+    const floatVal = parseFloat(val);
+    video.volume = floatVal;
+    video.muted = (floatVal === 0);
+    
+    if (volLabel) volLabel.textContent = `${Math.round(floatVal * 100)}%`;
+    if (volIcon) {
+        if (floatVal === 0) volIcon.textContent = "volume_off";
+        else if (floatVal < 0.5) volIcon.textContent = "volume_down";
+        else volIcon.textContent = "volume_up";
+    }
+}
+
+function togglePlayerFullscreen() {
+    const container = document.getElementById("video-player-container") || document.getElementById("hls-video-player");
+    if (!container) return;
+    
+    if (!document.fullscreenElement) {
+        if (container.requestFullscreen) {
+            container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+            container.webkitRequestFullscreen();
+        }
+        showToast("Entered Fullscreen", "info");
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+}
+
+function reloadActiveStream() {
+    const video = document.getElementById("hls-video-player");
+    if (video && video.style.display !== "none") {
+        switchStreamProvider();
+        showToast("Reconnected to Live Stream Feed", "success");
+    } else {
+        switchStreamProvider();
+        showToast("Stream Reloaded", "info");
+    }
+}
+
+// Hook video element playback events to keep custom UI controls synchronized
+document.addEventListener("DOMContentLoaded", () => {
+    const video = document.getElementById("hls-video-player");
+    if (video) {
+        video.addEventListener("play", () => {
+            const playIcon = document.getElementById("player-play-icon");
+            if (playIcon) playIcon.textContent = "pause";
+        });
+        video.addEventListener("pause", () => {
+            const playIcon = document.getElementById("player-play-icon");
+            if (playIcon) playIcon.textContent = "play_arrow";
+        });
+        video.addEventListener("volumechange", () => {
+            const volIcon = document.getElementById("player-volume-icon");
+            const volSlider = document.getElementById("player-volume-slider");
+            const volLabel = document.getElementById("player-volume-label");
+            if (video.muted) {
+                if (volIcon) volIcon.textContent = "volume_off";
+                if (volLabel) volLabel.textContent = "0%";
+            } else {
+                if (volIcon) {
+                    if (video.volume === 0) volIcon.textContent = "volume_off";
+                    else if (video.volume < 0.5) volIcon.textContent = "volume_down";
+                    else volIcon.textContent = "volume_up";
+                }
+                if (volLabel) volLabel.textContent = `${Math.round(video.volume * 100)}%`;
+                if (volSlider) volSlider.value = video.volume;
+            }
+        });
+    }
+
+    // Keyboard shortcuts for stream player (Space = play/pause, M = mute, F = fullscreen)
+    document.addEventListener("keydown", (e) => {
+        // Do not trigger if typing in an input
+        if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+        
+        if (e.code === "Space") {
+            e.preventDefault();
+            togglePlayerPlayPause();
+        } else if (e.key === "m" || e.key === "M") {
+            togglePlayerMute();
+        } else if (e.key === "f" || e.key === "F") {
+            togglePlayerFullscreen();
+        }
+    });
+});
+
 
 let isTestingSpeed = false;
 let connectedNodeId = null;
