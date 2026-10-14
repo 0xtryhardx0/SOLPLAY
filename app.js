@@ -1723,6 +1723,14 @@ function initApp() {
 
     // Load wallet if stored
     loadOrCreateWallet();
+
+    // Initialize Cloud Database if Supabase is configured
+    if (window.SolPlayDB) {
+        SolPlayDB.init();
+        if (activePublicKey) {
+            SolPlayDB.syncUserAccount(activePublicKey.toString());
+        }
+    }
     
     // Start live simulation elements
     startMockStreamChat();
@@ -5440,6 +5448,11 @@ function getFriendlyUsername(pubkeyString) {
 function saveWagersToStorage() {
     const key = activePublicKey ? `solplay_wagers_${activePublicKey.toString()}` : "solplay_wagers_anonymous";
     localStorage.setItem(key, JSON.stringify(localWagers));
+
+    // Async Cloud DB sync if initialized
+    if (window.SolPlayDB && SolPlayDB.isInitialized && activePublicKey && localWagers.length > 0) {
+        SolPlayDB.saveWager(localWagers[0], activePublicKey.toString());
+    }
 }
 
 function loadWagersFromStorage() {
@@ -5468,6 +5481,25 @@ function loadWagersFromStorage() {
         }
     } else {
         localWagers = [];
+    }
+
+    // Async Cloud DB sync
+    if (window.SolPlayDB && SolPlayDB.isInitialized && activePublicKey) {
+        SolPlayDB.loadUserWagers(activePublicKey.toString()).then(cloudWagers => {
+            if (cloudWagers && Array.isArray(cloudWagers) && cloudWagers.length > 0) {
+                const localIds = new Set(localWagers.map(w => w.ticketId || w.id));
+                let added = false;
+                cloudWagers.forEach(cw => {
+                    if (!localIds.has(cw.ticketId || cw.id)) {
+                        localWagers.push(cw);
+                        added = true;
+                    }
+                });
+                if (added) {
+                    renderActiveWagers();
+                }
+            }
+        }).catch(err => console.warn("Cloud DB wager fetch fallback:", err));
     }
 }
 
