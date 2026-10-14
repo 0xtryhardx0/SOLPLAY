@@ -3645,6 +3645,22 @@ async function placeBet() {
         return;
     }
 
+    // Verify balance
+    const currentBal = (typeof walletBalance !== 'undefined') ? walletBalance : 0;
+    if (isWalletConnected && currentBal > 0 && stakeSol > currentBal) {
+        showToast(`Insufficient balance (${currentBal.toFixed(4)} SOL). Please lower your stake.`, "error");
+        return;
+    }
+
+    // Lockout protection: ensure none of the selected matches have concluded
+    for (const sel of betslipSelections) {
+        const m = MATCHES_DATA.find(match => match.id === sel.gameId);
+        if (m && (m.status === "FINISHED" || m.time === "Full Time" || m.time === "FT")) {
+            showToast(`Market closed: ${m.homeTeam} vs ${m.awayTeam} has already ended.`, "error");
+            return;
+        }
+    }
+
     const legs = betslipSelections.length;
     let totalMultiplier = 1.0;
     if (betslipMode === 'accumulator') {
@@ -3712,13 +3728,26 @@ async function placeBet() {
 
         // Register wager in user's portfolio
         const primarySel = betslipSelections[0];
+        const shortTicketId = `#SP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const isAcca = (legs > 1 && betslipMode === 'accumulator');
+        
         localWagers.unshift({
             id: `TICKET-${Date.now()}`,
-            isAccumulator: (legs > 1 && betslipMode === 'accumulator'),
-            legs: [...betslipSelections],
+            ticketId: shortTicketId,
+            isAccumulator: isAcca,
+            legs: betslipSelections.map(s => {
+                const legMatch = MATCHES_DATA.find(m => m.id === s.gameId);
+                const legFixture = legMatch ? `${legMatch.homeTeam} vs ${legMatch.awayTeam}` : `Fixture #${s.gameId}`;
+                return {
+                    ...s,
+                    fixtureName: legFixture,
+                    outcomeLabel: s.label || s.outcomeLabel,
+                    status: "PENDING"
+                };
+            }),
             legsCount: legs,
             gameId: primarySel.gameId,
-            outcomeLabel: legs > 1 && betslipMode === 'accumulator' ? `${legs}-Fold Acca (${totalMultiplier.toFixed(2)}x)` : primarySel.outcomeLabel,
+            outcomeLabel: isAcca ? `${legs}-Fold Acca (${totalMultiplier.toFixed(2)}x)` : (primarySel.label || primarySel.outcomeLabel),
             outcomeId: primarySel.outcomeId,
             amount: stakeSol,
             odds: totalMultiplier,
@@ -3727,7 +3756,7 @@ async function placeBet() {
             status: "PENDING",
             wagerPubkey: wagerAccountKeypair.publicKey,
             claimed: false,
-            timestamp: new Date().toLocaleTimeString()
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
 
         // Deduct from wallet balance in sandbox
@@ -3748,6 +3777,54 @@ async function placeBet() {
     }
 }
 
+function evaluateTicketOutcome(w) {
+    if (!w) return "PENDING";
+    
+    // Multi-leg accumulator evaluation
+    if (w.isAccumulator && w.legs && w.legs.length > 1) {
+        let hasLost = false;
+        let anyPending = false;
+        let allWon = true;
+
+        w.legs.forEach(leg => {
+            const match = MATCHES_DATA.find(m => m.id === leg.gameId);
+            if (!match) {
+                anyPending = true;
+                allWon = false;
+                leg.status = "PENDING";
+                return;
+            }
+            const isFinished = (match.status === "FINISHED" || match.time === "Full Time" || match.time === "FT");
+            if (!isFinished) {
+                anyPending = true;
+                allWon = false;
+                leg.status = "PENDING";
+            } else {
+                const legOutcome = evaluateMatchOutcome(match, leg.outcomeId, leg.outcomeLabel || leg.label);
+                leg.status = legOutcome;
+                if (legOutcome === "LOST") {
+                    hasLost = true;
+                    allWon = false;
+                } else if (legOutcome === "PENDING") {
+                    anyPending = true;
+                    allWon = false;
+                }
+            }
+        });
+
+        if (hasLost) return "LOST";
+        if (allWon && !anyPending) return "WON";
+        return "PENDING";
+    } else {
+        // Single match evaluation
+        const match = MATCHES_DATA.find(m => m.id === w.gameId);
+        if (!match) return "PENDING";
+        const isFinished = (match.status === "FINISHED" || match.time === "Full Time" || match.time === "FT");
+        if (!isFinished) return "PENDING";
+        return evaluateMatchOutcome(match, w.outcomeId, w.outcomeLabel);
+    }
+}
+
 function renderActiveWagers() {
     const container = document.getElementById("active-wagers-container");
     container.innerHTML = "";
@@ -3760,58 +3837,171 @@ function renderActiveWagers() {
     localWagers.forEach((w, idx) => {
         const item = document.createElement("div");
         item.className = "match-card";
-        item.style.marginBottom = "0.5rem";
+        item.style.marginBottom = "0.75rem";
+        item.style.border = "1px solid rgba(255, 255, 255, 0.08)";
+        item.style.background = "linear-gradient(180deg, rgba(20, 24, 38, 0.95), rgba(12, 15, 26, 0.98))";
+        item.style.borderRadius = "8px";
+        item.style.padding = "0.75rem";
         
-        let statusBadge = `<span style="color:var(--neon-orange); font-size:0.75rem;">Pending</span>`;
+        let statusBadge = `<span style="background:rgba(245,158,11,0.15); color:var(--neon-orange); border:1px solid rgba(245,158,11,0.3); border-radius:4px; padding:0.15rem 0.4rem; font-size:0.7rem; font-weight:600;">⏳ PENDING</span>`;
         let claimBtn = "";
 
         if (w.status === "WON") {
-            statusBadge = `<span style="color:var(--neon-teal); font-size:0.75rem; font-weight:600;">Won!</span>`;
+            statusBadge = `<span style="background:rgba(0,240,255,0.15); color:var(--neon-teal); border:1px solid rgba(0,240,255,0.3); border-radius:4px; padding:0.15rem 0.4rem; font-size:0.7rem; font-weight:700;">🏆 WON</span>`;
             if (!w.claimed) {
-                claimBtn = `<button class="btn-primary" onclick="claimWagerOnchain(${idx})" style="padding:0.4rem 0.8rem; font-size:0.75rem; width:100%; margin-top:0.5rem;">Claim Winnings & Commission</button>`;
+                claimBtn = `<button class="btn-primary" onclick="claimWagerOnchain(${idx})" style="padding:0.45rem 0.8rem; font-size:0.75rem; width:100%; margin-top:0.6rem; font-weight:700; background:linear-gradient(135deg, var(--neon-teal), #00b4d8); box-shadow:0 0 12px rgba(0,240,255,0.3);">💰 Claim ${(w.potentialPayout || (w.amount * w.odds)).toFixed(4)} SOL Payout</button>`;
             } else {
-                claimBtn = `<div style="text-align:center; font-size:0.75rem; color:var(--text-secondary); margin-top:0.5rem;">Claimed & Payout Disbursed ✅</div>`;
+                claimBtn = `<div style="text-align:center; font-size:0.75rem; color:var(--neon-teal); margin-top:0.5rem; font-weight:600; padding:0.3rem; background:rgba(0,240,255,0.05); border-radius:4px;">Claimed & Disbursed to Wallet ✅</div>`;
             }
         } else if (w.status === "LOST") {
-            statusBadge = `<span style="color:var(--neon-pink); font-size:0.75rem;">Lost</span>`;
+            statusBadge = `<span style="background:rgba(239,68,68,0.15); color:var(--neon-pink); border:1px solid rgba(239,68,68,0.3); border-radius:4px; padding:0.15rem 0.4rem; font-size:0.7rem; font-weight:600;">❌ LOST</span>`;
         }
 
-        let fixtureName = `Game #${w.gameId}`;
-        const match = MATCHES_DATA.find(m => m.id === w.gameId);
-        if (match) {
-            fixtureName = `${match.homeTeam} vs ${match.awayTeam}`;
-        } else {
-            const tournament = TOURNAMENTS_DATA.find(t => t.id === w.gameId);
-            if (tournament) {
-                fixtureName = tournament.title;
+        const ticketCode = w.ticketId || `#SP-${String(w.id).replace(/\D/g, '').slice(-6) || '849201'}`;
+        const wagerTime = w.timestamp || 'Recent';
+
+        // Check if ticket can be verified
+        let canVerify = false;
+        if (w.status === "Pending" || w.status === "PENDING" || w.status === "Resolved") {
+            if (w.isAccumulator && w.legs && w.legs.length > 1) {
+                // If any leg match is finished or has scores
+                canVerify = w.legs.some(leg => {
+                    const m = MATCHES_DATA.find(matchItem => matchItem.id === leg.gameId);
+                    return m && (m.status === "FINISHED" || m.time === "Full Time" || m.time === "FT");
+                });
+            } else {
+                const singleMatch = MATCHES_DATA.find(m => m.id === w.gameId);
+                canVerify = singleMatch && (singleMatch.status === "FINISHED" || singleMatch.time === "Full Time" || singleMatch.time === "FT");
             }
         }
 
-        // Show Verify Ticket button if match is finished and ticket is pending
         let verifyBtn = "";
-        const matchConcluded = match && (match.status === "FINISHED" || match.time === "Full Time");
-        if ((w.status === "Pending" || w.status === "PENDING" || w.status === "Resolved") && matchConcluded) {
+        if (canVerify) {
             verifyBtn = `
-                <button class="btn-primary btn-verify-status" onclick="verifyWagerStatus(${idx}, this)" style="padding:0.4rem 0.8rem; font-size:0.75rem; width:100%; margin-top:0.5rem; background:linear-gradient(135deg, var(--neon-purple), #7c3aed); border:none; box-shadow:var(--glow-purple);">🔍 Verify Ticket Status</button>
+                <button class="btn-primary btn-verify-status" onclick="verifyWagerStatus(${idx}, this)" style="padding:0.4rem 0.8rem; font-size:0.72rem; width:100%; margin-top:0.5rem; background:linear-gradient(135deg, var(--neon-purple), #7c3aed); border:none; box-shadow:var(--glow-purple); font-weight:600; border-radius:4px;">🔍 Settle & Verify Ticket</button>
             `;
         }
 
-        item.innerHTML = `
-            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-secondary);">
-                <span>${fixtureName}</span>
-                ${statusBadge}
-            </div>
-            <div style="font-weight:600; margin:0.3rem 0; font-size:0.85rem;">Option: ${w.outcomeLabel}</div>
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom: 0.4rem;">
-                <span>Stake: ${w.amount.toFixed(2)} SOL</span>
-                <span style="font-weight:600; color:var(--neon-teal);">${w.odds.toFixed(2)}x</span>
-            </div>
-            <div style="display:flex; gap:0.4rem;">
-                <button class="btn-secondary" onclick="shareWagerToChat(${idx})" style="padding:0.3rem 0.6rem; font-size:0.7rem; flex:1; background:rgba(255,255,255,0.03); border:1px solid var(--border-color); color:var(--text-primary); border-radius:4px; cursor:pointer;">📤 Share Wager</button>
-            </div>
-            ${verifyBtn}
-            ${claimBtn}
-        `;
+        if (w.isAccumulator && w.legs && w.legs.length > 1) {
+            // RENDER MULTI-LEG ACCUMULATOR (Bet365 / SportyBet Style)
+            let legsHtml = w.legs.map((leg, lIdx) => {
+                const legMatch = MATCHES_DATA.find(m => m.id === leg.gameId);
+                const fixture = legMatch ? `${legMatch.homeTeam} vs ${legMatch.awayTeam}` : (leg.fixtureName || `Fixture #${leg.gameId}`);
+                const scoreDisplay = legMatch && legMatch.score ? `${legMatch.score.home} - ${legMatch.score.away}` : "vs";
+                const isConcluded = legMatch && (legMatch.status === "FINISHED" || legMatch.time === "Full Time" || legMatch.time === "FT");
+                const timeText = legMatch ? (isConcluded ? "FT" : (legMatch.time || "Scheduled")) : "";
+                
+                let legBadge = `<span style="color:var(--text-secondary); font-size:0.68rem;">⏳ ${timeText || 'Pending'}</span>`;
+                if (leg.status === "WON") {
+                    legBadge = `<span style="color:var(--neon-teal); font-size:0.68rem; font-weight:600;">✅ Won (${scoreDisplay})</span>`;
+                } else if (leg.status === "LOST") {
+                    legBadge = `<span style="color:var(--neon-pink); font-size:0.68rem; font-weight:600;">❌ Lost (${scoreDisplay})</span>`;
+                } else if (isConcluded && legMatch) {
+                    const tempOutcome = evaluateMatchOutcome(legMatch, leg.outcomeId, leg.outcomeLabel || leg.label);
+                    if (tempOutcome === "WON") {
+                        legBadge = `<span style="color:var(--neon-teal); font-size:0.68rem; font-weight:600;">✅ Won (${scoreDisplay})</span>`;
+                    } else if (tempOutcome === "LOST") {
+                        legBadge = `<span style="color:var(--neon-pink); font-size:0.68rem; font-weight:600;">❌ Lost (${scoreDisplay})</span>`;
+                    }
+                }
+
+                return `
+                    <div style="background:rgba(255,255,255,0.03); border-left:2px solid var(--neon-teal); padding:0.35rem 0.5rem; margin-bottom:0.35rem; border-radius:4px; font-size:0.75rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.15rem;">
+                            <span style="font-weight:600; color:var(--text-primary); font-size:0.75rem;">${fixture}</span>
+                            ${legBadge}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; color:var(--text-secondary); font-size:0.72rem;">
+                            <span>Selection: <strong style="color:var(--neon-teal);">${leg.label || leg.outcomeLabel}</strong></span>
+                            <span>@ <strong>${(leg.oddsValue || leg.odds || 1.5).toFixed(2)}x</strong></span>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            item.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; padding-bottom:0.4rem; border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <div style="display:flex; gap:0.4rem; align-items:center;">
+                        <span style="font-weight:700; color:var(--text-primary); font-size:0.8rem;">${w.legs.length}-Fold Accumulator</span>
+                        <span style="color:var(--text-secondary); font-size:0.7rem; font-family:monospace;">${ticketCode}</span>
+                    </div>
+                    ${statusBadge}
+                </div>
+                <div style="margin-bottom:0.5rem;">
+                    ${legsHtml}
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:0.4rem; background:rgba(0,0,0,0.2); padding:0.4rem; border-radius:4px;">
+                    <div>
+                        <span style="color:var(--text-secondary);">Stake:</span>
+                        <strong style="color:var(--text-primary); margin-left:0.2rem;">${w.amount.toFixed(2)} SOL</strong>
+                    </div>
+                    <div>
+                        <span style="color:var(--text-secondary);">Odds:</span>
+                        <strong style="color:var(--neon-teal); margin-left:0.2rem;">${w.odds.toFixed(2)}x</strong>
+                        ${w.bonusPercent ? `<span style="color:var(--neon-orange); font-size:0.65rem; margin-left:0.2rem;">(+${w.bonusPercent}% Acca)</span>` : ''}
+                    </div>
+                    <div>
+                        <span style="color:var(--text-secondary);">Return:</span>
+                        <strong style="color:var(--neon-teal); margin-left:0.2rem;">${(w.potentialPayout || (w.amount * w.odds)).toFixed(4)} SOL</strong>
+                    </div>
+                </div>
+                <div style="display:flex; gap:0.4rem;">
+                    <button class="btn-secondary" onclick="shareWagerToChat(${idx})" style="padding:0.35rem 0.6rem; font-size:0.7rem; flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:var(--text-primary); border-radius:4px; cursor:pointer;">📤 Share to Chat</button>
+                </div>
+                ${verifyBtn}
+                ${claimBtn}
+            `;
+        } else {
+            // RENDER SINGLE MATCH WAGER
+            let fixtureName = `Fixture #${w.gameId}`;
+            const match = MATCHES_DATA.find(m => m.id === w.gameId);
+            let scoreline = "";
+            let matchStatusText = "";
+            if (match) {
+                fixtureName = `${match.homeTeam} vs ${match.awayTeam}`;
+                if (match.score) {
+                    scoreline = `(${match.score.home} - ${match.score.away})`;
+                }
+                matchStatusText = match.status === "FINISHED" ? "FT" : (match.time || "");
+            } else {
+                const tournament = TOURNAMENTS_DATA.find(t => t.id === w.gameId);
+                if (tournament) fixtureName = tournament.title;
+            }
+
+            item.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; padding-bottom:0.3rem; border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <div style="display:flex; gap:0.4rem; align-items:center;">
+                        <span style="font-weight:700; color:var(--text-primary); font-size:0.8rem;">${fixtureName}</span>
+                        <span style="color:var(--text-secondary); font-size:0.7rem; font-family:monospace;">${ticketCode}</span>
+                    </div>
+                    ${statusBadge}
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin:0.3rem 0;">
+                    <div>Pick: <strong style="color:var(--neon-teal);">${w.outcomeLabel}</strong></div>
+                    <div style="color:var(--text-secondary); font-size:0.72rem;">${scoreline} <span style="color:var(--neon-orange);">${matchStatusText}</span></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:0.4rem; background:rgba(0,0,0,0.2); padding:0.4rem; border-radius:4px;">
+                    <div>
+                        <span style="color:var(--text-secondary);">Stake:</span>
+                        <strong style="color:var(--text-primary); margin-left:0.2rem;">${w.amount.toFixed(2)} SOL</strong>
+                    </div>
+                    <div>
+                        <span style="color:var(--text-secondary);">Odds:</span>
+                        <strong style="color:var(--neon-teal); margin-left:0.2rem;">${w.odds.toFixed(2)}x</strong>
+                    </div>
+                    <div>
+                        <span style="color:var(--text-secondary);">Return:</span>
+                        <strong style="color:var(--neon-teal); margin-left:0.2rem;">${(w.potentialPayout || (w.amount * w.odds)).toFixed(4)} SOL</strong>
+                    </div>
+                </div>
+                <div style="display:flex; gap:0.4rem;">
+                    <button class="btn-secondary" onclick="shareWagerToChat(${idx})" style="padding:0.35rem 0.6rem; font-size:0.7rem; flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:var(--text-primary); border-radius:4px; cursor:pointer;">📤 Share to Chat</button>
+                </div>
+                ${verifyBtn}
+                ${claimBtn}
+            `;
+        }
+
         container.appendChild(item);
     });
 }
@@ -3877,28 +4067,26 @@ async function verifyWagerStatus(idx, btnElement) {
     
     // Satisfying real-time on-chain verification delay
     setTimeout(async () => {
-        const match = MATCHES_DATA.find(m => m.id === w.gameId);
-        if (!match) {
-            showToast("Wager fixture not found.", "error");
-            if (btnElement) {
-                btnElement.disabled = false;
-                btnElement.textContent = "🔍 Verify Ticket Status";
-            }
-            return;
-        }
-        
-        const outcome = evaluateMatchOutcome(match, w.outcomeId, w.outcomeLabel);
+        const outcome = evaluateTicketOutcome(w);
         
         w.status = outcome;
         saveWagersToStorage();
         renderActiveWagers();
         
+        const ticketCode = w.ticketId || `#SP-${String(w.id).slice(-6)}`;
         if (outcome === "WON") {
-            showToast(`🎫 Ticket VERIFIED On-Chain! Status: WINNER 🏆`, "success");
+            const winAmount = (w.potentialPayout || (w.amount * w.odds)).toFixed(4);
+            showToast(`🎫 Ticket ${ticketCode} VERIFIED! Status: WINNER (${winAmount} SOL) 🏆`, "success");
             const wName = activePublicKey ? activePublicKey.toString().slice(0, 6) + "..." : "User";
-            appendChatMessage("System", `🎉 Ticket verified. Wallet ${wName} won ${(w.amount * w.odds).toFixed(2)} SOL on ${match.homeTeam} vs ${match.awayTeam}!`, true);
+            appendChatMessage("System", `🎉 Ticket ${ticketCode} verified on-chain. Wallet ${wName} won ${winAmount} SOL!`, true);
+        } else if (outcome === "LOST") {
+            showToast(`🎫 Ticket ${ticketCode} VERIFIED! Status: LOST ❌`, "info");
         } else {
-            showToast(`🎫 Ticket VERIFIED On-Chain! Status: LOST ❌`, "info");
+            showToast(`🎫 Ticket ${ticketCode} is still in play — awaiting match conclusions.`, "info");
+            if (btnElement) {
+                btnElement.disabled = false;
+                btnElement.textContent = "🔍 Settle & Verify Ticket";
+            }
         }
     }, 1000);
 }
@@ -3907,12 +4095,12 @@ function verifyAllWagersStatus() {
     let changed = false;
     localWagers.forEach(w => {
         if (w.status === "Pending" || w.status === "PENDING" || w.status === "Resolved") {
-            const match = MATCHES_DATA.find(m => m.id === w.gameId);
-            if (match && (match.status === "FINISHED" || match.time === "Full Time")) {
-                const outcome = evaluateMatchOutcome(match, w.outcomeId, w.outcomeLabel);
+            const outcome = evaluateTicketOutcome(w);
+            if (outcome !== "PENDING" && outcome !== w.status) {
                 w.status = outcome;
                 changed = true;
-                showToast(`Wager on ${match.homeTeam} vs ${match.awayTeam} settled as ${outcome}!`, "info");
+                const ticketCode = w.ticketId || `#SP-${String(w.id).slice(-6)}`;
+                showToast(`Ticket ${ticketCode} settled as ${outcome}!`, outcome === "WON" ? "success" : "info");
             }
         }
     });
@@ -5217,12 +5405,22 @@ function loadWagersFromStorage() {
     if (stored) {
         try {
             const parsed = JSON.parse(stored);
-            localWagers = parsed.map(w => ({
-                ...w,
-                wagerPubkey: new solanaWeb3.PublicKey(w.wagerPubkey)
-            }));
+            localWagers = parsed.map(w => {
+                let pubkey = null;
+                try {
+                    if (w.wagerPubkey) {
+                        pubkey = typeof w.wagerPubkey === 'string' ? new solanaWeb3.PublicKey(w.wagerPubkey) : w.wagerPubkey;
+                    }
+                } catch (pkErr) {
+                    pubkey = null;
+                }
+                return {
+                    ...w,
+                    wagerPubkey: pubkey
+                };
+            });
         } catch (e) {
-            console.error(e);
+            console.error("loadWagersFromStorage parse error:", e);
             localWagers = [];
         }
     } else {
