@@ -30,3 +30,7 @@ test_get_health.py
 check_html.py
 find_tx.py
 test_tabs.js
+
+# Environment variables & secrets
+.env
+*.env

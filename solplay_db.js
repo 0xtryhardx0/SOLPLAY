@@ -12,9 +12,10 @@ const SolPlayDB = {
 
     // Initialize Supabase client
     init: function() {
-        // Read configuration from localStorage or global config
-        const supabaseUrl = localStorage.getItem("solplay_supabase_url") || window.SOLPLAY_SUPABASE_URL;
-        const supabaseKey = localStorage.getItem("solplay_supabase_anon_key") || window.SOLPLAY_SUPABASE_ANON_KEY;
+        const defaultProjectUrl = "https://ervysscnenetauyszrzp.supabase.co";
+        const defaultAnonKey = "sb_publishable_cILGnExGcPn0BY__q268PQ_xXbKr7l3";
+        const supabaseUrl = localStorage.getItem("solplay_supabase_url") || window.SOLPLAY_SUPABASE_URL || defaultProjectUrl;
+        const supabaseKey = localStorage.getItem("solplay_supabase_anon_key") || window.SOLPLAY_SUPABASE_ANON_KEY || defaultAnonKey;
 
         if (supabaseUrl && supabaseKey && typeof supabase !== 'undefined') {
             try {
