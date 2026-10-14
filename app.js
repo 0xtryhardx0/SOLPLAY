@@ -3952,21 +3952,6 @@ function renderLiveMatches() {
             const isAccordionOpen = !!expandedAccordions[match.id];
             const activeCat = activeAccordionCategory[match.id] || 'all';
 
-            const isLocked = !!match.isLocked;
-            const renderOddBox = (o, marketTitle) => {
-                const isSelected = isOutcomeSelected(match.id, o.outcomeId);
-                const trendClass = o.trend === 'up' ? 'odd-trend-up' : (o.trend === 'down' ? 'odd-trend-down' : '');
-                const arrow = o.trend === 'up' ? '<span class="odd-arrow-up">▲</span>' : (o.trend === 'down' ? '<span class="odd-arrow-down">▼</span>' : '');
-                return `
-                    <button class="matrix-odd-box ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''} ${trendClass}" 
-                            onclick="${isLocked ? '' : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '${marketTitle}')`}"
-                            ${isLocked ? 'disabled title="Market temporarily suspended"' : ''}>
-                        <span class="lbl">${isLocked ? '🔒 Susp' : o.label}</span>
-                        <span class="val">${isLocked ? '---' : o.value.toFixed(2)} ${arrow}</span>
-                    </button>
-                `;
-            };
-
             rowWrapper.innerHTML = `
                 <div class="match-matrix-row">
                     <!-- Sticky / Prominent Match Info Left Section -->
@@ -3977,18 +3962,18 @@ function renderLiveMatches() {
                         </div>
                         <div class="match-teams-block">
                             <div class="matrix-team-name">
-                                <span class="truncate">${match.homeTeam}</span>
-                                ${match.status === 'LIVE' ? `<span class="matrix-score-pill">${match.score.home}</span>` : ''}
+                                <span>${match.homeTeam}</span>
+                                <span class="score">${(match.status === 'LIVE' || match.scheduleGroup === 'live') ? match.score.home : ''}</span>
                             </div>
                             <div class="matrix-team-name">
-                                <span class="truncate">${match.awayTeam}</span>
-                                ${match.status === 'LIVE' ? `<span class="matrix-score-pill">${match.score.away}</span>` : ''}
+                                <span>${match.awayTeam}</span>
+                                <span class="score">${(match.status === 'LIVE' || match.scheduleGroup === 'live') ? match.score.away : ''}</span>
                             </div>
                         </div>
                         <div class="match-actions-line">
                             <button class="btn-stream-pill ${isStreamActive ? 'active' : ''}" onclick="watchMatchStream(${match.id}, event)" title="Watch direct live stream on SolPlay">
                                 <span class="material-symbols-outlined text-[13px]">${isStreamActive ? 'sensors' : 'play_circle'}</span>
-                                ${isStreamActive ? 'Streaming' : 'Watch Stream'}
+                                ${isStreamActive ? 'Streaming ↗' : 'Watch Stream ↗'}
                             </button>
                             <button class="btn-stream-pill btn-stream-solplay" onclick="selectActiveMatch(${match.id}, true)" title="Open SolPlay Match Center (Radar, Squads & Stats)">
                                 <span class="material-symbols-outlined text-[13px]">view_quilt</span>
@@ -4001,42 +3986,82 @@ function renderLiveMatches() {
                     <div class="matrix-odds-track">
                         <!-- 1X2 (Winner) -->
                         <div class="odds-col-group group-3">
-                            ${m1x2.map(o => renderOddBox(o, 'Winner (1X2)')).join('')}
+                            ${m1x2.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')">
+                                    <span class="lbl">${o.label}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- Over / Under 2.5 -->
                         <div class="odds-col-group group-2">
-                            ${mou25.map(o => renderOddBox(o, 'Total Goals (O/U 2.5)')).join('')}
+                            ${mou25.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
+                                    <span class="lbl">${o.label.includes('Over') ? 'Over 2.5' : 'Under 2.5'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- BTTS (GG / NG) -->
                         <div class="odds-col-group group-2">
-                            ${mbtts.map(o => renderOddBox(o, 'Both Teams To Score')).join('')}
+                            ${mbtts.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
+                                    <span class="lbl">${o.label.includes('Yes') ? 'GG (Yes)' : 'NG (No)'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- Double Chance -->
                         <div class="odds-col-group group-dc">
-                            ${mdc.map(o => renderOddBox(o, 'Double Chance')).join('')}
+                            ${mdc.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Double Chance')">
+                                    <span class="lbl">${o.label.split(' ')[0]}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- Over / Under 1.5 -->
                         <div class="odds-col-group group-2">
-                            ${mou15.map(o => renderOddBox(o, 'Total Goals (O/U 1.5)')).join('')}
+                            ${mou15.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 1.5)')">
+                                    <span class="lbl">${o.label.includes('Over') ? 'Over 1.5' : 'Under 1.5'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- Draw No Bet -->
                         <div class="odds-col-group group-2">
-                            ${mdnb.map(o => renderOddBox(o, 'Draw No Bet')).join('')}
+                            ${mdnb.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Draw No Bet')">
+                                    <span class="lbl">${o.label.includes(match.homeTeam) ? '1 DNB' : '2 DNB'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- European Handicap (-1) -->
                         <div class="odds-col-group group-3">
-                            ${mhandicap.map(o => renderOddBox(o, 'European Handicap')).join('')}
+                            ${mhandicap.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'European Handicap')">
+                                    <span class="lbl">${o.label.includes('(-1)') ? 'Home (-1)' : (o.label.includes('(+1)') ? 'Away (+1)' : 'Tie (-1)')}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- 1st Half Winner (1X2) -->
                         <div class="odds-col-group group-3">
-                            ${mhalftime.map(o => renderOddBox(o, '1st Half 1X2')).join('')}
+                            ${mhalftime.map(o => `
+                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half 1X2')">
+                                    <span class="lbl">${o.label.includes('Draw') ? 'HT: X' : (o.label.includes(match.homeTeam) ? 'HT: 1' : 'HT: 2')}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
                         </div>
 
                         <!-- More Markets Button -->
@@ -5252,14 +5277,14 @@ function updateLiveDomElements() {
     // 2. Update scores in visible table rows without rebuilding table DOM
     MATCHES_DATA.forEach(m => {
         const row = document.getElementById(`matrix-row-${m.id}`);
-        if (row && m.status === 'LIVE') {
-            const scoreEls = row.querySelectorAll(".matrix-score-pill");
+        if (row && (m.status === 'LIVE' || m.scheduleGroup === 'live')) {
+            const scoreEls = row.querySelectorAll(".matrix-team-name .score");
             if (scoreEls.length >= 2) {
                 scoreEls[0].textContent = m.score.home;
                 scoreEls[1].textContent = m.score.away;
             }
             const pulseEl = row.querySelector(".badge-live-pulse");
-            if (pulseEl) pulseEl.textContent = `🔴 ${m.time}`;
+            if (pulseEl) pulseEl.textContent = m.time;
         }
     });
 
