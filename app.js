@@ -67,35 +67,36 @@ let isWalletConnected = false;
 let currentBettingTab = 'live';
 
 // Sportsbook active match state (real fixtures only)
-let activeMatchId = 1001; // Default to Arsenal vs Lille (Real Champions League)
-let activeScheduleFilter = 'all'; // 'all', 'live', 'today', 'tomorrow', 'week'
+let activeMatchId = 1022; // Default to active live match (Benfica vs Celtic)
+let activeScheduleFilter = 'all'; // 'all', 'live', 'today', 'tomorrow', 'week', 'finished'
 let activeLeagueFilter = 'all';   // 'all', 'Premier League', 'Champions League', etc.
 
 const MATCHES_DATA = [
     // ==========================================
-    // 📅 TODAY'S REAL UEFA CHAMPIONS LEAGUE (Tuesday, Oct 13, 2026)
+    // 🏁 CONCLUDED UEFA CHAMPIONS LEAGUE (Tuesday, Oct 13, 2026)
     // ==========================================
     {
         id: 1001,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "live",
+        scheduleGroup: "finished",
         homeTeam: "Arsenal",
         awayTeam: "Lille",
-        time: "68'",
-        status: "LIVE",
-        score: { home: 2, away: 1 },
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 3, away: 0 },
         odds: { home: 1.25, draw: 5.10, away: 11.50 },
         formation: { home: "4-3-3", away: "4-2-3-1" },
         stats: {
-            possession: { home: 58, away: 42 },
-            shots: { home: 14, away: 7 },
-            onTarget: { home: 6, away: 3 },
-            attacks: { home: 68, away: 38 },
-            corners: { home: 7, away: 2 },
-            fouls: { home: 7, away: 11 },
+            possession: { home: 62, away: 38 },
+            shots: { home: 18, away: 5 },
+            onTarget: { home: 8, away: 1 },
+            attacks: { home: 78, away: 28 },
+            corners: { home: 9, away: 2 },
+            fouls: { home: 6, away: 10 },
             cards: { home: 1, away: 2 },
-            offsides: { home: 2, away: 1 }
+            offsides: { home: 3, away: 1 }
         },
         lineup: {
             home: [
@@ -130,294 +131,315 @@ const MATCHES_DATA = [
             away: ["Vito Mannone", "Aissa Mandi", "Mitchel Bakker", "Angel Gomes", "Matias Fernandez-Pardo", "Mohamed Bayo"]
         },
         timeline: [
-            { time: "0'", type: "start", desc: "Kick-off at Emirates Stadium!", icon: "🏁" },
+            { time: "FT", type: "end", desc: "🏁 Full Time: Arsenal 3 - 0 Lille. Match Concluded!", icon: "🏁" },
+            { time: "84'", type: "goal", desc: "GOAL! Arsenal 3 - 0 Lille. Gabriel Martinelli breakaway finish.", icon: "⚽" },
+            { time: "64'", type: "goal", desc: "GOAL! Arsenal 2 - 0 Lille. Jurrien Timber header from Declan Rice corner!", icon: "⚽" },
+            { time: "45+2'", type: "halftime", desc: "Half-time break • 1 - 0", icon: "⏸️" },
             { time: "23'", type: "goal", desc: "GOAL! Arsenal 1 - 0 Lille. Bukayo Saka curling finish into bottom left corner.", icon: "⚽" },
-            { time: "41'", type: "goal", desc: "GOAL! Arsenal 1 - 1 Lille. Jonathan David clinical counter-attack strike.", icon: "⚽" },
-            { time: "45+2'", type: "halftime", desc: "Half-time break • 1 - 1", icon: "⏸️" },
-            { time: "58'", type: "card", desc: "Yellow card: Benjamin Andre (Lille) for foul on Odegaard.", icon: "🟨" },
-            { time: "64'", type: "goal", desc: "GOAL! Arsenal 2 - 1 Lille. Kai Havertz powerful header from Declan Rice corner!", icon: "⚽" }
+            { time: "0'", type: "start", desc: "Kick-off at Emirates Stadium!", icon: "🏁" }
         ]
     },
     {
         id: 1002,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "live",
+        scheduleGroup: "finished",
         homeTeam: "Atlético Madrid",
         awayTeam: "Manchester United",
-        time: "54'",
-        status: "LIVE",
-        score: { home: 1, away: 0 },
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 2, away: 0 },
         odds: { home: 1.55, draw: 3.60, away: 6.80 },
         stats: {
-            possession: { home: 49, away: 51 },
-            shots: { home: 9, away: 8 },
-            onTarget: { home: 4, away: 2 },
-            attacks: { home: 44, away: 52 },
-            corners: { home: 4, away: 5 },
-            fouls: { home: 12, away: 9 },
-            cards: { home: 2, away: 1 },
+            possession: { home: 54, away: 46 },
+            shots: { home: 12, away: 8 },
+            onTarget: { home: 6, away: 2 },
+            attacks: { home: 58, away: 44 },
+            corners: { home: 5, away: 4 },
+            fouls: { home: 14, away: 11 },
+            cards: { home: 2, away: 3 },
             offsides: { home: 1, away: 2 }
         },
         timeline: [
-            { time: "0'", type: "start", desc: "Match started at Estadio Metropolitano.", icon: "🏁" },
-            { time: "34'", type: "goal", desc: "GOAL! Atlético 1 - 0 Man United. Antoine Griezmann venomous volley!", icon: "⚽" }
+            { time: "FT", type: "end", desc: "🏁 Full Time: Atlético Madrid 2 - 0 Manchester United. Wagers settled!", icon: "🏁" },
+            { time: "79'", type: "goal", desc: "GOAL! Atlético 2 - 0 Man United. Ademola Lookman seals the victory!", icon: "⚽" },
+            { time: "62'", type: "card", desc: "🔴 RED CARD! Leny Yoro (Man United) sent off for last-man foul.", icon: "🟥" },
+            { time: "1'", type: "goal", desc: "GOAL! Atlético 1 - 0 Man United. Pablo Barrios scores in the 1st minute!", icon: "⚽" },
+            { time: "0'", type: "start", desc: "Match started at Estadio Metropolitano.", icon: "🏁" }
         ]
     },
     {
         id: 1003,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "live",
+        scheduleGroup: "finished",
         homeTeam: "Galatasaray",
         awayTeam: "Barcelona",
-        time: "38'",
-        status: "LIVE",
-        score: { home: 0, away: 2 },
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 1, away: 4 },
         odds: { home: 16.00, draw: 6.50, away: 1.15 },
         stats: {
-            possession: { home: 36, away: 64 },
-            shots: { home: 4, away: 12 },
-            onTarget: { home: 1, away: 7 },
-            attacks: { home: 28, away: 75 },
-            corners: { home: 2, away: 6 },
-            fouls: { home: 8, away: 5 },
-            cards: { home: 2, away: 0 },
-            offsides: { home: 3, away: 1 }
+            possession: { home: 35, away: 65 },
+            shots: { home: 6, away: 17 },
+            onTarget: { home: 2, away: 9 },
+            attacks: { home: 32, away: 84 },
+            corners: { home: 3, away: 8 },
+            fouls: { home: 11, away: 7 },
+            cards: { home: 3, away: 1 },
+            offsides: { home: 2, away: 2 }
         },
         timeline: [
-            { time: "0'", type: "start", desc: "Kick-off in Istanbul.", icon: "🏁" },
+            { time: "FT", type: "end", desc: "🏁 Full Time: Galatasaray 1 - 4 Barcelona. Dominant away win!", icon: "🏁" },
+            { time: "82'", type: "goal", desc: "GOAL! Galatasaray 1 - 4 Barcelona. Raphinha low driven strike.", icon: "⚽" },
+            { time: "67'", type: "goal", desc: "GOAL! Galatasaray 1 - 3 Barcelona. Victor Osimhen pulls one back.", icon: "⚽" },
+            { time: "29'", type: "goal", desc: "GOAL! Galatasaray 0 - 2 Barcelona. Robert Lewandowski clinical tap-in.", icon: "⚽" },
             { time: "14'", type: "goal", desc: "GOAL! Galatasaray 0 - 1 Barcelona. Lamine Yamal solo brilliance!", icon: "⚽" },
-            { time: "29'", type: "goal", desc: "GOAL! Galatasaray 0 - 2 Barcelona. Robert Lewandowski tap-in.", icon: "⚽" }
+            { time: "0'", type: "start", desc: "Kick-off in Istanbul.", icon: "🏁" }
         ]
     },
     {
         id: 1004,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "live",
+        scheduleGroup: "finished",
         homeTeam: "Inter Milan",
         awayTeam: "Club Brugge",
-        time: "81'",
-        status: "LIVE",
-        score: { home: 1, away: 1 },
-        odds: { home: 2.30, draw: 1.85, away: 4.80 },
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 3, away: 4 },
+        odds: { home: 1.45, draw: 4.50, away: 6.50 },
         stats: {
-            possession: { home: 62, away: 38 },
-            shots: { home: 16, away: 5 },
-            onTarget: { home: 5, away: 2 },
-            attacks: { home: 82, away: 31 },
-            corners: { home: 9, away: 2 },
-            fouls: { home: 10, away: 13 },
-            cards: { home: 1, away: 3 },
-            offsides: { home: 2, away: 0 }
+            possession: { home: 61, away: 39 },
+            shots: { home: 19, away: 9 },
+            onTarget: { home: 7, away: 6 },
+            attacks: { home: 86, away: 36 },
+            corners: { home: 10, away: 3 },
+            fouls: { home: 12, away: 14 },
+            cards: { home: 2, away: 3 },
+            offsides: { home: 2, away: 1 }
         },
         timeline: [
-            { time: "0'", type: "start", desc: "Kick-off at San Siro.", icon: "🏁" },
-            { time: "52'", type: "goal", desc: "GOAL! Inter 1 - 0 Club Brugge. Lautaro Martínez header.", icon: "⚽" },
-            { time: "71'", type: "goal", desc: "GOAL! Inter 1 - 1 Club Brugge. Andreas Skov Olsen equalizer!", icon: "⚽" }
+            { time: "FT", type: "end", desc: "🏁 Final Whistle: Inter Milan 3 - 4 Club Brugge. Shock upset at San Siro!", icon: "🏁" },
+            { time: "90+3'", type: "goal", desc: "GOAL! Inter 3 - 4 Club Brugge. Ange-Yoan Bonny consolation goal.", icon: "⚽" },
+            { time: "87'", type: "goal", desc: "GOAL! Inter 2 - 4 Club Brugge. Romeo Vermant stunner on the break!", icon: "⚽" },
+            { time: "81'", type: "goal", desc: "GOAL! Inter 2 - 3 Club Brugge. Lautaro Martínez second of the night!", icon: "⚽" },
+            { time: "75'", type: "goal", desc: "GOAL! Inter 1 - 3 Club Brugge. Nicolò Tresoldi completes hat-trick!", icon: "⚽" },
+            { time: "61'", type: "goal", desc: "GOAL! Inter 1 - 2 Club Brugge. Nicolò Tresoldi restores Belgian lead.", icon: "⚽" },
+            { time: "44'", type: "goal", desc: "GOAL! Inter 1 - 1 Club Brugge. Lautaro Martínez header.", icon: "⚽" },
+            { time: "30'", type: "goal", desc: "GOAL! Inter 0 - 1 Club Brugge. Nicolò Tresoldi penalty conversion.", icon: "⚽" },
+            { time: "0'", type: "start", desc: "Kick-off at San Siro.", icon: "🏁" }
         ]
     },
     {
         id: 1005,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "finished",
         homeTeam: "RB Leipzig",
         awayTeam: "PSV Eindhoven",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 1.85, draw: 3.80, away: 3.90 }
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 1, away: 0 },
+        odds: { home: 1.85, draw: 3.80, away: 3.90 },
+        stats: { possession: { home: 52, away: 48 }, shots: { home: 11, away: 9 }, onTarget: { home: 4, away: 3 } },
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Full Time: RB Leipzig 1 - 0 PSV Eindhoven.", icon: "🏁" },
+            { time: "73'", type: "goal", desc: "GOAL! RB Leipzig 1 - 0 PSV Eindhoven. Benjamin Šeško winner.", icon: "⚽" }
+        ]
     },
     {
         id: 1006,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "finished",
         homeTeam: "Viking FK",
         awayTeam: "Bayern Munich",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 11.00, draw: 6.50, away: 1.22 }
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 3, away: 3 },
+        odds: { home: 11.00, draw: 6.50, away: 1.22 },
+        stats: { possession: { home: 38, away: 62 }, shots: { home: 9, away: 16 }, onTarget: { home: 5, away: 7 } },
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Full Time: Viking FK 3 - 3 Bayern Munich. Incredible 6-goal thriller!", icon: "🏁" },
+            { time: "90'", type: "goal", desc: "GOAL! Viking FK 3 - 3 Bayern. Herman Haugen dramatic 90th min equalizer!", icon: "⚽" },
+            { time: "71'", type: "goal", desc: "GOAL! Viking FK 2 - 3 Bayern. Luis Díaz puts Bayern ahead.", icon: "⚽" },
+            { time: "60'", type: "goal", desc: "GOAL! Viking FK 2 - 2 Bayern. Harry Kane second goal.", icon: "⚽" },
+            { time: "54'", type: "goal", desc: "GOAL! Viking FK 2 - 1 Bayern. Harry Kane penalty.", icon: "⚽" },
+            { time: "38'", type: "goal", desc: "GOAL! Viking FK 2 - 0 Bayern. Peter Christiansen double shock!", icon: "⚽" },
+            { time: "2'", type: "goal", desc: "GOAL! Viking FK 1 - 0 Bayern. Gianni Stensness early strike.", icon: "⚽" }
+        ]
     },
     {
         id: 1007,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "finished",
         homeTeam: "Villarreal",
         awayTeam: "Napoli",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 2.65, draw: 3.40, away: 2.60 }
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 3, away: 1 },
+        odds: { home: 2.65, draw: 3.40, away: 2.60 },
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Full Time: Villarreal 3 - 1 Napoli.", icon: "🏁" }
+        ]
     },
     {
         id: 1008,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "finished",
         homeTeam: "Lens",
         awayTeam: "Sporting CP",
-        time: "17:45 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 2.80, draw: 3.30, away: 2.50 }
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 0, away: 2 },
+        odds: { home: 2.80, draw: 3.30, away: 2.50 },
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Full Time: Lens 0 - 2 Sporting CP.", icon: "🏁" }
+        ]
     },
     {
         id: 1009,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
+        scheduleGroup: "finished",
         homeTeam: "Sabah FK",
         awayTeam: "Slavia Prague",
-        time: "17:45 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 4.80, draw: 3.75, away: 1.70 }
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 2, away: 0 },
+        odds: { home: 4.80, draw: 3.75, away: 1.70 },
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Full Time: Sabah FK 2 - 0 Slavia Prague.", icon: "🏁" }
+        ]
     },
 
     // ==========================================
-    // ⚽ TOMORROW'S REAL UEFA CHAMPIONS LEAGUE (Wednesday, Oct 14, 2026)
+    // 📅 TODAY'S REAL UEFA CHAMPIONS LEAGUE (Wednesday, Oct 14, 2026)
+    // Matches haven't started yet: score is null, never show 0-0!
     // ==========================================
     {
         id: 1010,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "Manchester City",
         awayTeam: "Paris Saint-Germain",
         time: "20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 1.95, draw: 3.70, away: 3.60 }
     },
     {
         id: 1011,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "AS Roma",
         awayTeam: "Real Madrid",
         time: "20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 3.60, draw: 3.60, away: 2.00 }
     },
     {
         id: 1012,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "Aston Villa",
         awayTeam: "Fenerbahçe",
         time: "20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 1.65, draw: 3.90, away: 5.00 }
     },
     {
         id: 1013,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "Bodø/Glimt",
         awayTeam: "Borussia Dortmund",
         time: "20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 4.50, draw: 4.00, away: 1.72 }
     },
     {
         id: 1014,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "LASK Linz",
         awayTeam: "Liverpool",
         time: "17:45 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 8.50, draw: 5.20, away: 1.33 }
     },
     {
         id: 1015,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "Feyenoord",
         awayTeam: "Como",
         time: "17:45 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 1.75, draw: 3.75, away: 4.50 }
     },
     {
         id: 1016,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "Real Betis",
         awayTeam: "FC Porto",
         time: "20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 2.40, draw: 3.30, away: 2.90 }
     },
     {
         id: 1017,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "Shakhtar Donetsk",
         awayTeam: "AEK Athens",
         time: "20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 2.15, draw: 3.35, away: 3.35 }
     },
     {
         id: 1018,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "tomorrow",
+        scheduleGroup: "today",
         homeTeam: "Slovan Bratislava",
         awayTeam: "VfB Stuttgart",
         time: "20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 5.50, draw: 4.20, away: 1.57 }
     },
 
     // ==========================================
-    // 🏆 THIS WEEK'S REAL UEFA EUROPA LEAGUE (Thursday, Oct 15, 2026)
+    // 🔴 IN-PLAY LIVE & TOMORROW'S UEFA EUROPA LEAGUE (Thursday, Oct 15, 2026)
     // ==========================================
-    {
-        id: 1020,
-        league: "UEFA Europa League",
-        leagueCategory: "Europa League",
-        scheduleGroup: "week",
-        homeTeam: "Lyon",
-        awayTeam: "Crystal Palace",
-        time: "Thu 17:45 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 2.20, draw: 3.40, away: 3.10 }
-    },
-    {
-        id: 1021,
-        league: "UEFA Europa League",
-        leagueCategory: "Europa League",
-        scheduleGroup: "week",
-        homeTeam: "RB Salzburg",
-        awayTeam: "AC Milan",
-        time: "Thu 17:45 WAT",
-        status: "SCHEDULED",
-        score: { home: 0, away: 0 },
-        odds: { home: 3.30, draw: 3.50, away: 2.10 }
-    },
     {
         id: 1022,
         league: "UEFA Europa League",
@@ -439,6 +461,34 @@ const MATCHES_DATA = [
             cards: { home: 1, away: 2 },
             offsides: { home: 2, away: 1 }
         },
+        lineup: {
+            home: [
+                { num: 1, name: "Anatoliy Trubin", pos: "GK" },
+                { num: 8, name: "Alexander Bah", pos: "DF" },
+                { num: 4, name: "Antonio Silva", pos: "DF" },
+                { num: 30, name: "Nicolas Otamendi", pos: "DF" },
+                { num: 3, name: "Alvaro Carreras", pos: "DF" },
+                { num: 61, name: "Florentino Luis", pos: "MF" },
+                { num: 10, name: "Orkun Kokcu", pos: "MF" },
+                { num: 11, name: "Angel Di Maria", pos: "FW" },
+                { num: 7, name: "Kerem Akturkoglu", pos: "FW" },
+                { num: 17, name: "Vangelis Pavlidis", pos: "FW" },
+                { num: 14, name: "Vangelis Pavlidis", pos: "FW" }
+            ],
+            away: [
+                { num: 1, name: "Kasper Schmeichel", pos: "GK" },
+                { num: 2, name: "Alistair Johnston", pos: "DF" },
+                { num: 5, name: "Liam Scales", pos: "DF" },
+                { num: 6, name: "Auston Trusty", pos: "DF" },
+                { num: 3, name: "Greg Taylor", pos: "DF" },
+                { num: 42, name: "Callum McGregor", pos: "MF" },
+                { num: 41, name: "Reo Hatate", pos: "MF" },
+                { num: 27, name: "Arne Engels", pos: "MF" },
+                { num: 10, name: "Nicolas Kuhn", pos: "FW" },
+                { num: 8, name: "Kyogo Furuhashi", pos: "FW" },
+                { num: 38, name: "Daizen Maeda", pos: "FW" }
+            ]
+        },
         timeline: [
             { time: "0'", type: "start", desc: "Kick-off at Estádio da Luz.", icon: "🏁" },
             { time: "18'", type: "goal", desc: "GOAL! Benfica 1 - 0 Celtic. Angel Di Maria penalty.", icon: "⚽" },
@@ -448,56 +498,81 @@ const MATCHES_DATA = [
         ]
     },
     {
+        id: 1020,
+        league: "UEFA Europa League",
+        leagueCategory: "Europa League",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Lyon",
+        awayTeam: "Crystal Palace",
+        time: "Thu 17:45 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.20, draw: 3.40, away: 3.10 }
+    },
+    {
+        id: 1021,
+        league: "UEFA Europa League",
+        leagueCategory: "Europa League",
+        scheduleGroup: "tomorrow",
+        homeTeam: "RB Salzburg",
+        awayTeam: "AC Milan",
+        time: "Thu 17:45 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.30, draw: 3.50, away: 2.10 }
+    },
+    {
         id: 1023,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "week",
+        scheduleGroup: "tomorrow",
         homeTeam: "Celta Vigo",
         awayTeam: "Juventus",
         time: "Thu 20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 3.10, draw: 3.30, away: 2.25 }
     },
     {
         id: 1024,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "week",
+        scheduleGroup: "tomorrow",
         homeTeam: "Marseille",
         awayTeam: "Olympiacos",
         time: "Thu 20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 1.75, draw: 3.70, away: 4.40 }
     },
     {
         id: 1025,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "week",
+        scheduleGroup: "tomorrow",
         homeTeam: "TSG Hoffenheim",
         awayTeam: "Beşiktaş",
         time: "Thu 20:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 1.90, draw: 3.60, away: 3.80 }
     },
     {
         id: 1026,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "week",
+        scheduleGroup: "tomorrow",
         homeTeam: "Union St.-Gilloise",
         awayTeam: "Real Sociedad",
         time: "Thu 17:45 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 2.90, draw: 3.30, away: 2.40 }
     },
 
     // ==========================================
     // 🏴󠁧󠁢󠁥󠁮󠁧󠁿 THIS WEEKEND'S REAL PREMIER LEAGUE (Oct 17–18, 2026)
+    // Matches scheduled: score is null!
     // ==========================================
     {
         id: 1030,
@@ -508,7 +583,7 @@ const MATCHES_DATA = [
         awayTeam: "Chelsea",
         time: "Sat 12:30 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 3.60, draw: 3.50, away: 2.05 }
     },
     {
@@ -520,7 +595,7 @@ const MATCHES_DATA = [
         awayTeam: "Liverpool",
         time: "Sat 15:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 5.25, draw: 4.20, away: 1.58 }
     },
     {
@@ -532,7 +607,7 @@ const MATCHES_DATA = [
         awayTeam: "Ipswich Town",
         time: "Sat 15:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 1.18, draw: 7.50, away: 14.00 }
     },
     {
@@ -544,7 +619,7 @@ const MATCHES_DATA = [
         awayTeam: "Aston Villa",
         time: "Sat 17:30 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 2.25, draw: 3.45, away: 3.05 }
     },
     {
@@ -556,7 +631,7 @@ const MATCHES_DATA = [
         awayTeam: "Manchester United",
         time: "Sun 14:00 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 3.40, draw: 3.60, away: 2.05 }
     },
     {
@@ -568,7 +643,7 @@ const MATCHES_DATA = [
         awayTeam: "Arsenal",
         time: "Sun 16:30 WAT",
         status: "SCHEDULED",
-        score: { home: 0, away: 0 },
+        score: null,
         odds: { home: 4.80, draw: 3.90, away: 1.70 }
     }
 ];
@@ -1421,10 +1496,42 @@ let isScoreSyncInProgress = false;
 
 function normalizeSportsTeamName(name) {
     if (!name) return "";
-    return name
+    let clean = name
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    // Canonical soccer team alias dictionary
+    const aliases = [
+        [/\b(internazionale|inter milan|inter)\b/g, "inter"],
+        [/\b(club brugge|club bruges)\b/g, "brugge"],
+        [/\b(manchester united|man utd|man united)\b/g, "manunited"],
+        [/\b(manchester city|man city)\b/g, "mancity"],
+        [/\b(atletico madrid|atletico de madrid|atletico)\b/g, "atleticomadrid"],
+        [/\b(paris saint germain|paris sg|psg)\b/g, "psg"],
+        [/\b(sporting cp|sporting lisbon|sporting)\b/g, "sporting"],
+        [/\b(bodo glimt|bodoglimt)\b/g, "bodoglimt"],
+        [/\b(lask linz|lask)\b/g, "lask"],
+        [/\b(feyenoord rotterdam|feyenoord)\b/g, "feyenoord"],
+        [/\b(fenerbahce|fenerbahçe)\b/g, "fenerbahce"],
+        [/\b(psv eindhoven|psv)\b/g, "psv"],
+        [/\b(viking fk|viking)\b/g, "viking"],
+        [/\b(lille osc|losc lille|lille)\b/g, "lille"],
+        [/\b(real betis balompie|real betis)\b/g, "betis"],
+        [/\b(as roma|roma)\b/g, "roma"],
+        [/\b(aston villa|villa)\b/g, "villa"]
+    ];
+
+    for (const [pattern, replacement] of aliases) {
+        if (pattern.test(clean)) {
+            return replacement;
+        }
+    }
+
+    return clean
         .replace(/\b(fc|cf|fk|cp|afc|sc|ac|as|tsg|vfb|rb|athletic|club)\b/gi, "")
         .replace(/[^a-z0-9]/g, "")
         .trim();
@@ -1496,6 +1603,7 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
 
                     if (state === 'post' || completed || statusName.includes('FULL_TIME') || statusName.includes('FINAL')) {
                         match.status = 'FINISHED';
+                        match.scheduleGroup = 'finished';
                         match.time = 'Full Time';
                         match.score = { home: hScore, away: aScore };
                         match.isLocked = true;
@@ -1535,6 +1643,7 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
                     } else if (state === 'pre') {
                         if (match.status !== 'FINISHED') {
                             match.status = 'SCHEDULED';
+                            match.score = null; // Unstarted games must never display 0-0
                         }
                     }
                 }
@@ -3707,6 +3816,56 @@ function renderActiveWagers() {
     });
 }
 
+function evaluateMatchOutcome(match, outcomeId, outcomeLabel) {
+    if (!match || !match.score) return "PENDING";
+    const h = match.score.home;
+    const a = match.score.away;
+    const tot = h + a;
+    
+    // 1X2 Winner
+    if (outcomeId === 0) return h > a ? "WON" : "LOST";
+    if (outcomeId === 1) return a > h ? "WON" : "LOST";
+    if (outcomeId === 2) return h === a ? "WON" : "LOST";
+    
+    // Double Chance
+    if (outcomeId === 5) return (h >= a) ? "WON" : "LOST"; // 1X
+    if (outcomeId === 6) return (h !== a) ? "WON" : "LOST"; // 12
+    if (outcomeId === 7) return (a >= h) ? "WON" : "LOST"; // X2
+    
+    // Total Goals (Over/Under)
+    if (outcomeId === 10) return tot > 2.5 ? "WON" : "LOST";
+    if (outcomeId === 11) return tot < 2.5 ? "WON" : "LOST";
+    if (outcomeId === 12) return tot > 1.5 ? "WON" : "LOST";
+    if (outcomeId === 13) return tot < 1.5 ? "WON" : "LOST";
+    if (outcomeId === 14) return tot > 0.5 ? "WON" : "LOST";
+    if (outcomeId === 15) return tot < 0.5 ? "WON" : "LOST";
+    if (outcomeId === 16) return tot > 3.5 ? "WON" : "LOST";
+    if (outcomeId === 17) return tot < 3.5 ? "WON" : "LOST";
+    
+    // BTTS (GG / NG)
+    if (outcomeId === 20) return (h > 0 && a > 0) ? "WON" : "LOST";
+    if (outcomeId === 21) return (h === 0 || a === 0) ? "WON" : "LOST";
+    
+    // Draw No Bet
+    if (outcomeId === 30) return h > a ? "WON" : (h === a ? "REFUNDED" : "LOST");
+    if (outcomeId === 31) return a > h ? "WON" : (a === h ? "REFUNDED" : "LOST");
+    
+    // Correct Score
+    if (outcomeId >= 50 && outcomeId < 100) {
+        const finalScoreStr = `${h} - ${a}`;
+        return (outcomeLabel && outcomeLabel.trim() === finalScoreStr.trim()) ? "WON" : "LOST";
+    }
+    
+    // Scorer
+    if (outcomeId >= 100 && match.timeline) {
+        const player = (outcomeLabel || "").replace(" to score", "").replace(" (Sub)", "").replace(/ \([A-Z]{2}\)/, "").trim();
+        const scored = match.timeline.some(ev => ev.type === "goal" && ev.desc.includes(player));
+        return scored ? "WON" : "LOST";
+    }
+    
+    return "LOST";
+}
+
 async function verifyWagerStatus(idx, btnElement) {
     const w = localWagers[idx];
     if (!w) return;
@@ -3728,21 +3887,7 @@ async function verifyWagerStatus(idx, btnElement) {
             return;
         }
         
-        let outcome = "LOST";
-        if (w.outcomeId === 0) { // Home Win
-            outcome = match.score.home > match.score.away ? "WON" : "LOST";
-        } else if (w.outcomeId === 1) { // Away Win
-            outcome = match.score.away > match.score.home ? "WON" : "LOST";
-        } else if (w.outcomeId === 2) { // Draw
-            outcome = match.score.home === match.score.away ? "WON" : "LOST";
-        } else if (w.outcomeId >= 50 && w.outcomeId < 100) {
-            const finalScoreStr = `${match.score.home} - ${match.score.away}`;
-            outcome = (w.outcomeLabel.trim() === finalScoreStr.trim()) ? "WON" : "LOST";
-        } else if (w.outcomeId >= 100) {
-            const player = w.outcomeLabel.replace(" to score", "").replace(" (Sub)", "").replace(/ \([A-Z]{2}\)/, "").trim();
-            const scored = match.timeline.some(ev => ev.type === "goal" && ev.desc.includes(player));
-            outcome = scored ? "WON" : "LOST";
-        }
+        const outcome = evaluateMatchOutcome(match, w.outcomeId, w.outcomeLabel);
         
         w.status = outcome;
         saveWagersToStorage();
@@ -3764,21 +3909,7 @@ function verifyAllWagersStatus() {
         if (w.status === "Pending" || w.status === "PENDING" || w.status === "Resolved") {
             const match = MATCHES_DATA.find(m => m.id === w.gameId);
             if (match && (match.status === "FINISHED" || match.time === "Full Time")) {
-                let outcome = "LOST";
-                if (w.outcomeId === 0) { // Home Win
-                    outcome = match.score.home > match.score.away ? "WON" : "LOST";
-                } else if (w.outcomeId === 1) { // Away Win
-                    outcome = match.score.away > match.score.home ? "WON" : "LOST";
-                } else if (w.outcomeId === 2) { // Draw
-                    outcome = match.score.home === match.score.away ? "WON" : "LOST";
-                } else if (w.outcomeId >= 50 && w.outcomeId < 100) {
-                    const finalScoreStr = `${match.score.home} - ${match.score.away}`;
-                    outcome = (w.outcomeLabel.trim() === finalScoreStr.trim()) ? "WON" : "LOST";
-                } else if (w.outcomeId >= 100) {
-                    const player = w.outcomeLabel.replace(" to score", "").replace(" (Sub)", "").replace(/ \([A-Z]{2}\)/, "").trim();
-                    const scored = match.timeline.some(ev => ev.type === "goal" && ev.desc.includes(player));
-                    outcome = scored ? "WON" : "LOST";
-                }
+                const outcome = evaluateMatchOutcome(match, w.outcomeId, w.outcomeLabel);
                 w.status = outcome;
                 changed = true;
                 showToast(`Wager on ${match.homeTeam} vs ${match.awayTeam} settled as ${outcome}!`, "info");
@@ -4157,8 +4288,10 @@ function renderLiveMatches() {
                 else winning1x2Id = 2;
             }
 
-            const scoreDisplayHome = (match.status === 'LIVE' || match.scheduleGroup === 'live' || isMatchConcluded) ? (match.score ? match.score.home : 0) : '';
-            const scoreDisplayAway = (match.status === 'LIVE' || match.scheduleGroup === 'live' || isMatchConcluded) ? (match.score ? match.score.away : 0) : '';
+            const isMatchLive = (match.status === 'LIVE');
+            const hasMatchStarted = (isMatchLive || isMatchConcluded);
+            const scoreDisplayHome = (hasMatchStarted && match.score && typeof match.score.home === 'number') ? match.score.home : '';
+            const scoreDisplayAway = (hasMatchStarted && match.score && typeof match.score.away === 'number') ? match.score.away : '';
 
             rowWrapper.innerHTML = `
                 <div class="match-matrix-row">
@@ -4381,16 +4514,23 @@ function renderFeaturedCarousel() {
     scrollContainer.innerHTML = "";
 
     // Pick top marquee matches: real today and tomorrow UEFA Champions League & Premier League clashes
-    const featuredList = MATCHES_DATA.filter(m => m.scheduleGroup === 'live' || m.id === 1001 || m.id === 1002 || m.id === 1003 || m.id === 1004 || m.id === 1010 || m.id === 1011 || m.id === 1030 || m.id === 1031);
+    const featuredList = MATCHES_DATA.filter(m => m.scheduleGroup === 'live' || m.id === 1010 || m.id === 1011 || m.id === 1014 || m.id === 1015 || m.id === 1004 || m.id === 1001 || m.id === 1030);
 
     featuredList.forEach(match => {
         const isSelected = (match.id === activeMatchId);
         const card = document.createElement("div");
         card.className = `featured-card ${isSelected ? 'active' : ''}`;
         
-        let statusBadge = match.scheduleGroup === 'live'
-            ? `<span class="badge-live-pulse" style="font-size: 0.68rem; padding: 0.15rem 0.4rem;">${match.time}</span>`
-            : `<span class="badge-schedule-today" style="font-size: 0.68rem; padding: 0.15rem 0.4rem;">${match.time}</span>`;
+        const isConcluded = (match.status === 'FINISHED' || match.time === 'Full Time');
+        const isLive = (match.status === 'LIVE' || match.scheduleGroup === 'live');
+        let statusBadge = '';
+        if (isConcluded) {
+            statusBadge = `<span class="badge-finished" style="font-size: 0.68rem; padding: 0.15rem 0.4rem;">🏁 Full Time</span>`;
+        } else if (isLive) {
+            statusBadge = `<span class="badge-live-pulse" style="font-size: 0.68rem; padding: 0.15rem 0.4rem;">${match.time}</span>`;
+        } else {
+            statusBadge = `<span class="badge-schedule-today" style="font-size: 0.68rem; padding: 0.15rem 0.4rem;">📅 ${match.time}</span>`;
+        }
 
         const markets = getMatchMarkets(match);
         const odds1x2 = markets['1x2'] || [
@@ -4403,6 +4543,18 @@ function renderFeaturedCarousel() {
         const escapedAway = match.awayTeam.replace(/'/g, "\\'");
         const escapedGameTitle = `${escapedHome} vs ${escapedAway}`;
 
+        const showScore = (isLive || isConcluded) && match.score && typeof match.score.home === 'number';
+        const scoreColor = isConcluded ? '#38bdf8' : 'var(--neon-teal)';
+        const homeScoreSpan = showScore ? `<span style="color: ${scoreColor}; font-weight: 800;">${match.score.home}</span>` : `<span style="color: var(--text-secondary); font-size: 0.72rem; font-weight: 500;">vs</span>`;
+        const awayScoreSpan = showScore ? `<span style="color: ${scoreColor}; font-weight: 800;">${match.score.away}</span>` : ``;
+
+        let winning1x2Id = -1;
+        if (isConcluded && match.score) {
+            if (match.score.home > match.score.away) winning1x2Id = 0;
+            else if (match.score.away > match.score.home) winning1x2Id = 1;
+            else winning1x2Id = 2;
+        }
+
         card.innerHTML = `
             <div class="featured-card-top" onclick="selectActiveMatch(${match.id})">
                 <span style="font-weight: 600; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 140px;">${match.league}</span>
@@ -4411,25 +4563,28 @@ function renderFeaturedCarousel() {
             <div class="featured-card-teams" onclick="selectActiveMatch(${match.id})">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span>⚽ ${match.homeTeam}</span>
-                    <span style="color: var(--neon-teal); font-weight: 800;">${match.score ? match.score.home : 0}</span>
+                    ${homeScoreSpan}
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
                     <span>🛡️ ${match.awayTeam}</span>
-                    <span style="color: var(--neon-teal); font-weight: 800;">${match.score ? match.score.away : 0}</span>
+                    ${awayScoreSpan}
                 </div>
             </div>
             <div class="featured-quick-odds">
-                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 0) ? 'selected' : ''}" 
+                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 0) ? 'selected' : ''} ${isConcluded ? (winning1x2Id === 0 ? 'winning-outcome' : 'concluded') : ''}" 
+                    ${isConcluded ? 'disabled title="Match Concluded"' : ''}
                     onclick="event.stopPropagation(); selectOdds(${match.id}, 0, ${odds1x2[0].value}, '${escapedHome} Win', '${escapedGameTitle}', 'Winner (1X2)')">
                     <span style="font-size: 0.62rem; color: var(--text-secondary);">1</span>
                     <span>${odds1x2[0].value.toFixed(2)}</span>
                 </button>
-                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 2) ? 'selected' : ''}" 
+                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 2) ? 'selected' : ''} ${isConcluded ? (winning1x2Id === 2 ? 'winning-outcome' : 'concluded') : ''}" 
+                    ${isConcluded ? 'disabled title="Match Concluded"' : ''}
                     onclick="event.stopPropagation(); selectOdds(${match.id}, 2, ${odds1x2[1].value}, 'Draw', '${escapedGameTitle}', 'Winner (1X2)')">
                     <span style="font-size: 0.62rem; color: var(--text-secondary);">X</span>
                     <span>${odds1x2[1].value.toFixed(2)}</span>
                 </button>
-                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 1) ? 'selected' : ''}" 
+                <button class="featured-odd-btn ${isOutcomeSelected(match.id, 1) ? 'selected' : ''} ${isConcluded ? (winning1x2Id === 1 ? 'winning-outcome' : 'concluded') : ''}" 
+                    ${isConcluded ? 'disabled title="Match Concluded"' : ''}
                     onclick="event.stopPropagation(); selectOdds(${match.id}, 1, ${odds1x2[2].value}, '${escapedAway} Win', '${escapedGameTitle}', 'Winner (1X2)')">
                     <span style="font-size: 0.62rem; color: var(--text-secondary);">2</span>
                     <span>${odds1x2[2].value.toFixed(2)}</span>
@@ -4456,7 +4611,7 @@ function selectActiveMatch(matchId, shouldScroll = true) {
                 awayTeam: tournament.playerB.name,
                 time: "Upcoming",
                 status: "UPCOMING",
-                score: { home: 0, away: 0 },
+                score: null,
                 league: tournament.game + " Tournament"
             };
         }
@@ -4471,14 +4626,29 @@ function selectActiveMatch(matchId, shouldScroll = true) {
     }
     
     // Update live player scoreboard
+    const isLive = (match.status === 'LIVE' || match.scheduleGroup === 'live');
+    const isConcluded = (match.status === 'FINISHED' || match.time === 'Full Time');
+    const hasStarted = (isLive || isConcluded);
+    const hasScore = hasStarted && match.score && typeof match.score.home === 'number';
+
     const liveScoreEl = document.getElementById("player-live-score");
     if (liveScoreEl) {
-        liveScoreEl.innerHTML = `${match.homeTeam} <span id="player-score-home">${match.score.home}</span> - <span id="player-score-away">${match.score.away}</span> ${match.awayTeam}`;
+        if (hasScore) {
+            liveScoreEl.innerHTML = `${match.homeTeam} <span id="player-score-home" style="color: ${isConcluded ? '#38bdf8' : '#34d399'}; font-weight: 800;">${match.score.home}</span> - <span id="player-score-away" style="color: ${isConcluded ? '#38bdf8' : '#34d399'}; font-weight: 800;">${match.score.away}</span> ${match.awayTeam} ${isConcluded ? '<span style="font-size: 0.72rem; color: #38bdf8; margin-left: 0.35rem; font-weight: 700;">(FT)</span>' : ''}`;
+        } else {
+            liveScoreEl.innerHTML = `${match.homeTeam} <span style="font-size: 0.75rem; color: rgba(255,255,255,0.4); padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.06); margin: 0 0.3rem;">vs</span> ${match.awayTeam}`;
+        }
     }
     
     const liveTimeEl = document.getElementById("player-live-time");
     if (liveTimeEl) {
-        liveTimeEl.textContent = match.time;
+        if (isConcluded) {
+            liveTimeEl.textContent = "🏁 Full Time";
+        } else if (isLive) {
+            liveTimeEl.textContent = `🔴 ${match.time || 'LIVE'}`;
+        } else {
+            liveTimeEl.textContent = `📅 ${match.time || 'Scheduled'}`;
+        }
     }
     
     document.getElementById("stream-title").textContent = `${match.homeTeam} vs ${match.awayTeam} - Routed Feed`;
@@ -5161,17 +5331,30 @@ function renderMatchStats() {
     const ballX = typeof ballPositionX !== 'undefined' ? ballPositionX : 62;
     const ballY = typeof ballPositionY !== 'undefined' ? ballPositionY : 48;
 
+    const isMatchLive = (match.status === 'LIVE' || match.scheduleGroup === 'live');
+    const isMatchConcluded = (match.status === 'FINISHED' || match.time === 'Full Time');
+    const hasMatchScore = (isMatchLive || isMatchConcluded) && match.score && typeof match.score.home === 'number';
+
+    const radarTickerContent = isMatchLive
+        ? `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>🔴 ${match.homeTeam}: Dangerous Attack (Final Third)</span>`
+        : (isMatchConcluded
+            ? `<span class="w-2 h-2 rounded-full bg-sky-400"></span><span style="color: #38bdf8; font-weight: 600;">🏁 Match Concluded (Full Time Whistle)</span>`
+            : `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span style="color: #f59e0b; font-weight: 600;">📅 Scheduled Kickoff: ${match.time || 'Upcoming'}</span>`);
+
+    const scorePillContent = hasMatchScore
+        ? `<span class="matrix-score-pill text-xs py-0.5 px-2 font-bold ${isMatchConcluded ? 'text-sky-400' : 'text-emerald-400'}">${match.score.home} - ${match.score.away}</span>`
+        : `<span class="matrix-score-pill text-xs py-0.5 px-2 text-white/60">Kickoff: ${match.time || 'Upcoming'}</span>`;
+
     container.innerHTML = `
         <!-- Camel1.tv Inspired 2D Tactical Field Animation Component -->
         <div class="tactical-pitch-card">
             <div class="flex items-center justify-between mb-2">
                 <span id="radar-event-ticker" class="radar-action-pill">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>🔴 ${match.homeTeam}: Dangerous Attack (Final Third)</span>
+                    ${radarTickerContent}
                 </span>
                 <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] text-white/70 font-mono font-bold">${match.time || 'LIVE'}</span>
-                    <span class="matrix-score-pill text-xs py-0.5 px-2">${match.score ? `${match.score.home} - ${match.score.away}` : '0 - 0'}</span>
+                    <span class="text-[10px] text-white/70 font-mono font-bold">${isMatchConcluded ? 'FT' : (isMatchLive ? match.time : 'UPCOMING')}</span>
+                    ${scorePillContent}
                 </div>
             </div>
             
@@ -5519,12 +5702,21 @@ function updateLiveDomElements() {
     // 1. Update player live score in video player box
     const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
     if (activeMatch) {
+        const isLive = (activeMatch.status === 'LIVE' || activeMatch.scheduleGroup === 'live');
+        const isFinished = (activeMatch.status === 'FINISHED' || activeMatch.time === 'Full Time');
+        const hasScore = (isLive || isFinished) && activeMatch.score && typeof activeMatch.score.home === 'number';
         const homeScoreEl = document.getElementById("player-score-home");
         const awayScoreEl = document.getElementById("player-score-away");
         const liveTimeEl = document.getElementById("player-live-time");
-        if (homeScoreEl) homeScoreEl.textContent = activeMatch.score.home;
-        if (awayScoreEl) awayScoreEl.textContent = activeMatch.score.away;
-        if (liveTimeEl) liveTimeEl.textContent = activeMatch.time;
+        if (hasScore) {
+            if (homeScoreEl) homeScoreEl.textContent = activeMatch.score.home;
+            if (awayScoreEl) awayScoreEl.textContent = activeMatch.score.away;
+        }
+        if (liveTimeEl) {
+            if (isFinished) liveTimeEl.textContent = "🏁 Full Time";
+            else if (isLive) liveTimeEl.textContent = `🔴 ${activeMatch.time || 'LIVE'}`;
+            else liveTimeEl.textContent = `📅 ${activeMatch.time || 'Scheduled'}`;
+        }
     }
 
     // 2. Update scores in visible table rows without rebuilding table DOM
@@ -5532,9 +5724,10 @@ function updateLiveDomElements() {
         const row = document.getElementById(`matrix-row-${m.id}`);
         if (row) {
             const isFinished = (m.status === 'FINISHED' || m.time === 'Full Time');
-            if ((m.status === 'LIVE' || m.scheduleGroup === 'live' || isFinished) && typeof row.querySelectorAll === 'function') {
-                const scoreEls = row.querySelectorAll(".matrix-team-name .score");
-                if (scoreEls.length >= 2) {
+            const isLive = (m.status === 'LIVE');
+            const scoreEls = row.querySelectorAll(".matrix-team-name .score");
+            if (scoreEls.length >= 2) {
+                if ((isLive || isFinished) && m.score && typeof m.score.home === 'number') {
                     scoreEls[0].textContent = m.score.home;
                     scoreEls[1].textContent = m.score.away;
                     if (isFinished) {
@@ -5543,15 +5736,19 @@ function updateLiveDomElements() {
                         scoreEls[1].style.color = '#38bdf8';
                         scoreEls[1].style.fontWeight = '800';
                     }
+                } else {
+                    scoreEls[0].textContent = '';
+                    scoreEls[1].textContent = '';
                 }
-                const pulseEl = row.querySelector(".badge-live-pulse");
-                if (pulseEl) {
-                    if (isFinished) {
-                        pulseEl.className = 'badge-finished';
-                        pulseEl.textContent = '🏁 Full Time';
-                    } else {
-                        pulseEl.textContent = m.time;
-                    }
+            }
+            const pulseEl = row.querySelector(".badge-live-pulse, .badge-finished");
+            if (pulseEl) {
+                if (isFinished) {
+                    pulseEl.className = 'badge-finished';
+                    pulseEl.textContent = '🏁 Full Time';
+                } else if (isLive) {
+                    pulseEl.className = 'badge-live-pulse';
+                    pulseEl.textContent = m.time;
                 }
             }
         }
