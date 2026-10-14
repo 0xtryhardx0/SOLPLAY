@@ -567,6 +567,12 @@ void main() {
         </span>
         <span class="text-white/20 hidden md:inline">•</span>
         <span class="text-white/50 hidden md:inline" id="header-live-clock">⏰ 16:25 WAT</span>
+        <span class="text-white/20 hidden sm:inline">•</span>
+        <button id="header-live-score-sync-btn" onclick="triggerManualScoreSync()" class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 rounded cursor-pointer transition-all" title="Synchronize live match scores and check for concluded matches via reliable sports API">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span id="score-sync-status-text">ESPN Scores: Live</span>
+            <span class="material-symbols-outlined text-[13px]" id="score-sync-icon">sync</span>
+        </button>
     </div>
     <div class="flex items-center gap-3 text-[11px]">
         <div class="flex items-center gap-1.5 bg-white/[0.04] px-2 py-0.5 rounded border border-white/5">
@@ -994,6 +1000,10 @@ void main() {
                                 <button class="schedule-pill" id="filter-pill-week" onclick="filterMatchesBySchedule('week')">
                                     <span>🏆 This Week</span>
                                     <span class="pill-count" id="count-pill-week">0</span>
+                                </button>
+                                <button class="schedule-pill" id="filter-pill-finished" onclick="filterMatchesBySchedule('finished')">
+                                    <span>🏁 Ended / FT</span>
+                                    <span class="pill-count" id="count-pill-finished">0</span>
                                 </button>
                             </div>
 

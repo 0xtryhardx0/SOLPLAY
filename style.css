@@ -1754,6 +1754,43 @@ body {
     50% { opacity: 0.3; transform: scale(0.7); }
 }
 
+.badge-finished {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(148, 163, 184, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+}
+
+.matrix-odd-box.concluded {
+    opacity: 0.5;
+    cursor: default;
+    filter: grayscale(0.4);
+}
+
+.matrix-odd-box.winning-outcome {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #34d399 !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.25) !important;
+}
+
+.syncing-spin {
+    animation: spinSync 0.8s linear infinite;
+}
+
+@keyframes spinSync {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+
 .badge-schedule-today {
     color: #14b8a6;
     font-weight: 600;

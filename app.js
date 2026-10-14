@@ -1356,7 +1356,7 @@ function scrollFeatured(dir) {
 // Schedule and League Filter Handlers
 function filterMatchesBySchedule(scheduleType) {
     activeScheduleFilter = scheduleType;
-    const pills = ['all', 'live', 'today', 'tomorrow', 'week'];
+    const pills = ['all', 'live', 'today', 'tomorrow', 'week', 'finished'];
     pills.forEach(p => {
         const btn = document.getElementById(`filter-pill-${p}`);
         if (btn) {
@@ -1402,6 +1402,192 @@ async function fetchUpcomingMatchesFromAPI() {
         getMatchMarkets(match);
     });
     renderLiveMatches();
+}
+
+// ==========================================================================
+// RELIABLE REAL-TIME LIVE SCORE & MATCH CONCLUSION SYNCHRONIZER (ESPN & UEFA)
+// ==========================================================================
+const RELIABLE_SPORTS_FEEDS = [
+    { leagueKey: "uefa.champions", name: "UEFA Champions League" },
+    { leagueKey: "eng.1", name: "Premier League" },
+    { leagueKey: "uefa.europa", name: "UEFA Europa League" },
+    { leagueKey: "esp.1", name: "La Liga" },
+    { leagueKey: "ita.1", name: "Serie A" },
+    { leagueKey: "ger.1", name: "Bundesliga" }
+];
+
+let lastLiveScoreSyncTimestamp = 0;
+let isScoreSyncInProgress = false;
+
+function normalizeSportsTeamName(name) {
+    if (!name) return "";
+    return name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\b(fc|cf|fk|cp|afc|sc|ac|as|tsg|vfb|rb|athletic|club)\b/gi, "")
+        .replace(/[^a-z0-9]/g, "")
+        .trim();
+}
+
+async function syncLiveScoresFromReliableSource(isManual = false) {
+    if (isScoreSyncInProgress) return;
+    isScoreSyncInProgress = true;
+
+    const btn = document.getElementById("header-live-score-sync-btn");
+    const icon = document.getElementById("score-sync-icon");
+    const txt = document.getElementById("score-sync-status-text");
+    if (icon) icon.classList.add("syncing-spin");
+    if (txt) txt.textContent = "Syncing Live Scores...";
+
+    let updatedCount = 0;
+    let finishedCount = 0;
+    let liveMatchCount = 0;
+    let newlyFinishedMatches = [];
+    let newlyScoredGoals = [];
+
+    try {
+        const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10).replace(/-/g, "");
+        const queryDates = ["", `?dates=${yesterdayStr}`];
+
+        for (const dateQuery of queryDates) {
+            for (const feed of RELIABLE_SPORTS_FEEDS) {
+                try {
+                    const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${feed.leagueKey}/scoreboard${dateQuery}`;
+                    const resp = await fetch(url);
+                    if (!resp.ok) continue;
+                    const data = await resp.json();
+                    const events = data.events || [];
+
+                for (const ev of events) {
+                    const comp = ev.competitions?.[0];
+                    if (!comp) continue;
+                    const homeComp = comp.competitors?.find(c => c.homeAway === 'home');
+                    const awayComp = comp.competitors?.find(c => c.homeAway === 'away');
+                    if (!homeComp || !awayComp) continue;
+
+                    const hName = homeComp.team?.displayName || "";
+                    const aName = awayComp.team?.displayName || "";
+                    const hNorm = normalizeSportsTeamName(hName);
+                    const aNorm = normalizeSportsTeamName(aName);
+
+                    const match = MATCHES_DATA.find(m => {
+                        const mhNorm = normalizeSportsTeamName(m.homeTeam);
+                        const maNorm = normalizeSportsTeamName(m.awayTeam);
+                        return (mhNorm === hNorm && maNorm === aNorm) ||
+                               (mhNorm.includes(hNorm) && maNorm.includes(aNorm)) ||
+                               (hNorm.includes(mhNorm) && aNorm.includes(maNorm));
+                    });
+
+                    if (!match) continue;
+
+                    const state = ev.status?.type?.state; // 'in', 'post', 'pre'
+                    const detail = ev.status?.type?.detail || "";
+                    const clock = ev.status?.displayClock;
+                    const statusName = ev.status?.type?.name || "";
+                    const completed = !!ev.status?.type?.completed;
+
+                    const hScore = parseInt(homeComp.score || "0", 10);
+                    const aScore = parseInt(awayComp.score || "0", 10);
+
+                    const prevStatus = match.status;
+                    const prevHome = (match.score && typeof match.score.home === 'number') ? match.score.home : 0;
+                    const prevAway = (match.score && typeof match.score.away === 'number') ? match.score.away : 0;
+
+                    if (state === 'post' || completed || statusName.includes('FULL_TIME') || statusName.includes('FINAL')) {
+                        match.status = 'FINISHED';
+                        match.time = 'Full Time';
+                        match.score = { home: hScore, away: aScore };
+                        match.isLocked = true;
+                        finishedCount++;
+                        updatedCount++;
+
+                        if (prevStatus !== 'FINISHED') {
+                            newlyFinishedMatches.push(match);
+                            if (!match.timeline) match.timeline = [];
+                            match.timeline.unshift({
+                                time: "FT",
+                                type: "end",
+                                desc: `🏁 Final Whistle: ${match.homeTeam} ${hScore} - ${aScore} ${match.awayTeam} (Full Time)`,
+                                icon: "🏁"
+                            });
+                        }
+                    } else if (state === 'in' || statusName.includes('PROGRESS') || statusName.includes('HALF')) {
+                        match.status = 'LIVE';
+                        match.scheduleGroup = 'live';
+                        match.time = clock ? `${clock}'` : (detail || 'Live');
+                        match.score = { home: hScore, away: aScore };
+                        liveMatchCount++;
+                        updatedCount++;
+
+                        if (hScore !== prevHome || aScore !== prevAway) {
+                            newlyScoredGoals.push({ match, hScore, aScore, prevHome, prevAway });
+                            if (!match.timeline) match.timeline = [];
+                            const scoringTeam = hScore > prevHome ? match.homeTeam : match.awayTeam;
+                            match.timeline.unshift({
+                                time: match.time,
+                                type: "goal",
+                                desc: `⚽ Real-Time Goal! ${scoringTeam} scores! (${match.homeTeam} ${hScore} - ${aScore} ${match.awayTeam})`,
+                                icon: "⚽"
+                            });
+                            recalculateMatchOddsAfterGoal(match, hScore > prevHome);
+                        }
+                    } else if (state === 'pre') {
+                        if (match.status !== 'FINISHED') {
+                            match.status = 'SCHEDULED';
+                        }
+                    }
+                }
+            } catch (leagueErr) {
+                console.warn(`Could not sync league ${feed.name}:`, leagueErr);
+            }
+        }
+    }
+
+        lastLiveScoreSyncTimestamp = Date.now();
+        if (txt) txt.textContent = "ESPN Live: Synced";
+
+        // If any matches ended, settle all pending wagers and notify user
+        if (newlyFinishedMatches.length > 0) {
+            verifyAllWagersStatus();
+            newlyFinishedMatches.forEach(m => {
+                showToast(`🏁 ${m.homeTeam} ${m.score.home} - ${m.score.away} ${m.awayTeam} full time! Bets settled.`, "success");
+            });
+        }
+
+        // Notify if goals occurred
+        if (newlyScoredGoals.length > 0) {
+            newlyScoredGoals.forEach(g => {
+                showToast(`⚽ LIVE GOAL: ${g.match.homeTeam} ${g.hScore} - ${g.aScore} ${g.match.awayTeam}`, "info");
+            });
+        }
+
+        if (isManual) {
+            showToast(`✅ Live Scores Synced from ESPN! (${updatedCount} fixtures checked, ${finishedCount} ended, ${liveMatchCount} live)`, "success");
+        }
+
+        updateLiveDomElements();
+        renderLiveMatches();
+
+        const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
+        if (activeMatch) {
+            if (typeof renderMatchTimeline === 'function') renderMatchTimeline();
+            if (typeof renderMatchStats === 'function') renderMatchStats();
+        }
+    } catch (e) {
+        console.error("Live Score Sync Error:", e);
+        if (txt) txt.textContent = "ESPN Live: Reconnect";
+        if (isManual) {
+            showToast("Sync timeout. Will auto-retry in 25s.", "warning");
+        }
+    } finally {
+        isScoreSyncInProgress = false;
+        if (icon) icon.classList.remove("syncing-spin");
+    }
+}
+
+function triggerManualScoreSync() {
+    syncLiveScoresFromReliableSource(true);
 }
 
 
@@ -1458,6 +1644,10 @@ function initApp() {
     // Fetch upcoming real matches dynamically from TheSportsDB & poll daily updates every 3 minutes
     fetchUpcomingMatchesFromAPI();
     setInterval(fetchUpcomingMatchesFromAPI, 180000);
+
+    // Synchronize real-time scores immediately from reliable ESPN/UEFA source & poll every 25 seconds
+    syncLiveScoresFromReliableSource();
+    setInterval(syncLiveScoresFromReliableSource, 25000);
 
     // Render multi-league matches and select default match without auto-scrolling
     renderLiveMatches();
@@ -3769,10 +3959,11 @@ function renderLiveMatches() {
     };
 
     const countAll = MATCHES_DATA.filter(leagueFilterPass).length;
-    const countLive = MATCHES_DATA.filter(m => m.scheduleGroup === 'live' && leagueFilterPass(m)).length;
-    const countToday = MATCHES_DATA.filter(m => m.scheduleGroup === 'today' && leagueFilterPass(m)).length;
+    const countLive = MATCHES_DATA.filter(m => (m.scheduleGroup === 'live' || m.status === 'LIVE') && m.status !== 'FINISHED' && m.time !== 'Full Time' && leagueFilterPass(m)).length;
+    const countToday = MATCHES_DATA.filter(m => m.scheduleGroup === 'today' && m.status !== 'FINISHED' && leagueFilterPass(m)).length;
     const countTomorrow = MATCHES_DATA.filter(m => m.scheduleGroup === 'tomorrow' && leagueFilterPass(m)).length;
     const countWeek = MATCHES_DATA.filter(m => m.scheduleGroup === 'week' && leagueFilterPass(m)).length;
+    const countFinished = MATCHES_DATA.filter(m => (m.status === 'FINISHED' || m.time === 'Full Time') && leagueFilterPass(m)).length;
 
     // Update Pill Count Badges
     const elAll = document.getElementById("count-pill-all");
@@ -3785,12 +3976,15 @@ function renderLiveMatches() {
     if (elTom) elTom.textContent = countTomorrow;
     const elWeek = document.getElementById("count-pill-week");
     if (elWeek) elWeek.textContent = countWeek;
+    const elFinished = document.getElementById("count-pill-finished");
+    if (elFinished) elFinished.textContent = countFinished;
 
     // 2. Filter matches based on user's active filters and search query
     const filteredMatches = MATCHES_DATA.filter(match => {
         if (!leagueFilterPass(match)) return false;
-        if (activeScheduleFilter === 'live' && match.scheduleGroup !== 'live') return false;
-        if (activeScheduleFilter === 'today' && match.scheduleGroup !== 'today') return false;
+        if (activeScheduleFilter === 'live' && (match.status === 'FINISHED' || match.time === 'Full Time' || (match.scheduleGroup !== 'live' && match.status !== 'LIVE'))) return false;
+        if (activeScheduleFilter === 'finished' && match.status !== 'FINISHED' && match.time !== 'Full Time') return false;
+        if (activeScheduleFilter === 'today' && (match.scheduleGroup !== 'today' || match.status === 'FINISHED')) return false;
         if (activeScheduleFilter === 'tomorrow' && match.scheduleGroup !== 'tomorrow') return false;
         if (activeScheduleFilter === 'week' && match.scheduleGroup !== 'week') return false;
         if (matchSearchQuery) {
@@ -3937,8 +4131,11 @@ function renderLiveMatches() {
             const mhandicap = markets['handicap'] || [];
             const mhalftime = markets['halftime'] || [];
 
+            const isMatchConcluded = (match.status === 'FINISHED' || match.time === 'Full Time' || match.time === 'FT');
             let statusBadge = '';
-            if (match.scheduleGroup === 'live') {
+            if (isMatchConcluded) {
+                statusBadge = `<span class="badge-finished">🏁 Full Time</span>`;
+            } else if (match.scheduleGroup === 'live' || match.status === 'LIVE') {
                 statusBadge = `<span class="badge-live-pulse" style="font-size:0.65rem; padding:0.15rem 0.4rem;">${match.time}</span>`;
             } else if (match.scheduleGroup === 'today') {
                 statusBadge = `<span class="badge-schedule-today" style="font-size:0.65rem; padding:0.15rem 0.4rem;">📅 ${match.time}</span>`;
@@ -3952,6 +4149,17 @@ function renderLiveMatches() {
             const isAccordionOpen = !!expandedAccordions[match.id];
             const activeCat = activeAccordionCategory[match.id] || 'all';
 
+            // Check winning outcome for 1X2 if match is concluded
+            let winning1x2Id = -1;
+            if (isMatchConcluded && match.score) {
+                if (match.score.home > match.score.away) winning1x2Id = 0;
+                else if (match.score.away > match.score.home) winning1x2Id = 1;
+                else winning1x2Id = 2;
+            }
+
+            const scoreDisplayHome = (match.status === 'LIVE' || match.scheduleGroup === 'live' || isMatchConcluded) ? (match.score ? match.score.home : 0) : '';
+            const scoreDisplayAway = (match.status === 'LIVE' || match.scheduleGroup === 'live' || isMatchConcluded) ? (match.score ? match.score.away : 0) : '';
+
             rowWrapper.innerHTML = `
                 <div class="match-matrix-row">
                     <!-- Sticky / Prominent Match Info Left Section -->
@@ -3963,11 +4171,11 @@ function renderLiveMatches() {
                         <div class="match-teams-block">
                             <div class="matrix-team-name">
                                 <span>${match.homeTeam}</span>
-                                <span class="score">${(match.status === 'LIVE' || match.scheduleGroup === 'live') ? match.score.home : ''}</span>
+                                <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayHome}</span>
                             </div>
                             <div class="matrix-team-name">
                                 <span>${match.awayTeam}</span>
-                                <span class="score">${(match.status === 'LIVE' || match.scheduleGroup === 'live') ? match.score.away : ''}</span>
+                                <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayAway}</span>
                             </div>
                         </div>
                         <div class="match-actions-line">
@@ -3986,12 +4194,18 @@ function renderLiveMatches() {
                     <div class="matrix-odds-track">
                         <!-- 1X2 (Winner) -->
                         <div class="odds-col-group group-3">
-                            ${m1x2.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')">
-                                    <span class="lbl">${o.label}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
+                            ${m1x2.map(o => {
+                                const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                                const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
+                                const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
+                                const clickHandler = isMatchConcluded ? `showToast('This fixture has ended (Full Time). Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')`;
+                                return `
+                                    <button class="matrix-odd-box ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
+                                        <span class="lbl">${o.label}</span>
+                                        <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
+                                    </button>
+                                `;
+                            }).join('')}
                         </div>
 
                         <!-- Over / Under 2.5 -->
@@ -5093,17 +5307,56 @@ function startLiveMatchSimulationEngine() {
     }, 3500); // Ticks every 3.5 seconds for active, fluid in-game pacing
 }
 
+function endLiveMatchNaturally(match) {
+    if (!match || match.status === 'FINISHED') return;
+    match.time = "Full Time";
+    match.status = "FINISHED";
+    match.isLocked = true;
+
+    if (!match.timeline) match.timeline = [];
+    match.timeline.unshift({
+        time: "90'+3'",
+        type: "end",
+        desc: `🏁 Full Time Whistle: ${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam}. Match concluded!`,
+        icon: "🏁"
+    });
+
+    verifyAllWagersStatus();
+    updateLiveDomElements();
+    renderLiveMatches();
+
+    if (activeMatchId === match.id) {
+        const liveScoreEl = document.getElementById("player-live-score");
+        if (liveScoreEl) {
+            liveScoreEl.innerHTML = `${match.homeTeam} <span id="player-score-home">${match.score.home}</span> - <span id="player-score-away">${match.score.away}</span> ${match.awayTeam}`;
+        }
+        const liveTimeEl = document.getElementById("player-live-time");
+        if (liveTimeEl) liveTimeEl.textContent = "Full Time";
+        if (typeof renderMatchTimeline === 'function') renderMatchTimeline();
+    }
+
+    showToast(`🏁 MATCH CONCLUDED: ${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam} (Full Time). Wagers verified!`, "success");
+}
+
 function tickLiveMatches() {
     liveSimTickCount++;
-    const liveMatches = MATCHES_DATA.filter(m => m.scheduleGroup === 'live' || m.status === 'LIVE');
+    const liveMatches = MATCHES_DATA.filter(m => (m.scheduleGroup === 'live' || m.status === 'LIVE') && m.status !== 'FINISHED' && m.time !== 'Full Time');
     if (liveMatches.length === 0) return;
 
-    // 1. Advance minutes dynamically every ~4 ticks (~14 seconds)
+    // 1. Advance minutes dynamically every ~4 ticks (~14 seconds) and check for Full Time
     if (liveSimTickCount % 4 === 0) {
         liveMatches.forEach(m => {
             const currentMin = parseInt(m.time);
-            if (!isNaN(currentMin) && currentMin < 90) {
-                m.time = `${currentMin + 1}'`;
+            if (!isNaN(currentMin)) {
+                if (currentMin >= 90) {
+                    if (currentMin >= 93) {
+                        endLiveMatchNaturally(m);
+                    } else {
+                        m.time = `90'+${currentMin - 89}'`;
+                    }
+                } else {
+                    m.time = `${currentMin + 1}'`;
+                }
             }
         });
     }
@@ -5277,21 +5530,45 @@ function updateLiveDomElements() {
     // 2. Update scores in visible table rows without rebuilding table DOM
     MATCHES_DATA.forEach(m => {
         const row = document.getElementById(`matrix-row-${m.id}`);
-        if (row && (m.status === 'LIVE' || m.scheduleGroup === 'live')) {
-            const scoreEls = row.querySelectorAll(".matrix-team-name .score");
-            if (scoreEls.length >= 2) {
-                scoreEls[0].textContent = m.score.home;
-                scoreEls[1].textContent = m.score.away;
+        if (row) {
+            const isFinished = (m.status === 'FINISHED' || m.time === 'Full Time');
+            if ((m.status === 'LIVE' || m.scheduleGroup === 'live' || isFinished) && typeof row.querySelectorAll === 'function') {
+                const scoreEls = row.querySelectorAll(".matrix-team-name .score");
+                if (scoreEls.length >= 2) {
+                    scoreEls[0].textContent = m.score.home;
+                    scoreEls[1].textContent = m.score.away;
+                    if (isFinished) {
+                        scoreEls[0].style.color = '#38bdf8';
+                        scoreEls[0].style.fontWeight = '800';
+                        scoreEls[1].style.color = '#38bdf8';
+                        scoreEls[1].style.fontWeight = '800';
+                    }
+                }
+                const pulseEl = row.querySelector(".badge-live-pulse");
+                if (pulseEl) {
+                    if (isFinished) {
+                        pulseEl.className = 'badge-finished';
+                        pulseEl.textContent = '🏁 Full Time';
+                    } else {
+                        pulseEl.textContent = m.time;
+                    }
+                }
             }
-            const pulseEl = row.querySelector(".badge-live-pulse");
-            if (pulseEl) pulseEl.textContent = m.time;
         }
     });
 
     // 3. Update count pills
-    const countLive = MATCHES_DATA.filter(m => m.scheduleGroup === 'live').length;
+    const leagueFilterPass = (m) => {
+        if (activeLeagueFilter === 'all') return true;
+        const leagueStr = ((m.league || '') + ' ' + (m.leagueCategory || '')).toLowerCase();
+        return leagueStr.includes(activeLeagueFilter.toLowerCase());
+    };
+    const countLive = MATCHES_DATA.filter(m => (m.scheduleGroup === 'live' || m.status === 'LIVE') && m.status !== 'FINISHED' && m.time !== 'Full Time' && leagueFilterPass(m)).length;
+    const countFinished = MATCHES_DATA.filter(m => (m.status === 'FINISHED' || m.time === 'Full Time') && leagueFilterPass(m)).length;
     const countPillLive = document.getElementById("count-pill-live");
     if (countPillLive) countPillLive.textContent = countLive;
+    const countPillFinished = document.getElementById("count-pill-finished");
+    if (countPillFinished) countPillFinished.textContent = countFinished;
 }
 
 function renderMatchLineups() {
