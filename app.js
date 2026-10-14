@@ -1750,6 +1750,10 @@ function initApp() {
     loadWagersFromStorage();
     renderActiveWagers();
 
+    // Load and restore persistent betslip selections on reload
+    loadBetslipFromStorage();
+    renderBetslip();
+
     // Fetch upcoming real matches dynamically from TheSportsDB & poll daily updates every 3 minutes
     fetchUpcomingMatchesFromAPI();
     setInterval(fetchUpcomingMatchesFromAPI, 180000);
@@ -3141,6 +3145,41 @@ function renderTournaments() {
     });
 }
 
+function saveBetslipToStorage() {
+    try {
+        const key = activePublicKey ? `solplay_betslip_${activePublicKey.toString()}` : "solplay_pending_betslip";
+        localStorage.setItem(key, JSON.stringify(betslipSelections));
+        localStorage.setItem("solplay_betslip_mode", betslipMode);
+        localStorage.setItem("solplay_active_slip_mode", activeSlipMode);
+    } catch (e) {
+        console.error("saveBetslipToStorage error:", e);
+    }
+}
+
+function loadBetslipFromStorage() {
+    try {
+        const key = activePublicKey ? `solplay_betslip_${activePublicKey.toString()}` : "solplay_pending_betslip";
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                betslipSelections = parsed;
+                activeSelection = betslipSelections[0];
+            }
+        }
+        const storedMode = localStorage.getItem("solplay_betslip_mode");
+        if (storedMode && (storedMode === 'accumulator' || storedMode === 'builder' || storedMode === 'singles')) {
+            betslipMode = storedMode;
+        }
+        const storedActiveMode = localStorage.getItem("solplay_active_slip_mode");
+        if (storedActiveMode) {
+            activeSlipMode = storedActiveMode;
+        }
+    } catch (e) {
+        console.error("loadBetslipFromStorage error:", e);
+    }
+}
+
 function isOutcomeSelected(gameId, outcomeId) {
     return betslipSelections.some(s => s.gameId === gameId && s.outcomeId === outcomeId);
 }
@@ -3150,6 +3189,7 @@ let activeSlipMode = 'acca'; // 'acca' (SportyBet standard accumulator) or 'buil
 function setBetslipMode(mode) {
     activeSlipMode = mode;
     betslipMode = (mode === 'builder') ? 'builder' : 'accumulator';
+    saveBetslipToStorage();
     
     const btnAcca = document.getElementById("btn-mode-acca");
     const btnBuilder = document.getElementById("btn-mode-builder");
@@ -3266,6 +3306,7 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marke
 
     renderBetslip();
     renderLiveMatches();
+    saveBetslipToStorage();
 }
 
 function removeSelection(id) {
@@ -3277,11 +3318,13 @@ function removeSelection(id) {
     }
     renderBetslip();
     renderLiveMatches();
+    saveBetslipToStorage();
 }
 
 function clearAllSelections() {
     betslipSelections = [];
     activeSelection = null;
+    saveBetslipToStorage();
     renderBetslip();
     renderLiveMatches();
     showToast("Betslip cleared", "info");
