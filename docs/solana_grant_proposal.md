@@ -1,54 +1,67 @@
-# Solana Foundation Grant Proposal: SolPlay Social Sportsbook
+# Solana Foundation Grant Proposal: SolPlay Social Sportsbook Protocol
 
 ## 1. Executive Summary
-SolPlay is a next-generation decentralized social sportsbook built on the Solana blockchain. By combining real-time HLS video streaming, client-side score trackers, dynamic betting markets, and copy-betting social features, SolPlay bridges the gap between traditional Web2 engagement and Web3 trustlessness. 
+**SolPlay Protocol** is a next-generation decentralized social sportsbook built natively on Solana. By combining sub-second on-chain settlement, real-time HLS video streaming, dynamic multi-leg accumulators, PostgreSQL/Supabase cloud persistence, autonomous ESPN sports oracles, and 1-click social bet cloning, SolPlay bridges the gap between traditional Web2 engagement and Web3 trustlessness.
 
-We are requesting a **$15,000 equity-free development grant** to audit our smart contract, integrate production-grade sports data feeds, and deploy SolPlay to Solana Mainnet.
+We are requesting a **$15,000 equity-free development grant** to complete our smart contract security audit, expand production sports data feeds across international leagues, and deploy SolPlay to Solana Mainnet.
 
 ---
 
 ## 2. Problem Statement
 The current sports betting landscape suffers from three critical issues:
-1. **Centralization & Custody Risk**: Traditional sportsbooks (Web2) hold player funds, delay withdrawals, and arbitrarily limit winning accounts.
-2. **Lack of Transparency & Copy-Betting Friction**: While "tipsters" and communities share betting slips, there is no verified proof of stakes. Users must manually copy bets across different platforms, leading to errors.
-3. **High Latency & Front-Running**: Live/in-play betting is highly exposed to latency exploits, forcing platforms to impose long bet approval delays and freeze markets, degrading player experience.
+1. **Centralization & Custody Risk**: Traditional sportsbooks (Bet365, 1xBet, SportyBet) hold player funds, delay withdrawals, and arbitrarily limit or freeze winning player accounts.
+2. **Lack of Transparency & Copy-Betting Friction**: While tipsters share bet slips across Telegram and Twitter, there is zero cryptographic proof of stake. Followers must manually copy bets across different platforms, leading to errors and lost revenue.
+3. **High Latency & Front-Running**: Live in-play betting is vulnerable to courtsiding (latency front-running), forcing platforms to impose long bet approval delays and frozen markets, degrading user experience.
 
 ---
 
-## 3. The SolPlay Solution
-SolPlay solves these issues by leveraging Solana's sub-second transactions and low gas fees:
-* **Non-Custodial Escrow**: Wagers are routed directly to on-chain program escrows. Winnings are claimed instantly by the bettor via cryptographic proof (Instruction 4).
-* **Social Copy-Betting Loop**: Users share active tickets directly in the Live Fan Chat. Other users can clone the bet in 1-click (`📋 Clone Bet`). The smart contract automatically distributes a 2.0% creator commission from winnings to reward content creators.
-* **In-Play House Safeguards**: Protects the liquidity pool via live odds shifting, automatic 8-second goal suspensions, and an absolute 75-minute safety cutoff for late-game markets.
-* **Integrated Streaming**: Direct HLS stream mirroring allows players to watch the action and track live stats on a single dashboard.
+## 3. The SolPlay Solution & Current Implementation Status
+SolPlay solves these issues by leveraging Solana's 400ms finality, sub-cent transaction costs, and modern real-time cloud data pipelines:
+* **Non-Custodial Escrow & PDA Vaults**: Wagers are routed directly to on-chain program escrows. Winnings are claimed instantly by the bettor via cryptographic proof (Instruction 4: `ClaimPayout`).
+* **1-Click Social Bet Cloning & 2.0% Creator Royalties**: Punters share active tickets directly in the Live Fan Chat (`SHARE-ACCA:`). Other users can clone any multi-leg accumulator with a single click (`⚡ Clone Acca (1-Click)`). The native smart contract and database engine automatically route a 2.0% creator commission from winnings to the original tipster.
+* **Persistent Multi-Leg Accumulators**: Selections and tickets persist across page reloads and tab switches via PostgreSQL/Supabase real-time cloud synchronization.
+* **Autonomous Oracle Daemon & Live ESPN Feeds**: Python daemon (`oracle_service.py`) polls live ESPN scoreboards and settles wagers on-chain and in cloud databases with automated VAR/goal freezes and a strict 75-minute in-play cutoff.
+* **Integrated Cyber Streaming Center**: Embedded HLS live video mirrors allow players to watch matches and wager simultaneously on a unified responsive dashboard.
 
 ---
 
 ## 4. Technical Architecture
-* **Smart Contract**: Written in Rust, compiled via SBF, and deployed to Solana (`84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk`).
-* **Frontend**: Vanilla HTML5, styled with CSS (Liquid Glass design system), and driven by lightweight JavaScript.
-* **Streaming Engine**: Hls.js client parsing live HLS streams (`.m3u8`) with custom buffer recovery.
-* **Sports Feed API**: Direct client-side fetch calls to TheSportsDB API to populate dynamic league fixtures, odds, and player lineups.
+```
+solana_sandbox/
+├── src/
+│   └── lib.rs              # Native Solana SBF Rust Program (938 LOC, 11 Instructions)
+├── index.html              # Cyber-Sportsbook Frontend (HLS Streams + Chat + Betslip)
+├── app.js                  # Solana Web3.js client & Phantom/Solflare wallet adapter
+├── solplay_db.js           # Supabase PostgreSQL real-time sync connector
+├── oracle_service.py       # Autonomous Python oracle daemon syncing ESPN sports API
+├── admin.html / admin.js   # Protocol administrative dashboard & market creator
+├── database_schema.sql     # PostgreSQL relational schema for users, wagers & betslips
+└── test_protocol.py        # Automated end-to-end local & Devnet test suite
+```
+
+* **Program ID (Solana Devnet)**: `84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk`
+* **Cloud Database Engine**: PostgreSQL on Supabase (`ervysscnenetauyszrzp`)
+* **Live Deployment**: Continuous deployment from GitHub (`main` branch) to Vercel
 
 ---
 
 ## 5. Funding Request & Milestones
 We request **$15,000 USD** (paid in SOL or USDC) to complete the product roadmap over 10 weeks:
 
-### Milestone 1: Production Feeds & Security Audit (Weeks 1-4)
+### Milestone 1: Production Feeds & Smart Contract Audit (Weeks 1-4)
 * **Deliverables**:
-  - Secure a third-party smart contract audit from a reputable Web3 security firm.
-  - Connect the autonomous oracle daemon (`oracle_service.py`) to a production sports data feed API (e.g. API-Football).
+  - Secure a third-party smart contract audit from a reputable Web3 security firm (e.g. OtterSec or Neodyme).
+  - Connect the autonomous oracle daemon (`oracle_service.py`) to an enterprise multi-source sports data API feed (API-Football / Sportradar).
 * **Budget**: $7,500
 
-### Milestone 2: Mainnet Deployment & Custom Domain (Weeks 5-6)
+### Milestone 2: Mainnet Deployment & Custom Infrastructure (Weeks 5-6)
 * **Deliverables**:
   - Deploy SolPlay contracts to Solana Mainnet.
-  - Bind custom SSL domains (e.g. `solplay.one`) and configure high-availability node clusters.
+  - Bind custom SSL domains (e.g. `solplay.io`) and configure high-availability Solana RPC node clusters.
 * **Budget**: $2,500
 
-### Milestone 3: Public Beta Tournament & Marketing (Weeks 7-10)
+### Milestone 3: Public Beta Tournament & Community Onboarding (Weeks 7-10)
 * **Deliverables**:
-  - Launch a public beta tournament on Solana Devnet to stress-test transaction load.
-  - Fund a marketing campaign to onboard initial active sports communities and copy-betting creators.
+  - Launch a public beta tournament on Solana Devnet to stress-test concurrent betting volume.
+  - Fund a creator incentive campaign onboarding active sports tipsters and community leaders for 1-click copy betting.
 * **Budget**: $5,000

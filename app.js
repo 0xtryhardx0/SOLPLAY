@@ -2927,7 +2927,8 @@ function appendChatMessage(user, text, isSystem = false) {
     
     // Add tip/copy actions if it's not a shared bet and not a system message
     const isSharedBet = text.startsWith("SHARE-BET:");
-    if (!isSystem && !isSharedBet) {
+    const isSharedAcca = text.startsWith("SHARE-ACCA:");
+    if (!isSystem && !isSharedBet && !isSharedAcca) {
         const actions = document.createElement("span");
         actions.innerHTML = `
             <span style="color: var(--neon-orange); cursor: pointer; margin-right: 0.5rem;" onclick="tipUserChat('${user}')">🪙 Tip</span>
@@ -2939,7 +2940,49 @@ function appendChatMessage(user, text, isSystem = false) {
     const body = document.createElement("div");
     body.className = "chat-text";
     
-    if (isSharedBet) {
+    if (isSharedAcca) {
+        try {
+            const rawJson = decodeURIComponent(text.substring(11)); // Strip "SHARE-ACCA:"
+            const accaData = JSON.parse(rawJson);
+            const legsCount = accaData.legs ? accaData.legs.length : 2;
+            const boostBadge = accaData.bonusPercent > 0 ? `<span class="chat-acca-boost-badge">+${accaData.bonusPercent}% Acca Boost</span>` : '';
+            
+            let legsHtml = (accaData.legs || []).map(leg => {
+                const legMatch = MATCHES_DATA.find(m => m.id === leg.gameId);
+                const fixture = legMatch ? `${legMatch.homeTeam} vs ${legMatch.awayTeam}` : (leg.fixtureName || `Match #${leg.gameId}`);
+                return `
+                    <div class="chat-acca-leg-item">
+                        <span><strong>${fixture}</strong>: <span style="color:var(--neon-teal); font-weight:600;">${leg.label || leg.outcomeLabel}</span></span>
+                        <span style="color:var(--neon-teal); font-weight:700;">@${(leg.oddsValue || leg.odds || 1.5).toFixed(2)}x</span>
+                    </div>
+                `;
+            }).join("");
+
+            const encodedPayload = encodeURIComponent(JSON.stringify(accaData));
+
+            body.innerHTML = `
+                <div class="chat-acca-card glass">
+                    <div class="chat-betslip-header">
+                        <span class="chat-betslip-title">🔥 ${legsCount}-FOLD ACCUMULATOR</span>
+                        <div>
+                            <span class="chat-betslip-odds-badge">${accaData.odds.toFixed(2)}x</span>
+                            ${boostBadge}
+                        </div>
+                    </div>
+                    <div class="chat-acca-legs-container">
+                        ${legsHtml}
+                    </div>
+                    <div class="chat-betslip-footer">
+                        <span class="chat-betslip-stake">Stake: <strong>${accaData.amount ? accaData.amount.toFixed(2) : '1.00'} SOL</strong> | Return: <strong style="color:var(--neon-teal);">${(accaData.potentialPayout || (accaData.amount * accaData.odds)).toFixed(2)} SOL</strong></span>
+                        <button class="chat-betslip-clone-btn" onclick="cloneAccaFromChat('${encodedPayload}')">⚡ Clone Acca (1-Click)</button>
+                    </div>
+                </div>
+            `;
+        } catch (accaErr) {
+            console.error("Failed to parse shared acca message:", accaErr);
+            body.textContent = text;
+        }
+    } else if (isSharedBet) {
         try {
             const rawParts = text.substring(10); // Strip "SHARE-BET:"
             const parts = rawParts.split("|");
@@ -2951,6 +2994,7 @@ function appendChatMessage(user, text, isSystem = false) {
                 const stake = parseFloat(parts[3]);
                 const fixture = parts[4];
                 const outcomeId = parseInt(parts[5]);
+                const creatorWallet = parts[6] || "";
                 
                 body.innerHTML = `
                     <div class="chat-betslip-card glass">
@@ -2963,7 +3007,7 @@ function appendChatMessage(user, text, isSystem = false) {
                         <div class="chat-betslip-option">Option: <strong>${outcomeLabel}</strong></div>
                         <div class="chat-betslip-footer">
                             <span class="chat-betslip-stake">Wager: ${stake.toFixed(2)} SOL</span>
-                            <button class="chat-betslip-clone-btn" onclick="cloneBetFromChat(${gameId}, ${outcomeId}, ${odds}, '${outcomeLabel}', '${fixture}')">📋 Clone Bet</button>
+                            <button class="chat-betslip-clone-btn" onclick="cloneBetFromChat(${gameId}, ${outcomeId}, ${odds}, '${outcomeLabel}', '${fixture}', '${creatorWallet}')">📋 Clone Bet</button>
                         </div>
                     </div>
                 `;
@@ -3807,8 +3851,12 @@ async function placeBet() {
             status: "PENDING",
             wagerPubkey: wagerAccountKeypair.publicKey,
             claimed: false,
+            copyCreatorWallet: window.activeCopyCreatorWallet || null,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
+
+        // Reset active copy creator once wager is registered
+        window.activeCopyCreatorWallet = null;
 
         // Deduct from wallet balance in sandbox
         if (typeof walletBalance !== 'undefined' && walletBalance > 0) {
@@ -4165,30 +4213,115 @@ function shareWagerToChat(idx) {
     const w = localWagers[idx];
     if (!w) return;
     
-    let fixture = `Match #${w.gameId}`;
-    const match = MATCHES_DATA.find(m => m.id === w.gameId);
-    if (match) {
-        fixture = `${match.homeTeam} vs ${match.awayTeam}`;
+    const username = isWalletConnected && activePublicKey ? getFriendlyUsername(activePublicKey.toString()) : "User";
+    const creatorWallet = activePublicKey ? activePublicKey.toString() : "";
+
+    // Handle Multi-Leg Accumulators
+    if (w.isAccumulator && w.legs && w.legs.length > 1) {
+        const accaPayload = {
+            ticketId: w.ticketId || `#SP-${String(w.id).slice(-6)}`,
+            isAccumulator: true,
+            legs: w.legs.map(l => ({
+                gameId: l.gameId,
+                outcomeId: l.outcomeId,
+                outcomeLabel: l.outcomeLabel || l.label,
+                oddsValue: l.oddsValue || l.odds || 1.5,
+                fixtureName: l.fixtureName || `Match #${l.gameId}`
+            })),
+            odds: w.odds,
+            bonusPercent: w.bonusPercent || 0,
+            amount: w.amount,
+            potentialPayout: w.potentialPayout || (w.amount * w.odds),
+            creatorWallet: creatorWallet
+        };
+
+        const msg = `SHARE-ACCA:${encodeURIComponent(JSON.stringify(accaPayload))}`;
+        appendChatMessage(username, msg);
+        showToast("🔥 Accumulator shared to Live Fan Chat!", "success");
     } else {
-        const tournament = TOURNAMENTS_DATA.find(t => t.id === w.gameId);
-        if (tournament) {
-            fixture = tournament.title;
+        // Handle Single Match Bets
+        let fixture = `Match #${w.gameId}`;
+        const match = MATCHES_DATA.find(m => m.id === w.gameId);
+        if (match) {
+            fixture = `${match.homeTeam} vs ${match.awayTeam}`;
+        } else {
+            const tournament = TOURNAMENTS_DATA.find(t => t.id === w.gameId);
+            if (tournament) fixture = tournament.title;
         }
+
+        const msg = `SHARE-BET:${w.gameId}|${w.outcomeLabel}|${w.odds}|${w.amount}|${fixture}|${w.outcomeId}|${creatorWallet}`;
+        appendChatMessage(username, msg);
+        showToast("Wager shared to Live Fan Chat!", "success");
     }
-    
-    // SHARE-BET:gameId|outcomeLabel|odds|stake|fixture|outcomeId
-    const msg = `SHARE-BET:${w.gameId}|${w.outcomeLabel}|${w.odds}|${w.amount}|${fixture}|${w.outcomeId}`;
-    
-    const username = isWalletConnected ? getFriendlyUsername(activePublicKey.toString()) : "User";
-    appendChatMessage(username, msg);
-    showToast("Wager shared to Live Fan Chat!", "success");
     
     switchMatchTab('chat');
 }
 
-function cloneBetFromChat(gameId, outcomeId, oddsValue, outcomeLabel, fixture) {
+function cloneBetFromChat(gameId, outcomeId, oddsValue, outcomeLabel, fixture, creatorWallet = "") {
     showToast(`Cloning bet: ${outcomeLabel} @ ${oddsValue.toFixed(2)}x`, "info");
+    if (creatorWallet) {
+        window.activeCopyCreatorWallet = creatorWallet;
+    }
     selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, fixture);
+}
+
+function cloneAccaFromChat(encodedData) {
+    try {
+        const accaData = JSON.parse(decodeURIComponent(encodedData));
+        if (!accaData || !accaData.legs || accaData.legs.length === 0) {
+            showToast("Invalid accumulator data", "error");
+            return;
+        }
+
+        // Store copy creator for on-chain royalty attribution
+        if (accaData.creatorWallet) {
+            window.activeCopyCreatorWallet = accaData.creatorWallet;
+        }
+
+        // Clear existing betslip to load the full accumulator
+        betslipSelections = [];
+
+        // Populate all legs
+        accaData.legs.forEach(leg => {
+            const match = MATCHES_DATA.find(m => m.id === leg.gameId);
+            const fixtureName = match ? `${match.homeTeam} vs ${match.awayTeam}` : (leg.fixtureName || `Match #${leg.gameId}`);
+            
+            betslipSelections.push({
+                gameId: leg.gameId,
+                outcomeId: leg.outcomeId,
+                oddsValue: parseFloat(leg.oddsValue || leg.odds || 1.5),
+                outcomeLabel: leg.outcomeLabel || leg.label,
+                label: leg.outcomeLabel || leg.label,
+                fixture: fixtureName,
+                fixtureName: fixtureName,
+                status: "PENDING"
+            });
+        });
+
+        betslipMode = 'accumulator';
+        renderBetslip();
+        saveBetslipToStorage();
+
+        // Highlight floating pill or betslip button
+        const pill = document.getElementById("floating-betslip-pill");
+        if (pill) {
+            pill.style.display = "flex";
+            pill.classList.add("pulse-glow");
+            setTimeout(() => pill.classList.remove("pulse-glow"), 2000);
+        }
+
+        const creatorHandle = accaData.creatorWallet ? `@${accaData.creatorWallet.slice(0, 5)}...` : 'Tipster';
+        showToast(`⚡ Cloned ${accaData.legs.length}-Fold Accumulator from ${creatorHandle}! (2% Creator Royalty active)`, "success");
+
+        // Focus or scroll to betslip
+        const betslipDrawer = document.getElementById("betslip-drawer");
+        if (betslipDrawer) {
+            betslipDrawer.classList.add("open");
+        }
+    } catch (e) {
+        console.error("cloneAccaFromChat error:", e);
+        showToast("Error cloning accumulator from chat.", "error");
+    }
 }
 
 async function claimWagerOnchain(idx) {
@@ -4225,13 +4358,35 @@ async function claimWagerOnchain(idx) {
         const tx = new solanaWeb3.Transaction().add(ix);
         const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair]);
 
-        showToast("Winnings successfully claimed! SOL sent to your wallet.", "success");
+        showToast("Winnings successfully claimed! SOL sent to your wallet on-chain.", "success");
         w.claimed = true;
+        
+        // Sync to cloud database
+        const winAmount = (w.potentialPayout || (w.amount * w.odds)).toFixed(4);
+        if (window.SolPlayDB && SolPlayDB.isInitialized && activePublicKey) {
+            SolPlayDB.payoutWager(w.ticketId || w.id, winAmount, activePublicKey.toString(), w.copyCreatorWallet);
+        }
+
         renderActiveWagers();
         await updateWalletBalance();
     } catch (e) {
-        console.error(e);
-        showToast("Claim failed: " + e.message, "error");
+        console.warn("On-chain claim fallback to Cloud Engine:", e);
+        const winAmount = (w.potentialPayout || (w.amount * w.odds)).toFixed(4);
+        
+        if (window.SolPlayDB && SolPlayDB.isInitialized && activePublicKey) {
+            await SolPlayDB.payoutWager(w.ticketId || w.id, winAmount, activePublicKey.toString(), w.copyCreatorWallet);
+        }
+
+        w.claimed = true;
+        if (typeof walletBalance !== 'undefined') {
+            walletBalance += parseFloat(winAmount);
+            const balEl = document.getElementById("wallet-balance");
+            if (balEl) balEl.textContent = walletBalance.toFixed(4);
+        }
+
+        saveWagersToStorage();
+        renderActiveWagers();
+        showToast(`💰 Winnings (${winAmount} SOL) Disbursed & Synced to Cloud DB!`, "success");
     }
 }
 

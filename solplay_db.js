@@ -126,6 +126,7 @@ const SolPlayDB = {
                 potentialPayout: parseFloat(dbWager.potential_payout),
                 status: dbWager.status,
                 claimed: dbWager.claimed,
+                copyCreatorWallet: (dbWager.legs && dbWager.legs[0]) ? dbWager.legs[0].copyCreatorWallet : null,
                 timestamp: new Date(dbWager.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }));
         } catch (e) {
@@ -148,7 +149,7 @@ const SolPlayDB = {
                     user_wallet: walletAddress,
                     is_accumulator: Boolean(wager.isAccumulator),
                     legs_count: wager.legsCount || (wager.legs ? wager.legs.length : 1),
-                    legs: wager.legs || [],
+                    legs: (wager.legs || []).map(l => ({ ...l, copyCreatorWallet: wager.copyCreatorWallet || null })),
                     game_id: wager.gameId || null,
                     outcome_label: wager.outcomeLabel || 'Wager',
                     amount_sol: wager.amount,
@@ -195,6 +196,60 @@ const SolPlayDB = {
             } catch (e) {
                 console.error("updateWagerStatus error:", e);
             }
+        }
+    },
+
+    // 4b. Disburse payout and 2% creator royalties in cloud DB
+    payoutWager: async function(ticketId, winAmount, userWallet, creatorWallet = null) {
+        if (!ticketId || !this.isInitialized || !this.supabaseClient) return;
+        try {
+            // 1. Mark wager WON and claimed in DB
+            await this.supabaseClient
+                .from("wagers")
+                .update({ 
+                    status: "WON", 
+                    claimed: true, 
+                    settled_at: new Date().toISOString() 
+                })
+                .eq("id", ticketId);
+
+            // 2. Credit player balance in Supabase users table
+            if (userWallet && winAmount > 0) {
+                const { data: user } = await this.supabaseClient
+                    .from("users")
+                    .select("balance_sol")
+                    .eq("wallet_address", userWallet)
+                    .maybeSingle();
+
+                if (user) {
+                    const newBal = parseFloat(user.balance_sol || 0) + parseFloat(winAmount);
+                    await this.supabaseClient
+                        .from("users")
+                        .update({ balance_sol: newBal })
+                        .eq("wallet_address", userWallet);
+                    console.log(`💰 Winnings (${winAmount} SOL) credited to player ${userWallet}`);
+                }
+            }
+
+            // 3. 2% Creator Tipster Royalty
+            if (creatorWallet && creatorWallet !== userWallet) {
+                const royalty = parseFloat(winAmount) * 0.02;
+                const { data: creator } = await this.supabaseClient
+                    .from("users")
+                    .select("balance_sol")
+                    .eq("wallet_address", creatorWallet)
+                    .maybeSingle();
+                if (creator) {
+                    const newCreatorBal = parseFloat(creator.balance_sol || 0) + royalty;
+                    await this.supabaseClient
+                        .from("users")
+                        .update({ balance_sol: newCreatorBal })
+                        .eq("wallet_address", creatorWallet);
+                    console.log(`🎉 2% Tipster Royalty (${royalty.toFixed(4)} SOL) credited to @${creatorWallet}`);
+                }
+            }
+        } catch (e) {
+            console.error("payoutWager error:", e);
         }
     },
 

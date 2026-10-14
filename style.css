@@ -1449,6 +1449,57 @@ body {
     transform: translateY(0);
 }
 
+/* --- Multi-Leg Accumulator Cards in Chat --- */
+.chat-acca-card {
+    position: relative;
+    margin-top: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    background: linear-gradient(180deg, rgba(16, 24, 48, 0.85), rgba(10, 14, 28, 0.95));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease;
+}
+
+.chat-acca-card:hover {
+    border-color: var(--neon-teal);
+    box-shadow: 0 4px 22px rgba(0, 240, 255, 0.2);
+}
+
+.chat-acca-legs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    max-height: 140px;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.chat-acca-leg-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 2px solid var(--neon-teal);
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+}
+
+.chat-acca-boost-badge {
+    background: linear-gradient(135deg, var(--neon-orange), #ea580c);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    margin-left: 0.3rem;
+}
+
 /* --- P2P CDN Accelerator Styles --- */
 .cdn-status-dot {
     display: inline-block;
