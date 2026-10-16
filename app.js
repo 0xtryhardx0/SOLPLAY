@@ -4139,15 +4139,16 @@ function calculateCashoutValue(w) {
     const potentialPayout = parseFloat(w.potentialPayout || (stake * (w.odds || 1.5)));
 
     if (w.isAccumulator && w.legs && w.legs.length > 1) {
-        let legsEvaluated = 0;
         let legsWon = 0;
         let accumulatorDead = false;
-        let cumulativeProb = 1.0;
+        let wonLegsOddsProduct = 1.0;
+        let pendingLegsFairProb = 1.0;
 
         for (const leg of w.legs) {
             const m = MATCHES_DATA.find(item => item.id === leg.gameId);
             const isConcluded = m && (m.status === "FINISHED" || m.time === "Full Time" || m.time === "FT");
             const isLive = m && (m.scheduleGroup === "live" || m.status === "LIVE") && !isConcluded;
+            const legOdds = parseFloat(leg.oddsValue || leg.odds || 1.5);
 
             let legStatus = leg.status;
             if (!legStatus || legStatus === "PENDING" || legStatus === "Pending") {
@@ -4163,35 +4164,34 @@ function calculateCashoutValue(w) {
 
             if (legStatus === "WON") {
                 legsWon++;
-                legsEvaluated++;
+                wonLegsOddsProduct *= legOdds;
             } else if (isLive && m) {
-                legsEvaluated++;
                 const liveStatus = evaluateMatchOutcome(m, leg.outcomeId, leg.outcomeLabel || leg.label);
                 const min = parseInt((m.time || '45').replace(/\D/g, '')) || 45;
                 if (liveStatus === "WON") {
-                    cumulativeProb *= (0.60 + (min / 90) * 0.35);
+                    // Winning during live match: chance of holding win increases with time
+                    const prob = 0.55 + (min / 90) * 0.38; // 55% at 0' -> 93% at 90'
+                    pendingLegsFairProb *= prob;
                 } else {
-                    cumulativeProb *= Math.max(0.08, 0.40 - (min / 90) * 0.32);
+                    // Trailing/drawing during live match: chance of comeback decays with time
+                    const prob = Math.max(0.04, 0.35 - (min / 90) * 0.30);
+                    pendingLegsFairProb *= prob;
                 }
             } else {
-                // Scheduled / Pre-match leg
-                const legOdds = parseFloat(leg.oddsValue || leg.odds || 1.5);
-                cumulativeProb *= (1 / Math.max(1.1, legOdds));
+                // Scheduled / Pre-match leg (implied fair probability)
+                const impliedProb = (1 / Math.max(1.05, legOdds)) * 0.94;
+                pendingLegsFairProb *= impliedProb;
             }
         }
 
         if (accumulatorDead) return 0;
 
-        // Partial cashout multiplier for won legs
-        let offer = 0;
-        if (legsWon > 0) {
-            const partialMultiplier = Math.pow(1.35, legsWon);
-            offer = stake * partialMultiplier * cumulativeProb * 1.4;
-        } else {
-            offer = stake * cumulativeProb * 1.1;
-        }
+        // Enterprise Parlay Cash Out Formula (Bet365 / DraftKings standard):
+        // Fair value = Stake * (Product of Won Legs' Odds) * (Combined Probability of Pending Legs) * (1 - House Spread)
+        let offer = stake * wonLegsOddsProduct * pendingLegsFairProb * 0.92;
 
-        offer = Math.min(potentialPayout * 0.90, Math.max(stake * 0.15, offer));
+        // Respect boundaries: never exceed 90% of max potential payout or fall below minimum salvage
+        offer = Math.min(potentialPayout * 0.90, Math.max(stake * 0.10, offer));
         return parseFloat(offer.toFixed(4));
     } else {
         // Single match wager
@@ -4203,24 +4203,32 @@ function calculateCashoutValue(w) {
 
         const isLive = (m.scheduleGroup === "live" || m.status === "LIVE");
         if (!isLive) {
-            // Pre-match cashout (standard bookmaker margin)
+            // Pre-match cashout (standard bookmaker 6% spread)
             return parseFloat((stake * 0.94).toFixed(4));
         }
 
-        // Live In-Play Match
+        // Live In-Play Match (Dynamic based on minute & current scoreline)
         const currentStanding = evaluateMatchOutcome(m, w.outcomeId, w.outcomeLabel);
         const min = parseInt((m.time || '45').replace(/\D/g, '')) || 45;
         let offer = 0;
 
         if (currentStanding === "WON") {
+            // Pick is currently leading:
+            // Early in match (e.g. 15'): high comeback risk -> offer ~50% of potential payout
+            // Mid match (e.g. 50'): offer ~68% of potential payout
+            // Late in match (e.g. 85'): offer ~88% of potential payout (almost guaranteed win)
             const progress = Math.min(1.0, min / 90);
-            offer = stake + (potentialPayout - stake) * (0.45 + progress * 0.45);
+            const liveWinProbability = 0.45 + (progress * 0.45); // scales from 0.45 up to 0.90
+            offer = potentialPayout * liveWinProbability * 0.94; // minus 6% bookmaker spread
         } else {
-            const timeRemainingRatio = Math.max(0.05, (90 - min) / 90);
-            offer = stake * timeRemainingRatio * 0.55;
+            // Pick is currently trailing or drawing:
+            // Early in match: still time to turn it around -> salvage 35-45% of stake
+            // Late in match: time running out -> salvage 5-15% of stake
+            const timeRemainingRatio = Math.max(0.04, (90 - min) / 90);
+            offer = stake * timeRemainingRatio * 0.45;
         }
 
-        offer = Math.min(potentialPayout * 0.92, Math.max(stake * 0.10, offer));
+        offer = Math.min(potentialPayout * 0.92, Math.max(stake * 0.05, offer));
         return parseFloat(offer.toFixed(4));
     }
 }
@@ -6386,6 +6394,31 @@ function updateLiveDomElements() {
     if (countPillLive) countPillLive.textContent = countLive;
     const countPillFinished = document.getElementById("count-pill-finished");
     if (countPillFinished) countPillFinished.textContent = countFinished;
+
+    // 4. Dynamically update Cash Out values on active wagers in real-time
+    if (localWagers && localWagers.length > 0) {
+        localWagers.forEach((w, idx) => {
+            if (w.status === "Pending" || w.status === "PENDING") {
+                const btn = document.querySelector(`button[onclick="executeCashOut(${idx})"]`);
+                if (btn) {
+                    const newVal = calculateCashoutValue(w);
+                    const valSpan = btn.querySelector('.cashout-val');
+                    if (valSpan && newVal > 0) {
+                        const oldText = valSpan.textContent.trim();
+                        const newText = `${newVal.toFixed(4)} SOL`;
+                        if (oldText !== newText) {
+                            valSpan.textContent = newText;
+                            // Flash subtle emerald glow when cashout updates
+                            btn.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.7)';
+                            setTimeout(() => {
+                                btn.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.25)';
+                            }, 900);
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 function renderMatchLineups() {
