@@ -253,20 +253,31 @@ const SolPlayDB = {
         }
     },
 
-    // 4c. Cash-out wager early in cloud DB
-    cashoutWager: async function(ticketId, cashoutAmount, userWallet) {
+    // 4c. Cash-out wager early in cloud DB (supports full and partial cash-out)
+    cashoutWager: async function(ticketId, cashoutAmount, userWallet, isPartial = false, remainingStake = 0, remainingPayout = 0) {
         if (!ticketId || !this.isInitialized || !this.supabaseClient) return;
         try {
-            // 1. Mark wager CASHED_OUT and claimed in DB
-            await this.supabaseClient
-                .from("wagers")
-                .update({ 
-                    status: "CASHED_OUT", 
-                    claimed: true, 
-                    potential_payout: parseFloat(cashoutAmount),
-                    settled_at: new Date().toISOString() 
-                })
-                .eq("id", ticketId);
+            if (isPartial) {
+                // Update active wager with remaining stake & potential payout
+                await this.supabaseClient
+                    .from("wagers")
+                    .update({ 
+                        amount_sol: parseFloat(remainingStake),
+                        potential_payout: parseFloat(remainingPayout)
+                    })
+                    .eq("id", ticketId);
+            } else {
+                // 1. Mark wager CASHED_OUT and claimed in DB
+                await this.supabaseClient
+                    .from("wagers")
+                    .update({ 
+                        status: "CASHED_OUT", 
+                        claimed: true, 
+                        potential_payout: parseFloat(cashoutAmount),
+                        settled_at: new Date().toISOString() 
+                    })
+                    .eq("id", ticketId);
+            }
 
             // 2. Credit player balance in Supabase users table
             if (userWallet && cashoutAmount > 0) {

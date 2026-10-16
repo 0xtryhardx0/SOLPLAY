@@ -3988,16 +3988,44 @@ function renderActiveWagers() {
             `;
         }
 
-        // Top-Tier In-Play Cash Out Trigger
+        // Top-Tier In-Play Cash Out Trigger (with Bet365 Partial Cash-Out Slider)
         let cashoutBtn = "";
         if (w.status === "Pending" || w.status === "PENDING") {
             const cashVal = calculateCashoutValue(w);
             if (cashVal > 0) {
+                const isPartialOpen = !!partialCashoutOpen[idx];
+                const pct = partialCashoutPercent[idx] || 50;
+                const partialSol = parseFloat((cashVal * (pct / 100)).toFixed(4));
+                const remainingStake = parseFloat((w.amount * (1 - pct / 100)).toFixed(2));
+
                 cashoutBtn = `
-                    <button class="btn-cashout" onclick="executeCashOut(${idx})">
-                        <span>💰 Instant Cash Out</span>
-                        <span class="cashout-val">${cashVal.toFixed(4)} SOL</span>
-                    </button>
+                    <div style="display:flex; gap:0.35rem; margin-top:0.4rem;">
+                        <button class="btn-cashout" id="cashout-btn-${idx}" onclick="executeCashOut(${idx}, 100)" style="margin-top:0; flex:1;">
+                            <span>💰 Full Cash Out</span>
+                            <span class="cashout-val">${cashVal.toFixed(4)} SOL</span>
+                        </button>
+                        <button class="btn-partial-toggle ${isPartialOpen ? 'active' : ''}" onclick="togglePartialCashout(${idx}, event)" title="Toggle Partial Cash Out Slider">
+                            ⚙️
+                        </button>
+                    </div>
+                    ${isPartialOpen ? `
+                        <div class="partial-cashout-drawer" id="partial-drawer-${idx}">
+                            <div class="partial-chips">
+                                <button class="partial-chip ${pct === 25 ? 'active' : ''}" onclick="setPartialPercent(${idx}, 25)">25%</button>
+                                <button class="partial-chip ${pct === 50 ? 'active' : ''}" onclick="setPartialPercent(${idx}, 50)">50%</button>
+                                <button class="partial-chip ${pct === 75 ? 'active' : ''}" onclick="setPartialPercent(${idx}, 75)">75%</button>
+                                <button class="partial-chip ${pct === 100 ? 'active' : ''}" onclick="setPartialPercent(${idx}, 100)">100%</button>
+                            </div>
+                            <input type="range" class="partial-range-slider" min="10" max="100" step="5" value="${pct}" oninput="handlePartialSliderChange(${idx}, this.value)">
+                            <div class="partial-readout">
+                                <span>Cash out: <strong>${partialSol} SOL (${pct}%)</strong></span>
+                                <span>Remaining stake: <strong style="color:#38bdf8;">${remainingStake} SOL</strong></span>
+                            </div>
+                            <button class="btn-primary" onclick="executeCashOut(${idx}, ${pct})" style="padding:0.4rem; font-size:0.75rem; background:linear-gradient(135deg, #059669, #10b981); border:none; font-weight:700; border-radius:4px; box-shadow:0 0 10px rgba(16,185,129,0.35);">
+                                ⚡ Cash Out ${pct}% (${partialSol} SOL)
+                            </button>
+                        </div>
+                    ` : ''}
                 `;
             }
         }
@@ -4233,52 +4261,154 @@ function calculateCashoutValue(w) {
     }
 }
 
-// Execute instant cash-out and credit user balance locally & on cloud
-async function executeCashOut(idx) {
+let partialCashoutOpen = {};
+let partialCashoutPercent = {};
+
+function togglePartialCashout(idx, event) {
+    if (event) event.stopPropagation();
+    partialCashoutOpen[idx] = !partialCashoutOpen[idx];
+    if (!partialCashoutPercent[idx]) partialCashoutPercent[idx] = 50;
+    renderActiveWagers();
+}
+
+function setPartialPercent(idx, pct) {
+    partialCashoutPercent[idx] = parseInt(pct);
+    renderActiveWagers();
+}
+
+function handlePartialSliderChange(idx, val) {
+    partialCashoutPercent[idx] = parseInt(val);
+    const drawer = document.getElementById(`partial-drawer-${idx}`);
+    if (drawer) {
+        const w = localWagers[idx];
+        if (!w) return;
+        const totalCashVal = calculateCashoutValue(w);
+        const partialSol = (totalCashVal * (val / 100)).toFixed(4);
+        const remStake = (w.amount * (1 - val / 100)).toFixed(2);
+        const readout = drawer.querySelector('.partial-readout');
+        if (readout) {
+            readout.innerHTML = `
+                <span>Cash out: <strong>${partialSol} SOL (${val}%)</strong></span>
+                <span>Remaining stake: <strong style="color:#38bdf8;">${remStake} SOL</strong></span>
+            `;
+        }
+        const execBtn = drawer.querySelector('.btn-primary');
+        if (execBtn) {
+            execBtn.setAttribute('onclick', `executeCashOut(${idx}, ${val})`);
+            execBtn.innerHTML = `⚡ Cash Out ${val}% (${partialSol} SOL)`;
+        }
+    }
+}
+
+// Execute instant full or partial cash-out with anti-courtsiding & double-click protection
+async function executeCashOut(idx, percent = 100) {
     const w = localWagers[idx];
     if (!w) return;
-    
-    const cashoutAmount = calculateCashoutValue(w);
-    if (cashoutAmount <= 0) {
+
+    // Loophole Guard 1: Anti-Reentrancy / Double-Click Prevention
+    if (w._isProcessingCashout) {
+        showToast("Cash Out is already being processed for this ticket.", "warning");
+        return;
+    }
+    w._isProcessingCashout = true;
+
+    // Loophole Guard 2: Anti-Courtsiding (Check for active market suspensions or goal reviews)
+    let isMarketSuspended = false;
+    if (w.isAccumulator && w.legs) {
+        isMarketSuspended = w.legs.some(leg => {
+            const m = MATCHES_DATA.find(item => item.id === leg.gameId);
+            return m && (m.isLocked || m.status === 'SUSPENDED');
+        });
+    } else {
+        const singleMatch = MATCHES_DATA.find(item => item.id === w.gameId);
+        if (singleMatch && (singleMatch.isLocked || singleMatch.status === 'SUSPENDED')) {
+            isMarketSuspended = true;
+        }
+    }
+
+    if (isMarketSuspended) {
+        w._isProcessingCashout = false;
+        showToast("🔒 Live Market Suspended! Goal or VAR review in progress. Cash Out temporarily locked.", "warning");
+        return;
+    }
+
+    const totalCashoutAmount = calculateCashoutValue(w);
+    if (totalCashoutAmount <= 0) {
+        w._isProcessingCashout = false;
         showToast("Cash Out is currently unavailable for this ticket.", "warning");
         return;
     }
 
+    const pct = Math.max(10, Math.min(100, parseInt(percent) || 100));
+    const isPartial = (pct < 100);
+    const disbursedAmount = parseFloat((totalCashoutAmount * (pct / 100)).toFixed(4));
     const ticketCode = w.ticketId || `#SP-${String(w.id).replace(/\D/g, '').slice(-6) || '849201'}`;
-    const confirmed = confirm(`Are you sure you want to Cash Out ticket ${ticketCode} for ${cashoutAmount.toFixed(4)} SOL?`);
-    if (!confirmed) return;
 
-    showToast(`💰 Processing instant Cash Out of ${cashoutAmount.toFixed(4)} SOL...`, "info");
-
-    // 1. Mark status CASHED_OUT
-    w.status = "CASHED_OUT";
-    w.claimed = true;
-    w.potentialPayout = cashoutAmount;
-    w.settledAt = new Date().toISOString();
-
-    // 2. Disburse SOL into player balance
-    if (isWalletConnected && activePublicKey) {
-        if (walletMode === "sandbox") {
-            localSandboxBalance += cashoutAmount;
-            const balEl = document.getElementById("wallet-balance");
-            if (balEl) balEl.textContent = localSandboxBalance.toFixed(4);
-            localStorage.setItem("solplay_sandbox_balance", localSandboxBalance.toString());
-        } else {
-            localSandboxBalance += cashoutAmount;
-            const balEl = document.getElementById("wallet-balance");
-            if (balEl) balEl.textContent = localSandboxBalance.toFixed(4);
-        }
-
-        // 3. Sync to Supabase PostgreSQL Cloud DB
-        if (window.SolPlayDB && SolPlayDB.isInitialized) {
-            SolPlayDB.cashoutWager(w.ticketId || w.id, cashoutAmount, activePublicKey.toString());
-        }
+    // Acceptance buffer spinner (1.2s verification delay)
+    const btn = document.getElementById(`cashout-btn-${idx}`);
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-pulse">⏳ Securing Live Offer...</span>`;
     }
 
-    saveWagersToStorage();
-    renderActiveWagers();
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    showToast(`🎉 CASH OUT SUCCESS! +${cashoutAmount.toFixed(4)} SOL added to your wallet!`, "success");
+    // Re-verify market state after acceptance delay
+    if (isPartial) {
+        // Partial Cash Out (Bet365 standard): reduce stake & payout, keep ticket active
+        const remStake = parseFloat((w.amount * (1 - pct / 100)).toFixed(4));
+        const remPayout = parseFloat(((w.potentialPayout || (w.amount * w.odds)) * (1 - pct / 100)).toFixed(4));
+        
+        w.amount = remStake;
+        w.potentialPayout = remPayout;
+        delete partialCashoutOpen[idx];
+
+        // Disburse portion into player balance
+        if (isWalletConnected && activePublicKey) {
+            localSandboxBalance += disbursedAmount;
+            const balEl = document.getElementById("wallet-balance");
+            if (balEl) balEl.textContent = localSandboxBalance.toFixed(4);
+            if (walletMode === "sandbox") {
+                localStorage.setItem("solplay_sandbox_balance", localSandboxBalance.toString());
+            }
+
+            if (window.SolPlayDB && SolPlayDB.isInitialized) {
+                SolPlayDB.cashoutWager(w.ticketId || w.id, disbursedAmount, activePublicKey.toString(), true, remStake, remPayout);
+            }
+        }
+
+        w._isProcessingCashout = false;
+        saveWagersToStorage();
+        renderActiveWagers();
+
+        showToast(`🎉 PARTIAL CASH OUT SUCCESS! +${disbursedAmount} SOL credited. ${remStake.toFixed(2)} SOL remains active!`, "success");
+    } else {
+        // Full Cash Out
+        w.status = "CASHED_OUT";
+        w.claimed = true;
+        w.potentialPayout = disbursedAmount;
+        w.settledAt = new Date().toISOString();
+        delete partialCashoutOpen[idx];
+
+        if (isWalletConnected && activePublicKey) {
+            localSandboxBalance += disbursedAmount;
+            const balEl = document.getElementById("wallet-balance");
+            if (balEl) balEl.textContent = localSandboxBalance.toFixed(4);
+            if (walletMode === "sandbox") {
+                localStorage.setItem("solplay_sandbox_balance", localSandboxBalance.toString());
+            }
+
+            if (window.SolPlayDB && SolPlayDB.isInitialized) {
+                SolPlayDB.cashoutWager(w.ticketId || w.id, disbursedAmount, activePublicKey.toString(), false);
+            }
+        }
+
+        w._isProcessingCashout = false;
+        saveWagersToStorage();
+        renderActiveWagers();
+
+        showToast(`🎉 FULL CASH OUT SUCCESS! +${disbursedAmount} SOL added to your wallet!`, "success");
+    }
 }
 
 function evaluateMatchOutcome(match, outcomeId, outcomeLabel) {
