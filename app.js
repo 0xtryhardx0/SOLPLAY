@@ -3786,6 +3786,19 @@ async function placeBet() {
     const bonusAmount = baseReturn * (bonusPercent / 100);
     const totalPotentialReturn = baseReturn + bonusAmount;
 
+    // Enterprise Risk Management: Maximum Liability Cap against LP Vault
+    // Prevents any single wager from risking more than 20% of total LP vault capital
+    const vaultReserves = (typeof localLPDeposited !== 'undefined' && localLPDeposited > 0) ? localLPDeposited : 50.0;
+    const MAX_EXPOSURE_RATIO = 0.20; // 20% max pool exposure per ticket
+    const maxAllowedProfit = vaultReserves * MAX_EXPOSURE_RATIO;
+    const wagerPotentialProfit = totalPotentialReturn - stakeSol;
+
+    if (wagerPotentialProfit > maxAllowedProfit) {
+        const recommendedStake = Math.max(0.05, (maxAllowedProfit / (totalMultiplier * (1 + bonusPercent / 100) - 1))).toFixed(2);
+        showToast(`⚠️ Risk Limit: Max profit capped at ${maxAllowedProfit.toFixed(2)} SOL to protect LP Vault. Lower stake to ~${recommendedStake} SOL.`, "warning");
+        return;
+    }
+
     try {
         const wagerAccountKeypair = solanaWeb3.Keypair.generate();
 
@@ -4026,6 +4039,19 @@ function renderActiveWagers() {
                             </button>
                         </div>
                     ` : ''}
+                    <div class="auto-cashout-box" style="margin-top:0.4rem; padding:0.35rem 0.5rem; background:rgba(0, 240, 255, 0.04); border:1px dashed rgba(0, 240, 255, 0.22); border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:0.4rem;">
+                        <div style="font-size:0.72rem; color:#94a3b8; display:flex; align-items:center; gap:0.25rem;">
+                            <span>🎯 Auto Cash Out:</span>
+                            ${w.autoCashoutTarget ? `<strong style="color:var(--neon-teal); font-family:monospace; background:rgba(0,240,255,0.1); padding:0.1rem 0.35rem; border-radius:3px;">${w.autoCashoutTarget.toFixed(2)} SOL</strong>` : `<span style="color:#64748b; font-size:0.68rem;">Off</span>`}
+                        </div>
+                        <div style="display:flex; gap:0.25rem; align-items:center;">
+                            <input type="number" step="0.1" id="auto-cashout-input-${idx}" placeholder="${(w.amount * 1.5).toFixed(2)}" style="width:64px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:0.7rem; padding:0.18rem 0.35rem; border-radius:4px; font-family:monospace; text-align:center;">
+                            <button onclick="setAutoCashoutTarget(${idx})" class="btn-primary" style="padding:0.2rem 0.45rem; font-size:0.68rem; font-weight:700; background:linear-gradient(135deg, var(--neon-teal), #00b4d8); color:#000; border:none; border-radius:4px; cursor:pointer;">
+                                Set
+                            </button>
+                            ${w.autoCashoutTarget ? `<button onclick="cancelAutoCashoutTarget(${idx})" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:0.7rem; border-radius:4px; cursor:pointer; padding:0.18rem 0.35rem; font-weight:700;" title="Cancel Auto Cash-Out">✕</button>` : ''}
+                        </div>
+                    </div>
                 `;
             }
         }
@@ -4298,6 +4324,45 @@ function handlePartialSliderChange(idx, val) {
             execBtn.innerHTML = `⚡ Cash Out ${val}% (${partialSol} SOL)`;
         }
     }
+}
+
+// Auto Cash-Out Rule Management (Bettor sets target profit exit level)
+function setAutoCashoutTarget(idx) {
+    const input = document.getElementById(`auto-cashout-input-${idx}`);
+    if (!input) return;
+    const target = parseFloat(input.value);
+    const w = localWagers[idx];
+    if (!w) return;
+
+    if (!target || target <= 0) {
+        showToast("Please enter a valid target SOL amount.", "error");
+        return;
+    }
+
+    if (target <= w.amount) {
+        showToast(`Target must be higher than your stake (${w.amount.toFixed(2)} SOL).`, "warning");
+        return;
+    }
+
+    const maxPayout = w.potentialPayout || (w.amount * w.odds);
+    if (target >= maxPayout) {
+        showToast(`Target cannot exceed maximum payout (${maxPayout.toFixed(4)} SOL).`, "warning");
+        return;
+    }
+
+    w.autoCashoutTarget = target;
+    saveWagersToStorage();
+    renderActiveWagers();
+    showToast(`🎯 Auto Cash-Out target set to ${target.toFixed(2)} SOL! System will execute automatically when reached.`, "success");
+}
+
+function cancelAutoCashoutTarget(idx) {
+    const w = localWagers[idx];
+    if (!w) return;
+    delete w.autoCashoutTarget;
+    saveWagersToStorage();
+    renderActiveWagers();
+    showToast("Auto Cash-Out target cancelled.", "info");
 }
 
 // Execute instant full or partial cash-out with anti-courtsiding & double-click protection
@@ -6525,17 +6590,25 @@ function updateLiveDomElements() {
     const countPillFinished = document.getElementById("count-pill-finished");
     if (countPillFinished) countPillFinished.textContent = countFinished;
 
-    // 4. Dynamically update Cash Out values on active wagers in real-time
+    // 4. Dynamically update Cash Out values and evaluate Auto Cash-Out rules
     if (localWagers && localWagers.length > 0) {
         localWagers.forEach((w, idx) => {
             if (w.status === "Pending" || w.status === "PENDING") {
-                const btn = document.querySelector(`button[onclick="executeCashOut(${idx})"]`);
+                const currentCashVal = calculateCashoutValue(w);
+
+                // Auto Cash-Out Trigger Check
+                if (w.autoCashoutTarget && w.autoCashoutTarget > 0 && currentCashVal >= w.autoCashoutTarget && !w._isProcessingCashout) {
+                    executeCashOut(idx, 100);
+                    showToast(`🎯 AUTO CASH-OUT TRIGGERED! Target of ${w.autoCashoutTarget.toFixed(2)} SOL reached! +${currentCashVal.toFixed(4)} SOL credited to your wallet!`, "success");
+                    return;
+                }
+
+                const btn = document.getElementById(`cashout-btn-${idx}`) || document.querySelector(`button[onclick*="executeCashOut(${idx}"]`);
                 if (btn) {
-                    const newVal = calculateCashoutValue(w);
                     const valSpan = btn.querySelector('.cashout-val');
-                    if (valSpan && newVal > 0) {
+                    if (valSpan && currentCashVal > 0) {
                         const oldText = valSpan.textContent.trim();
-                        const newText = `${newVal.toFixed(4)} SOL`;
+                        const newText = `${currentCashVal.toFixed(4)} SOL`;
                         if (oldText !== newText) {
                             valSpan.textContent = newText;
                             // Flash subtle emerald glow when cashout updates
