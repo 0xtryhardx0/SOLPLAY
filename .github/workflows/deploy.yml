@@ -1,0 +1,117 @@
+name: SolPlay CI/CD & Solana Devnet Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment to Solana Devnet'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-rust:
+    name: 🦀 Rust Unit & Contract Logic Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.78.0
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run Native Rust Unit Tests
+        run: |
+          echo "Running Solana contract logic unit tests..."
+          cargo test --verbose
+
+  build-and-deploy-devnet:
+    name: ⚡ Build & Deploy to Solana Devnet
+    needs: test-rust
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.78.0
+
+      - name: Install Solana CLI
+        run: |
+          echo "Installing Solana CLI v1.18.26..."
+          sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.26/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Verify Solana CLI Installation
+        run: |
+          solana --version
+
+      - name: Build Solana SBF Bytecode
+        run: |
+          echo "Building SBF shared object..."
+          cargo build-sbf --sbf-out-dir target/deploy
+
+      - name: Archive Compiled Program Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solplay-program-sbf
+          path: target/deploy/solana_counter.so
+          retention-days: 14
+
+      - name: Deploy to Solana Devnet
+        env:
+          DEVNET_KEYPAIR: ${{ secrets.SOLANA_DEVNET_KEYPAIR }}
+          PROGRAM_KEYPAIR: ${{ secrets.SOLANA_PROGRAM_KEYPAIR }}
+        run: |
+          if [ -z "$DEVNET_KEYPAIR" ]; then
+            echo "⚠️ [NOTICE] SOLANA_DEVNET_KEYPAIR secret is not set in GitHub repository settings."
+            echo "Contract artifact solana_counter.so compiled successfully and is saved as a workflow artifact."
+            echo "To enable automated zero-overhead continuous deployment:"
+            echo "1. Go to GitHub Repo -> Settings -> Secrets and variables -> Actions"
+            echo "2. Add SOLANA_DEVNET_KEYPAIR (JSON array or base58 private key of your funded devnet deployer wallet)"
+            echo "3. (Optional) Add SOLANA_PROGRAM_KEYPAIR if maintaining the static program address (84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk)"
+            exit 0
+          fi
+
+          echo "Configuring Solana RPC for Devnet..."
+          solana config set --url https://api.devnet.solana.com
+
+          echo "$DEVNET_KEYPAIR" > devnet_deployer.json
+          chmod 600 devnet_deployer.json
+          solana config set --keypair devnet_deployer.json
+
+          echo "Current Deployer Balance on Devnet:"
+          solana balance || solana airdrop 2 || true
+
+          if [ -n "$PROGRAM_KEYPAIR" ]; then
+            echo "$PROGRAM_KEYPAIR" > program_keypair.json
+            chmod 600 program_keypair.json
+            echo "Deploying to existing Program ID..."
+            solana program deploy \
+              --program-id program_keypair.json \
+              --upgrade-authority devnet_deployer.json \
+              target/deploy/solana_counter.so
+          else
+            echo "Deploying program bytecode to Solana Devnet..."
+            solana program deploy \
+              --upgrade-authority devnet_deployer.json \
+              target/deploy/solana_counter.so
+          fi
+
+          echo "✅ Deployment completed successfully on Solana Devnet!"
