@@ -65,6 +65,11 @@ ALTER TABLE public.wagers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.betslips ENABLE ROW LEVEL SECURITY;
 
 -- Transparent Public Policies (Permit read/write for testers with anon key)
+DROP POLICY IF EXISTS "Allow public access to users" ON public.users;
 CREATE POLICY "Allow public access to users" ON public.users FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public access to wagers" ON public.wagers;
 CREATE POLICY "Allow public access to wagers" ON public.wagers FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public access to betslips" ON public.betslips;
 CREATE POLICY "Allow public access to betslips" ON public.betslips FOR ALL USING (true) WITH CHECK (true);
