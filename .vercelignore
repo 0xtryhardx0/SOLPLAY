@@ -9,6 +9,8 @@ test-ledger/
 cpufeatures_mock/
 docs/
 .github/
+Procfile
+Dockerfile
 *_wallet.json
 bettor_*.json
 dev_wallet.json
