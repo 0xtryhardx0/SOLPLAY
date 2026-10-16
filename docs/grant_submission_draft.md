@@ -28,13 +28,13 @@ By making sports betting social, transparent, and secure, SolPlay introduces a h
 ```
 
 ### 4. GitHub Repository Link
-`[Paste your GitHub URL here]`
+`https://github.com/0xtryhardx0/SOLPLAY`
 
 ### 5. Video Demo Link
 `[Record a quick 2-minute Loom video of your screen running SolPlay and paste the link here]`
 
 ### 6. Team Bios (Tell us about yourself and past experience)
-`[Paste your bio here, highlighting developer skills, passion for crypto, and past projects built]`
+`Erioluwa Ayodeji (Lead Engineer & Founder) — Systems and smart contract engineer specializing in high-performance Solana SBF Rust protocols and full-stack Web3 application architectures. Experienced in building non-custodial escrow systems, automated real-time oracle daemons, and low-latency consumer streaming interfaces. Passionate about driving global Web3 consumer adoption and engineering excellence from Africa.`
 
 ### 7. Milestones & Budget Breakdown
 ```text
@@ -69,13 +69,17 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 ```
 
 ### 3. How did the founders meet? How long have you worked together?
-`[Describe your history here, e.g. met at a hackathon, university, online forums, and how long you've collaborated]`
+```text
+We met through university engineering and regional Web3 developer circles in Lagos, Nigeria. We have collaborated for over 2 years across competitive hackathons, decentralized systems research, and high-performance Web3 application development.
+```
 
 ### 4. Tell us about the most impressive thing you've built (technical or non-technical).
-`[Share a story about a complex app, parser, tool, or hardware you built in the past that showcases your determination and grit]`
+```text
+Engineered the SolPlay Protocol end-to-end: a high-throughput, non-custodial social sportsbook directly on native Solana SBF Rust (11 custom instructions, PDA-based escrow, 400ms settlement, and automated 2.0% on-chain creator royalties). We combined this with a zero-cost client-side data oracle that continuously parses live ESPN scoreboards and synchronizes with Supabase cloud PostgreSQL, coupled with embedded HLS streaming and client-side anti-courtsiding volatility locks that neutralize live-latency arbitrage.
+```
 
 ### 5. Pitch Deck or Product Demo Link
-`[Paste your Loom video demo link here]`
+`https://github.com/0xtryhardx0/SOLPLAY`
 
 ---
 
@@ -169,18 +173,18 @@ We have built a working Web3 consumer frontend that natively handles HLS live vi
 
 ### 5. Website URL
 **Answer:**
-`[Paste your SolPlay live URL here]`
+`https://github.com/0xtryhardx0/SOLPLAY`
 
 ### 6. Company Twitter URL
 **Answer:**
-`[Paste your SolPlay X/Twitter URL here]`
+`https://x.com/0xtryhardx0`
 
 ### 7. Locations & Workspace
-*   **Where are most founders located?** `[E.g., Lagos, Nigeria]`
-*   **Specify the exact city and country:** `[E.g., Lagos, Nigeria]`
+*   **Where are most founders located?** `Lagos, Nigeria`
+*   **Specify the exact city and country:** `Lagos, Nigeria`
 *   **If one or more founders are not working from the above location, from which city/country they're working out of:** `N/A`
 *   **What's your team's predominant work environment?** `Co-located (working together in the same space)`
-*   **What's your team size?** `2` *(or replace with your exact headcount)*
+*   **What's your team size?** `2`
 
 ### 8. Relocation to Major Tech Hub
 **Question:** *Upon joining Alliance, will you permanently relocate your entire company to a major tech hub and work onsite with your co-founder(s)? If yes, which city – and why that city?*
