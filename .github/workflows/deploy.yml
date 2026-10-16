@@ -18,39 +18,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-rust:
-    name: 🦀 Rust Unit & Contract Logic Tests
+  build-and-deploy:
+    name: ⚡ SBF Build & Devnet Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.78.0
-
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Run Native Rust Unit Tests
+      - name: Install System Dependencies
         run: |
-          echo "Running Solana contract logic unit tests..."
-          cargo test --verbose
-
-  build-and-deploy-devnet:
-    name: ⚡ Build & Deploy to Solana Devnet
-    needs: test-rust
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.78.0
+          sudo apt-get update
+          sudo apt-get install -y libudev-dev pkg-config
 
       - name: Install Solana CLI
         run: |
@@ -62,10 +40,15 @@ jobs:
         run: |
           solana --version
 
+      - name: Verify Contract Syntax & Unit Tests
+        run: |
+          echo "Running unit tests with no-entrypoint feature..."
+          cargo test --features no-entrypoint --verbose
+
       - name: Build Solana SBF Bytecode
         run: |
-          echo "Building SBF shared object..."
-          cargo build-sbf --sbf-out-dir target/deploy
+          echo "Building SBF shared object via Solana toolchain..."
+          cargo-build-sbf --sbf-out-dir target/deploy
 
       - name: Archive Compiled Program Artifact
         uses: actions/upload-artifact@v4
@@ -75,17 +58,15 @@ jobs:
           retention-days: 14
 
       - name: Deploy to Solana Devnet
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
           DEVNET_KEYPAIR: ${{ secrets.SOLANA_DEVNET_KEYPAIR }}
           PROGRAM_KEYPAIR: ${{ secrets.SOLANA_PROGRAM_KEYPAIR }}
         run: |
           if [ -z "$DEVNET_KEYPAIR" ]; then
-            echo "⚠️ [NOTICE] SOLANA_DEVNET_KEYPAIR secret is not set in GitHub repository settings."
-            echo "Contract artifact solana_counter.so compiled successfully and is saved as a workflow artifact."
-            echo "To enable automated zero-overhead continuous deployment:"
-            echo "1. Go to GitHub Repo -> Settings -> Secrets and variables -> Actions"
-            echo "2. Add SOLANA_DEVNET_KEYPAIR (JSON array or base58 private key of your funded devnet deployer wallet)"
-            echo "3. (Optional) Add SOLANA_PROGRAM_KEYPAIR if maintaining the static program address (84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk)"
+            echo "⚠️ [NOTICE] SOLANA_DEVNET_KEYPAIR secret is not configured in repository settings."
+            echo "The smart contract bytecode (target/deploy/solana_counter.so) was successfully compiled and archived."
+            echo "To enable automated Devnet deployment, add SOLANA_DEVNET_KEYPAIR to your GitHub repository secrets."
             exit 0
           fi
 
@@ -96,19 +77,19 @@ jobs:
           chmod 600 devnet_deployer.json
           solana config set --keypair devnet_deployer.json
 
-          echo "Current Deployer Balance on Devnet:"
+          echo "Checking deployer balance..."
           solana balance || solana airdrop 2 || true
 
           if [ -n "$PROGRAM_KEYPAIR" ]; then
             echo "$PROGRAM_KEYPAIR" > program_keypair.json
             chmod 600 program_keypair.json
-            echo "Deploying to existing Program ID..."
+            echo "Upgrading program on Devnet..."
             solana program deploy \
               --program-id program_keypair.json \
               --upgrade-authority devnet_deployer.json \
               target/deploy/solana_counter.so
           else
-            echo "Deploying program bytecode to Solana Devnet..."
+            echo "Deploying new program to Devnet..."
             solana program deploy \
               --upgrade-authority devnet_deployer.json \
               target/deploy/solana_counter.so

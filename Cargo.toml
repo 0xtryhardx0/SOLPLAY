@@ -6,6 +6,10 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "lib"]
 
+[features]
+default = []
+no-entrypoint = []
+
 [dependencies]
 solana-program = "=1.18.26"
 borsh = "=1.2.1"

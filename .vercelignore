@@ -8,5 +8,13 @@ venv/
 test-ledger/
 cpufeatures_mock/
 docs/
-*.json
-!active_matches.json
+.github/
+*_wallet.json
+bettor_*.json
+dev_wallet.json
+market_*.json
+milestone_*.json
+platform_state*.json
+punter_*.json
+treasury.json
+wager_*.json
