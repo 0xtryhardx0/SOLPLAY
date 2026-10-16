@@ -632,13 +632,16 @@ void main() {
 
     <!-- Right: Wallet, Network, Slip Trigger & Profile -->
     <div class="flex items-center gap-2.5 lg:gap-3.5">
-        <!-- Compact Network Select Pill -->
-        <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03]">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-green"></span>
+        <!-- Compact Network Select Pill with Live Latency Badge -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03]">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-green" id="network-indicator-dot"></span>
             <select id="network-rpc-select" onchange="switchNetwork()" class="bg-transparent border-none focus:ring-0 text-[11px] font-bold text-white/80 cursor-pointer outline-none p-0 pr-1">
-                <option value="devnet" selected class="bg-[#0e101d] text-white">Devnet</option>
-                <option value="localnet" class="bg-[#0e101d] text-white">Localnet</option>
+                <option value="devnet" selected class="bg-[#0e101d] text-white">Solana Devnet</option>
+                <option value="helius" class="bg-[#0e101d] text-white">⚡ Helius Fast RPC</option>
+                <option value="quicknode" class="bg-[#0e101d] text-white">🚀 QuickNode RPC</option>
+                <option value="localnet" class="bg-[#0e101d] text-white">💻 Local Validator</option>
             </select>
+            <span id="rpc-latency-badge" class="hidden sm:inline-block text-[9px] font-mono font-bold text-emerald-400/80 bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20" title="RPC Latency Ping">38ms</span>
         </div>
 
         <!-- Wallet Balance with Instant Faucet -->

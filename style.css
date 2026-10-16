@@ -2883,3 +2883,101 @@ body {
     border-radius: 4px 0 0 4px;
 }
 
+/* ==========================================================================
+   TOP-TIER CASHOUT & LIVE ODDS ENGINE STYLES
+   ========================================================================== */
+.btn-cashout {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: #ffffff;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    font-weight: 700;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-cashout:hover {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    transform: translateY(-1px);
+    border-color: #34d399;
+}
+
+.btn-cashout:active {
+    transform: translateY(0);
+}
+
+.btn-cashout .cashout-val {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: 800;
+    color: #a7f3d0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Odds Drift Flashing Animations */
+@keyframes oddsPulseGreen {
+    0% { background-color: rgba(16, 185, 129, 0.45); border-color: #10b981; color: #fff; }
+    50% { background-color: rgba(16, 185, 129, 0.25); }
+    100% { background-color: transparent; }
+}
+
+@keyframes oddsPulseRed {
+    0% { background-color: rgba(239, 68, 68, 0.45); border-color: #ef4444; color: #fff; }
+    50% { background-color: rgba(239, 68, 68, 0.25); }
+    100% { background-color: transparent; }
+}
+
+.odds-drift-up {
+    animation: oddsPulseGreen 1.4s ease-out !important;
+    position: relative;
+}
+
+.odds-drift-up::after {
+    content: '▲';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 8px;
+    color: #10b981;
+    font-weight: 900;
+}
+
+.odds-drift-down {
+    animation: oddsPulseRed 1.4s ease-out !important;
+    position: relative;
+}
+
+.odds-drift-down::after {
+    content: '▼';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 8px;
+    color: #ef4444;
+    font-weight: 900;
+}
+
+.badge-cashed-out {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 4px;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+

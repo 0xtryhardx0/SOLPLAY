@@ -253,6 +253,43 @@ const SolPlayDB = {
         }
     },
 
+    // 4c. Cash-out wager early in cloud DB
+    cashoutWager: async function(ticketId, cashoutAmount, userWallet) {
+        if (!ticketId || !this.isInitialized || !this.supabaseClient) return;
+        try {
+            // 1. Mark wager CASHED_OUT and claimed in DB
+            await this.supabaseClient
+                .from("wagers")
+                .update({ 
+                    status: "CASHED_OUT", 
+                    claimed: true, 
+                    potential_payout: parseFloat(cashoutAmount),
+                    settled_at: new Date().toISOString() 
+                })
+                .eq("id", ticketId);
+
+            // 2. Credit player balance in Supabase users table
+            if (userWallet && cashoutAmount > 0) {
+                const { data: user } = await this.supabaseClient
+                    .from("users")
+                    .select("balance_sol")
+                    .eq("wallet_address", userWallet)
+                    .maybeSingle();
+
+                if (user) {
+                    const newBal = parseFloat(user.balance_sol || 0) + parseFloat(cashoutAmount);
+                    await this.supabaseClient
+                        .from("users")
+                        .update({ balance_sol: newBal })
+                        .eq("wallet_address", userWallet);
+                    console.log(`💸 Cash-out (${cashoutAmount} SOL) credited to player ${userWallet}`);
+                }
+            }
+        } catch (e) {
+            console.error("cashoutWager error:", e);
+        }
+    },
+
     // 5. Cloud betslip persistence
     saveBetslip: async function(walletAddress, selections, mode) {
         if (!walletAddress || !this.isInitialized || !this.supabaseClient) return;
