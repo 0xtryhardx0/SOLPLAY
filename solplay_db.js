@@ -126,7 +126,8 @@ const SolPlayDB = {
                 potentialPayout: parseFloat(dbWager.potential_payout),
                 status: dbWager.status,
                 claimed: dbWager.claimed,
-                copyCreatorWallet: (dbWager.legs && dbWager.legs[0]) ? dbWager.legs[0].copyCreatorWallet : null,
+                autoCashoutTarget: dbWager.auto_cashout_target ? parseFloat(dbWager.auto_cashout_target) : null,
+                copyCreatorWallet: dbWager.copy_creator || ((dbWager.legs && dbWager.legs[0]) ? dbWager.legs[0].copyCreatorWallet : null),
                 timestamp: new Date(dbWager.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }));
         } catch (e) {
@@ -157,6 +158,8 @@ const SolPlayDB = {
                     bonus_percent: wager.bonusPercent || 0,
                     potential_payout: wager.potentialPayout || (wager.amount * wager.odds),
                     status: wager.status || 'PENDING',
+                    auto_cashout_target: wager.autoCashoutTarget || null,
+                    copy_creator: wager.copyCreatorWallet || null,
                     claimed: Boolean(wager.claimed),
                     created_at: new Date().toISOString()
                 };

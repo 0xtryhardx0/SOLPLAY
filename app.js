@@ -4352,6 +4352,9 @@ function setAutoCashoutTarget(idx) {
 
     w.autoCashoutTarget = target;
     saveWagersToStorage();
+    if (window.solplayDB && currentWalletPubkey) {
+        window.solplayDB.saveWager(w, currentWalletPubkey.toBase58());
+    }
     renderActiveWagers();
     showToast(`🎯 Auto Cash-Out target set to ${target.toFixed(2)} SOL! System will execute automatically when reached.`, "success");
 }
@@ -4361,6 +4364,9 @@ function cancelAutoCashoutTarget(idx) {
     if (!w) return;
     delete w.autoCashoutTarget;
     saveWagersToStorage();
+    if (window.solplayDB && currentWalletPubkey) {
+        window.solplayDB.saveWager(w, currentWalletPubkey.toBase58());
+    }
     renderActiveWagers();
     showToast("Auto Cash-Out target cancelled.", "info");
 }

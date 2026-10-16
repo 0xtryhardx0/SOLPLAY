@@ -32,11 +32,17 @@ CREATE TABLE IF NOT EXISTS public.wagers (
     total_odds NUMERIC(10, 2) NOT NULL,      -- Combined decimal multiplier
     bonus_percent INTEGER DEFAULT 0,         -- Acca boost percentage
     potential_payout NUMERIC(14, 4) NOT NULL,-- Total SOL payout if won
-    status TEXT DEFAULT 'PENDING',           -- 'PENDING', 'WON', 'LOST', 'VOID'
+    status TEXT DEFAULT 'PENDING',           -- 'PENDING', 'WON', 'LOST', 'VOID', 'CASHED_OUT'
+    auto_cashout_target NUMERIC(14, 4),      -- Optional automated cashout profit threshold
+    copy_creator TEXT,                       -- Tipster wallet address for 2% copy royalties
     claimed BOOLEAN DEFAULT false,           -- True if winnings disbursed
     created_at TIMESTAMPTZ DEFAULT NOW(),
     settled_at TIMESTAMPTZ
 );
+
+-- Idempotent migrations for existing deployments
+ALTER TABLE public.wagers ADD COLUMN IF NOT EXISTS auto_cashout_target NUMERIC(14, 4);
+ALTER TABLE public.wagers ADD COLUMN IF NOT EXISTS copy_creator TEXT;
 
 -- 3. BETSLIPS TABLE
 -- Real-time cloud persistence of user selections (never clears on reload or device switch)

@@ -9,7 +9,10 @@ use solana_program::{
     system_instruction,
 };
 
-// Define State Structs
+// ==============================================================================
+// STATE STRUCTS
+// ==============================================================================
+
 pub struct PlatformState {
     pub admin: Pubkey,
     pub treasury: Pubkey,
@@ -62,7 +65,44 @@ pub struct StreamAccount {
     pub is_active: u8,
 }
 
-// Entrypoint Registration
+// ==============================================================================
+// SECURITY AUDIT HELPERS & SAFE PARSERS
+// ==============================================================================
+
+#[inline(always)]
+fn assert_owner(account: &AccountInfo, expected_owner: &Pubkey) -> ProgramResult {
+    if account.owner != expected_owner {
+        msg!("Security Error: Account {} owner mismatch. Expected: {}", account.key, expected_owner);
+        return Err(ProgramError::IllegalOwner);
+    }
+    Ok(())
+}
+
+#[inline(always)]
+fn parse_u64(slice: &[u8]) -> Result<u64, ProgramError> {
+    slice.try_into()
+        .map(u64::from_le_bytes)
+        .map_err(|_| ProgramError::InvalidInstructionData)
+}
+
+#[inline(always)]
+fn parse_u32(slice: &[u8]) -> Result<u32, ProgramError> {
+    slice.try_into()
+        .map(u32::from_le_bytes)
+        .map_err(|_| ProgramError::InvalidInstructionData)
+}
+
+#[inline(always)]
+fn parse_u16(slice: &[u8]) -> Result<u16, ProgramError> {
+    slice.try_into()
+        .map(u16::from_le_bytes)
+        .map_err(|_| ProgramError::InvalidInstructionData)
+}
+
+// ==============================================================================
+// ENTRYPOINT REGISTRATION
+// ==============================================================================
+
 entrypoint!(process_instruction);
 
 pub fn process_instruction(
@@ -94,9 +134,12 @@ pub fn process_instruction(
     }
 }
 
-// 0. Initialize Platform State
+// ==============================================================================
+// 0. INITIALIZE PLATFORM STATE
+// ==============================================================================
+
 fn initialize_platform(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -110,19 +153,24 @@ fn initialize_platform(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    // Security Check: Owner verification
+    assert_owner(platform_state_account, program_id)?;
+
     let rake = if data.len() >= 2 {
-        u16::from_le_bytes([data[0], data[1]])
+        parse_u16(&data[0..2])?
     } else {
         150 // default to 1.5%
     };
 
     let mut state_data = platform_state_account.try_borrow_mut_data()?;
-    msg!("InitializePlatform: program_id: {}", _program_id);
-    msg!("InitializePlatform: platform_state_account key: {}", platform_state_account.key);
-    msg!("InitializePlatform: platform_state_account owner: {}", platform_state_account.owner);
-    msg!("InitializePlatform: state_data.len() = {}", state_data.len());
     if state_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
+    }
+
+    // Security Check: Unprotected Reinitialization Prevention (Admin Hijacking Prevention)
+    if state_data[0..32] != [0u8; 32] {
+        msg!("Security Error: Platform is already initialized");
+        return Err(ProgramError::AccountAlreadyInitialized);
     }
 
     // Manual serialize:
@@ -135,9 +183,12 @@ fn initialize_platform(
     Ok(())
 }
 
-// 1. Create Market
+// ==============================================================================
+// 1. CREATE MARKET
+// ==============================================================================
+
 fn create_market(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -151,18 +202,18 @@ fn create_market(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    // Security Check: Owner verification
+    assert_owner(platform_state_account, program_id)?;
+    assert_owner(market_account, program_id)?;
+
     // Manual deserialize PlatformState:
     let state_data = platform_state_account.try_borrow_data()?;
-    msg!("create_market: platform_state_account data length: {}", state_data.len());
     if state_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
     }
     let mut admin_bytes = [0u8; 32];
     admin_bytes.copy_from_slice(&state_data[0..32]);
     let state_admin = Pubkey::new_from_array(admin_bytes);
-
-    msg!("CreateMarket Admin: {}", admin.key);
-    msg!("PlatformState Admin in account: {}", state_admin);
 
     if state_admin != *admin.key {
         msg!("Error: Admin mismatch!");
@@ -173,20 +224,28 @@ fn create_market(
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    let game_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let game_id = parse_u64(&data[0..8])?;
+    if game_id == 0 {
+        return Err(ProgramError::InvalidArgument);
+    }
     let mut team_home = [0u8; 16];
     let mut team_away = [0u8; 16];
     team_home.copy_from_slice(&data[8..24]);
     team_away.copy_from_slice(&data[24..40]);
 
     let mut market_data = market_account.try_borrow_mut_data()?;
-    msg!("create_market: market_account data length: {}", market_data.len());
     if market_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
     }
 
+    // Security Check: Market Overwrite Protection
+    let existing_game_id = parse_u64(&market_data[0..8])?;
+    if existing_game_id != 0 {
+        msg!("Security Error: Market account already initialized for game {}", existing_game_id);
+        return Err(ProgramError::AccountAlreadyInitialized);
+    }
+
     // Manual serialize MarketAccount:
-    // game_id(8) + home(16) + away(16) + status(1) + pool_home(8) + pool_away(8) + pool_draw(8) + outcome(1) = 66 bytes
     market_data[0..8].copy_from_slice(&game_id.to_le_bytes());
     market_data[8..24].copy_from_slice(&team_home);
     market_data[24..40].copy_from_slice(&team_away);
@@ -200,9 +259,12 @@ fn create_market(
     Ok(())
 }
 
-// 2. Place Wager
+// ==============================================================================
+// 2. PLACE WAGER
+// ==============================================================================
+
 fn place_wager(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -217,13 +279,26 @@ fn place_wager(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    // Security Check: Owner verification
+    assert_owner(market_account, program_id)?;
+    assert_owner(wager_account, program_id)?;
+
     if data.len() < 50 {
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    let game_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let game_id = parse_u64(&data[0..8])?;
     let prediction = data[8]; // 0=Home, 1=Away, 2=Draw
-    let amount = u64::from_le_bytes(data[9..17].try_into().unwrap());
+    if prediction > 2 {
+        msg!("Security Error: Invalid prediction outcome {}", prediction);
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
+    let amount = parse_u64(&data[9..17])?;
+    if amount == 0 {
+        msg!("Security Error: Zero wager amount prohibited");
+        return Err(ProgramError::InvalidArgument);
+    }
     
     // Enforce 5 SOL soft-launch wager cap (5,000,000,000 lamports)
     if amount > 5_000_000_000 {
@@ -240,16 +315,22 @@ fn place_wager(
         if data.len() < 58 {
             return Err(ProgramError::InvalidInstructionData);
         }
-        odds_basis_points = u64::from_le_bytes(data[50..58].try_into().unwrap());
+        odds_basis_points = parse_u64(&data[50..58])?;
+
+        // Security Check: Sanity bounds on odds (1.01x min to 50.0x max)
+        if odds_basis_points < 10100 || odds_basis_points > 500_000 {
+            msg!("Security Error: Odds basis points {} out of valid protocol range [10100, 500000]", odds_basis_points);
+            return Err(ProgramError::InvalidArgument);
+        }
     }
 
-    // Scoped read check
+    // Scoped read check on Market
     {
         let market_data = market_account.try_borrow_data()?;
         if market_data.len() < 66 {
             return Err(ProgramError::AccountDataTooSmall);
         }
-        let m_game_id = u64::from_le_bytes(market_data[0..8].try_into().unwrap());
+        let m_game_id = parse_u64(&market_data[0..8])?;
         let m_status = market_data[40];
 
         if m_game_id != game_id || m_status != 0 {
@@ -260,17 +341,16 @@ fn place_wager(
     // If Fixed-Odds against LP, reserve liability from the Liquidity Pool
     if is_routed == 2 {
         let lp_pool_account = next_account_info(accounts_iter)?;
+        assert_owner(lp_pool_account, program_id)?;
+
         let mut pool_data = lp_pool_account.try_borrow_mut_data()?;
         if pool_data.len() < 24 {
             return Err(ProgramError::AccountDataTooSmall);
         }
-        let total_pool_lamports = u64::from_le_bytes(pool_data[0..8].try_into().unwrap());
-        let _total_lp_tokens = u64::from_le_bytes(pool_data[8..16].try_into().unwrap());
-        let mut reserved_liabilities = u64::from_le_bytes(pool_data[16..24].try_into().unwrap());
+        let total_pool_lamports = parse_u64(&pool_data[0..8])?;
+        let _total_lp_tokens = parse_u64(&pool_data[8..16])?;
+        let mut reserved_liabilities = parse_u64(&pool_data[16..24])?;
 
-        if odds_basis_points < 10000 {
-            return Err(ProgramError::InvalidArgument);
-        }
         let liability = (amount as u128)
             .saturating_mul((odds_basis_points - 10000) as u128)
             .saturating_div(10000) as u64;
@@ -285,7 +365,7 @@ fn place_wager(
         msg!("Reserved liability of {} lamports from LP pool {}", liability, lp_pool_account.key);
     }
 
-    // Escrow funds into the Market Account (borrow released)
+    // Escrow funds into the Market Account
     let transfer_ix = system_instruction::transfer(
         bettor.key,
         market_account.key,
@@ -296,12 +376,12 @@ fn place_wager(
         &[bettor.clone(), market_account.clone(), system_program.clone()],
     )?;
 
-    // Scoped write update
+    // Scoped write update for Pool Wagering
     if is_routed == 0 {
         let mut market_data = market_account.try_borrow_mut_data()?;
-        let mut pool_home = u64::from_le_bytes(market_data[41..49].try_into().unwrap());
-        let mut pool_away = u64::from_le_bytes(market_data[49..57].try_into().unwrap());
-        let mut pool_draw = u64::from_le_bytes(market_data[57..65].try_into().unwrap());
+        let mut pool_home = parse_u64(&market_data[41..49])?;
+        let mut pool_away = parse_u64(&market_data[49..57])?;
+        let mut pool_draw = parse_u64(&market_data[57..65])?;
 
         match prediction {
             0 => pool_home = pool_home.saturating_add(amount),
@@ -315,12 +395,16 @@ fn place_wager(
         market_data[57..65].copy_from_slice(&pool_draw.to_le_bytes());
     }
 
-    // Manual serialize WagerAccount:
-    // game_id(8) + bettor(32) + prediction(1) + amount(8) + is_routed(1) + copy_creator(32) + claimed(1) + odds(8) = 91 bytes
+    // Wager Account Overwrite Protection
     let mut wager_data = wager_account.try_borrow_mut_data()?;
     if wager_data.len() < 91 {
         return Err(ProgramError::AccountDataTooSmall);
     }
+    if wager_data[8..40] != [0u8; 32] {
+        msg!("Security Error: Wager account already in use");
+        return Err(ProgramError::AccountAlreadyInitialized);
+    }
+
     wager_data[0..8].copy_from_slice(&game_id.to_le_bytes());
     wager_data[8..40].copy_from_slice(bettor.key.as_ref());
     wager_data[40] = prediction;
@@ -334,9 +418,12 @@ fn place_wager(
     Ok(())
 }
 
-// 3. Resolve Market
+// ==============================================================================
+// 3. RESOLVE MARKET
+// ==============================================================================
+
 fn resolve_market(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -349,6 +436,10 @@ fn resolve_market(
     if !admin.is_signer {
         return Err(ProgramError::MissingRequiredSignature);
     }
+
+    // Security Check: Owner verification
+    assert_owner(platform_state_account, program_id)?;
+    assert_owner(market_account, program_id)?;
 
     // Manual deserialize PlatformState
     let state_data = platform_state_account.try_borrow_data()?;
@@ -367,15 +458,19 @@ fn resolve_market(
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    let game_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let game_id = parse_u64(&data[0..8])?;
     let outcome = data[8]; // 0=Home, 1=Away, 2=Draw
+    if outcome > 2 {
+        msg!("Security Error: Invalid match outcome {}", outcome);
+        return Err(ProgramError::InvalidInstructionData);
+    }
 
     // Manual deserialize/update MarketAccount
     let mut market_data = market_account.try_borrow_mut_data()?;
     if market_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
     }
-    let m_game_id = u64::from_le_bytes(market_data[0..8].try_into().unwrap());
+    let m_game_id = parse_u64(&market_data[0..8])?;
     let m_status = market_data[40];
 
     if m_game_id != game_id || m_status != 0 {
@@ -389,9 +484,12 @@ fn resolve_market(
     Ok(())
 }
 
-// 4. Claim Winnings
+// ==============================================================================
+// 4. CLAIM WINNINGS
+// ==============================================================================
+
 fn claim_winnings(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -402,19 +500,24 @@ fn claim_winnings(
     let wager_account = next_account_info(accounts_iter)?;
     let platform_state_account = next_account_info(accounts_iter)?;
     let treasury_account = next_account_info(accounts_iter)?;
-    let copy_creator_account = next_account_info(accounts_iter)?; // optional or dummy
+    let copy_creator_account = next_account_info(accounts_iter)?;
+
+    // Security Check: Owner verification
+    assert_owner(market_account, program_id)?;
+    assert_owner(wager_account, program_id)?;
+    assert_owner(platform_state_account, program_id)?;
 
     // Manual deserialize WagerAccount:
     let mut wager_data = wager_account.try_borrow_mut_data()?;
     if wager_data.len() < 83 {
         return Err(ProgramError::AccountDataTooSmall);
     }
-    let w_game_id = u64::from_le_bytes(wager_data[0..8].try_into().unwrap());
+    let w_game_id = parse_u64(&wager_data[0..8])?;
     let mut w_bettor_bytes = [0u8; 32];
     w_bettor_bytes.copy_from_slice(&wager_data[8..40]);
     let w_bettor = Pubkey::new_from_array(w_bettor_bytes);
     let w_prediction = wager_data[40];
-    let w_amount = u64::from_le_bytes(wager_data[41..49].try_into().unwrap());
+    let w_amount = parse_u64(&wager_data[41..49])?;
     let w_is_routed = wager_data[49];
     let mut w_copy_creator_bytes = [0u8; 32];
     w_copy_creator_bytes.copy_from_slice(&wager_data[50..82]);
@@ -423,7 +526,7 @@ fn claim_winnings(
 
     let mut odds_basis_points = 0u64;
     if wager_data.len() >= 91 {
-        odds_basis_points = u64::from_le_bytes(wager_data[83..91].try_into().unwrap());
+        odds_basis_points = parse_u64(&wager_data[83..91])?;
     }
 
     if w_bettor != *bettor.key || w_claimed != 0 {
@@ -431,15 +534,15 @@ fn claim_winnings(
     }
 
     // Manual deserialize MarketAccount:
-    let mut market_data = market_account.try_borrow_mut_data()?;
+    let market_data = market_account.try_borrow_data()?;
     if market_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
     }
-    let m_game_id = u64::from_le_bytes(market_data[0..8].try_into().unwrap());
+    let m_game_id = parse_u64(&market_data[0..8])?;
     let m_status = market_data[40];
-    let m_pool_home = u64::from_le_bytes(market_data[41..49].try_into().unwrap());
-    let m_pool_away = u64::from_le_bytes(market_data[49..57].try_into().unwrap());
-    let m_pool_draw = u64::from_le_bytes(market_data[57..65].try_into().unwrap());
+    let m_pool_home = parse_u64(&market_data[41..49])?;
+    let m_pool_away = parse_u64(&market_data[49..57])?;
+    let m_pool_draw = parse_u64(&market_data[57..65])?;
     let m_outcome = market_data[65];
 
     if m_game_id != w_game_id || m_status != 1 {
@@ -454,7 +557,7 @@ fn claim_winnings(
     let mut state_treasury_bytes = [0u8; 32];
     state_treasury_bytes.copy_from_slice(&state_data[32..64]);
     let state_treasury = Pubkey::new_from_array(state_treasury_bytes);
-    let state_rake_basis_points = u16::from_le_bytes(state_data[64..66].try_into().unwrap());
+    let state_rake_basis_points = parse_u16(&state_data[64..66])?;
 
     if state_treasury != *treasury_account.key {
         return Err(ProgramError::InvalidAccountData);
@@ -463,15 +566,20 @@ fn claim_winnings(
     if data.len() < 8 {
         return Err(ProgramError::InvalidInstructionData);
     }
-    let game_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let game_id = parse_u64(&data[0..8])?;
     if game_id != m_game_id {
         return Err(ProgramError::InvalidAccountData);
     }
+
+    // Checks-Effects-Interactions: Mark claimed BEFORE transferring any lamports!
+    wager_data[82] = 1;
 
     let did_win = w_prediction == m_outcome;
 
     if w_is_routed == 2 {
         let lp_pool_account = next_account_info(accounts_iter)?;
+        assert_owner(lp_pool_account, program_id)?;
+
         if odds_basis_points < 10000 {
             return Err(ProgramError::InvalidArgument);
         }
@@ -515,8 +623,8 @@ fn claim_winnings(
             if pool_data.len() < 24 {
                 return Err(ProgramError::AccountDataTooSmall);
             }
-            let mut total_pool_lamports = u64::from_le_bytes(pool_data[0..8].try_into().unwrap());
-            let mut reserved_liabilities = u64::from_le_bytes(pool_data[16..24].try_into().unwrap());
+            let mut total_pool_lamports = parse_u64(&pool_data[0..8])?;
+            let mut reserved_liabilities = parse_u64(&pool_data[16..24])?;
 
             total_pool_lamports = total_pool_lamports.saturating_sub(liability);
             reserved_liabilities = reserved_liabilities.saturating_sub(liability);
@@ -536,8 +644,8 @@ fn claim_winnings(
             if pool_data.len() < 24 {
                 return Err(ProgramError::AccountDataTooSmall);
             }
-            let mut total_pool_lamports = u64::from_le_bytes(pool_data[0..8].try_into().unwrap());
-            let mut reserved_liabilities = u64::from_le_bytes(pool_data[16..24].try_into().unwrap());
+            let mut total_pool_lamports = parse_u64(&pool_data[0..8])?;
+            let mut reserved_liabilities = parse_u64(&pool_data[16..24])?;
 
             total_pool_lamports = total_pool_lamports.saturating_add(w_amount);
             reserved_liabilities = reserved_liabilities.saturating_sub(liability);
@@ -563,7 +671,6 @@ fn claim_winnings(
             **market_account.lamports.borrow_mut() = market_account.lamports().saturating_sub(sweep_amount);
             **treasury_account.lamports.borrow_mut() = treasury_account.lamports().saturating_add(sweep_amount);
             
-            wager_data[82] = 1;
             msg!("Swept {} lamports to treasury.", sweep_amount);
             return Ok(());
         }
@@ -604,13 +711,15 @@ fn claim_winnings(
         }
     }
 
-    wager_data[82] = 1;
     Ok(())
 }
 
-// 5. Record Viewer Milestone
+// ==============================================================================
+// 5. RECORD VIEWER MILESTONE
+// ==============================================================================
+
 fn record_milestone(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -623,20 +732,20 @@ fn record_milestone(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    assert_owner(milestone_account, program_id)?;
+
     if data.len() < 12 {
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    let milestone_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
-    let watch_time_seconds = u32::from_le_bytes(data[8..12].try_into().unwrap());
+    let milestone_id = parse_u64(&data[0..8])?;
+    let watch_time_seconds = parse_u32(&data[8..12])?;
 
     let mut milestone_data = milestone_account.try_borrow_mut_data()?;
     if milestone_data.len() < 44 {
         return Err(ProgramError::AccountDataTooSmall);
     }
 
-    // Manual serialize MilestoneAccount:
-    // id(8) + bettor(32) + seconds(4) = 44 bytes
     milestone_data[0..8].copy_from_slice(&milestone_id.to_le_bytes());
     milestone_data[8..40].copy_from_slice(bettor.key.as_ref());
     milestone_data[40..44].copy_from_slice(&watch_time_seconds.to_le_bytes());
@@ -645,9 +754,12 @@ fn record_milestone(
     Ok(())
 }
 
-// 6. Register Stream
+// ==============================================================================
+// 6. REGISTER STREAM
+// ==============================================================================
+
 fn register_stream(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -661,7 +773,9 @@ fn register_stream(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
-    // Verify Admin matches Platform State
+    assert_owner(platform_state_account, program_id)?;
+    assert_owner(stream_account, program_id)?;
+
     let state_data = platform_state_account.try_borrow_data()?;
     if state_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
@@ -678,19 +792,24 @@ fn register_stream(
         return Err(ProgramError::InvalidInstructionData);
     }
 
+    let stream_id = parse_u64(&data[0..8])?;
+
     let mut stream_data = stream_account.try_borrow_mut_data()?;
     if stream_data.len() < 185 {
         return Err(ProgramError::AccountDataTooSmall);
     }
 
     stream_data[0..185].copy_from_slice(&data[0..185]);
-    msg!("Stream registered successfully. ID: {}", u64::from_le_bytes(data[0..8].try_into().unwrap()));
+    msg!("Stream registered successfully. ID: {}", stream_id);
     Ok(())
 }
 
-// 7. Update Stream URL
+// ==============================================================================
+// 7. UPDATE STREAM URL
+// ==============================================================================
+
 fn update_stream_url(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -704,7 +823,9 @@ fn update_stream_url(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
-    // Verify Admin matches Platform State
+    assert_owner(platform_state_account, program_id)?;
+    assert_owner(stream_account, program_id)?;
+
     let state_data = platform_state_account.try_borrow_data()?;
     if state_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
@@ -721,13 +842,13 @@ fn update_stream_url(
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    let stream_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let stream_id = parse_u64(&data[0..8])?;
     let mut stream_data = stream_account.try_borrow_mut_data()?;
     if stream_data.len() < 185 {
         return Err(ProgramError::AccountDataTooSmall);
     }
 
-    let current_id = u64::from_le_bytes(stream_data[0..8].try_into().unwrap());
+    let current_id = parse_u64(&stream_data[0..8])?;
     if current_id != stream_id {
         return Err(ProgramError::InvalidAccountData);
     }
@@ -738,9 +859,12 @@ fn update_stream_url(
     Ok(())
 }
 
-// 8. Toggle Stream Status
+// ==============================================================================
+// 8. TOGGLE STREAM STATUS
+// ==============================================================================
+
 fn toggle_stream_status(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -754,7 +878,9 @@ fn toggle_stream_status(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
-    // Verify Admin matches Platform State
+    assert_owner(platform_state_account, program_id)?;
+    assert_owner(stream_account, program_id)?;
+
     let state_data = platform_state_account.try_borrow_data()?;
     if state_data.len() < 66 {
         return Err(ProgramError::AccountDataTooSmall);
@@ -767,29 +893,34 @@ fn toggle_stream_status(
         return Err(ProgramError::InvalidAccountData);
     }
 
-    if data.len() < 9 { // 8 (id) + 1 (is_active)
+    if data.len() < 9 { // 8 (id) + 1 (status)
         return Err(ProgramError::InvalidInstructionData);
     }
 
-    let stream_id = u64::from_le_bytes(data[0..8].try_into().unwrap());
-    let is_active = data[8];
+    let stream_id = parse_u64(&data[0..8])?;
+    let new_status = data[8];
+
     let mut stream_data = stream_account.try_borrow_mut_data()?;
     if stream_data.len() < 185 {
         return Err(ProgramError::AccountDataTooSmall);
     }
 
-    let current_id = u64::from_le_bytes(stream_data[0..8].try_into().unwrap());
+    let current_id = parse_u64(&stream_data[0..8])?;
     if current_id != stream_id {
         return Err(ProgramError::InvalidAccountData);
     }
 
-    msg!("Stream status toggled successfully to: {} for ID: {}", is_active, stream_id);
+    stream_data[184] = new_status;
+    msg!("Stream ID {} status toggled to: {}", stream_id, new_status);
     Ok(())
 }
 
-// 9. Deposit LP
+// ==============================================================================
+// 9. DEPOSIT LP (BE THE HOUSE)
+// ==============================================================================
+
 fn deposit_lp(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -804,10 +935,16 @@ fn deposit_lp(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    assert_owner(lp_pool_account, program_id)?;
+    assert_owner(lp_user_account, program_id)?;
+
     if data.len() < 8 {
         return Err(ProgramError::InvalidInstructionData);
     }
-    let amount = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let amount = parse_u64(&data[0..8])?;
+    if amount == 0 {
+        return Err(ProgramError::InvalidArgument);
+    }
 
     // Transfer lamports from depositor to lp_pool_account
     let transfer_ix = system_instruction::transfer(
@@ -825,9 +962,9 @@ fn deposit_lp(
     if pool_data.len() < 24 {
         return Err(ProgramError::AccountDataTooSmall);
     }
-    let mut total_pool_lamports = u64::from_le_bytes(pool_data[0..8].try_into().unwrap());
-    let mut total_lp_tokens = u64::from_le_bytes(pool_data[8..16].try_into().unwrap());
-    let reserved_liabilities = u64::from_le_bytes(pool_data[16..24].try_into().unwrap());
+    let mut total_pool_lamports = parse_u64(&pool_data[0..8])?;
+    let mut total_lp_tokens = parse_u64(&pool_data[8..16])?;
+    let reserved_liabilities = parse_u64(&pool_data[16..24])?;
 
     let lp_tokens_to_mint = if total_lp_tokens == 0 {
         amount
@@ -849,7 +986,7 @@ fn deposit_lp(
     if user_data.len() < 8 {
         return Err(ProgramError::AccountDataTooSmall);
     }
-    let mut user_lp_tokens = u64::from_le_bytes(user_data[0..8].try_into().unwrap());
+    let mut user_lp_tokens = parse_u64(&user_data[0..8])?;
     user_lp_tokens = user_lp_tokens.saturating_add(lp_tokens_to_mint);
     user_data[0..8].copy_from_slice(&user_lp_tokens.to_le_bytes());
 
@@ -857,9 +994,12 @@ fn deposit_lp(
     Ok(())
 }
 
-// 10. Withdraw LP
+// ==============================================================================
+// 10. WITHDRAW LP
+// ==============================================================================
+
 fn withdraw_lp(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
@@ -873,17 +1013,23 @@ fn withdraw_lp(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    assert_owner(lp_pool_account, program_id)?;
+    assert_owner(lp_user_account, program_id)?;
+
     if data.len() < 8 {
         return Err(ProgramError::InvalidInstructionData);
     }
-    let lp_tokens_to_burn = u64::from_le_bytes(data[0..8].try_into().unwrap());
+    let lp_tokens_to_burn = parse_u64(&data[0..8])?;
+    if lp_tokens_to_burn == 0 {
+        return Err(ProgramError::InvalidArgument);
+    }
 
     // Check user has enough LP tokens
     let mut user_data = lp_user_account.try_borrow_mut_data()?;
     if user_data.len() < 8 {
         return Err(ProgramError::AccountDataTooSmall);
     }
-    let mut user_lp_tokens = u64::from_le_bytes(user_data[0..8].try_into().unwrap());
+    let mut user_lp_tokens = parse_u64(&user_data[0..8])?;
     if user_lp_tokens < lp_tokens_to_burn {
         return Err(ProgramError::InvalidArgument);
     }
@@ -893,9 +1039,9 @@ fn withdraw_lp(
     if pool_data.len() < 24 {
         return Err(ProgramError::AccountDataTooSmall);
     }
-    let mut total_pool_lamports = u64::from_le_bytes(pool_data[0..8].try_into().unwrap());
-    let mut total_lp_tokens = u64::from_le_bytes(pool_data[8..16].try_into().unwrap());
-    let reserved_liabilities = u64::from_le_bytes(pool_data[16..24].try_into().unwrap());
+    let mut total_pool_lamports = parse_u64(&pool_data[0..8])?;
+    let mut total_lp_tokens = parse_u64(&pool_data[8..16])?;
+    let reserved_liabilities = parse_u64(&pool_data[16..24])?;
 
     if total_lp_tokens == 0 {
         return Err(ProgramError::InvalidArgument);
@@ -913,7 +1059,7 @@ fn withdraw_lp(
         return Err(ProgramError::InsufficientFunds);
     }
 
-    // Transfer SOL from pool to depositor by updating lamports
+    // Transfer SOL from pool to depositor
     if sol_to_return > lp_pool_account.lamports() {
         return Err(ProgramError::InsufficientFunds);
     }
@@ -934,4 +1080,3 @@ fn withdraw_lp(
     msg!("Withdrew {} lamports. Burned {} LP tokens.", sol_to_return, lp_tokens_to_burn);
     Ok(())
 }
-
