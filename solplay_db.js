@@ -10,6 +10,22 @@ const SolPlayDB = {
     supabaseClient: null,
     isInitialized: false,
 
+    // Lamport precision helpers (1 SOL = 1,000,000,000 lamports)
+    solToLamports: function(sol) {
+        if (!sol && sol !== 0) return 0;
+        return Math.round(Number(sol) * 1000000000);
+    },
+
+    lamportsToSol: function(lamports) {
+        if (!lamports && lamports !== 0) return 0;
+        return Number(lamports) / 1000000000;
+    },
+
+    oddsToBps: function(odds) {
+        if (!odds) return 10000;
+        return Math.round(Number(odds) * 10000);
+    },
+
     // Initialize Supabase client
     init: function() {
         const defaultProjectUrl = "https://ervysscnenetauyszrzp.supabase.co";
@@ -38,7 +54,7 @@ const SolPlayDB = {
         
         if (!this.isInitialized || !this.supabaseClient) {
             // Local fallback
-            return { wallet_address: walletAddress, balance_sol: balanceSol };
+            return { wallet_address: walletAddress, balance_sol: balanceSol, balance_lamports: this.solToLamports(balanceSol) };
         }
 
         try {
@@ -56,15 +72,16 @@ const SolPlayDB = {
                     .eq("wallet_address", walletAddress);
                 return existingUser;
             } else {
-                // Create new user record with unique wallet
+                // Create new user record with unique wallet and integer lamports
                 const defaultUsername = username || `punter_${walletAddress.slice(0, 5).toLowerCase()}`;
+                const balanceLamports = this.solToLamports(balanceSol);
                 const { data: newUser, error: insertErr } = await this.supabaseClient
                     .from("users")
                     .insert([{
                         wallet_address: walletAddress,
                         username: defaultUsername,
                         display_name: defaultUsername,
-                        balance_sol: balanceSol,
+                        balance_lamports: balanceLamports,
                         last_login: new Date().toISOString()
                     }])
                     .select()
@@ -112,31 +129,40 @@ const SolPlayDB = {
             }
 
             // Map DB columns back to frontend wager format
-            return data.map(dbWager => ({
-                id: dbWager.id,
-                ticketId: dbWager.id,
-                isAccumulator: dbWager.is_accumulator,
-                legsCount: dbWager.legs_count,
-                legs: dbWager.legs || [],
-                gameId: dbWager.game_id,
-                outcomeLabel: dbWager.outcome_label,
-                amount: parseFloat(dbWager.amount_sol),
-                odds: parseFloat(dbWager.total_odds),
-                bonusPercent: dbWager.bonus_percent || 0,
-                potentialPayout: parseFloat(dbWager.potential_payout),
-                status: dbWager.status,
-                claimed: dbWager.claimed,
-                autoCashoutTarget: dbWager.auto_cashout_target ? parseFloat(dbWager.auto_cashout_target) : null,
-                copyCreatorWallet: dbWager.copy_creator || ((dbWager.legs && dbWager.legs[0]) ? dbWager.legs[0].copyCreatorWallet : null),
-                timestamp: new Date(dbWager.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }));
+            return data.map(dbWager => {
+                const amount = dbWager.amount_lamports ? this.lamportsToSol(dbWager.amount_lamports) : parseFloat(dbWager.amount_sol || 0);
+                const odds = dbWager.total_odds_bps ? (dbWager.total_odds_bps / 10000) : parseFloat(dbWager.total_odds || 1);
+                const potentialPayout = dbWager.potential_payout_lamports ? this.lamportsToSol(dbWager.potential_payout_lamports) : parseFloat(dbWager.potential_payout || 0);
+
+                return {
+                    id: dbWager.id,
+                    ticketId: dbWager.id,
+                    txSignature: dbWager.tx_signature || null,
+                    isAccumulator: dbWager.is_accumulator,
+                    legsCount: dbWager.legs_count,
+                    legs: dbWager.legs || [],
+                    gameId: dbWager.game_id,
+                    outcomeLabel: dbWager.outcome_label,
+                    amount: amount,
+                    amountLamports: dbWager.amount_lamports || this.solToLamports(amount),
+                    odds: odds,
+                    bonusPercent: dbWager.bonus_percent || 0,
+                    potentialPayout: potentialPayout,
+                    potentialPayoutLamports: dbWager.potential_payout_lamports || this.solToLamports(potentialPayout),
+                    status: dbWager.status,
+                    claimed: dbWager.claimed,
+                    autoCashoutTarget: dbWager.auto_cashout_target_lamports ? this.lamportsToSol(dbWager.auto_cashout_target_lamports) : (dbWager.auto_cashout_target ? parseFloat(dbWager.auto_cashout_target) : null),
+                    copyCreatorWallet: dbWager.copy_creator || ((dbWager.legs && dbWager.legs[0]) ? dbWager.legs[0].copyCreatorWallet : null),
+                    timestamp: new Date(dbWager.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+            });
         } catch (e) {
             console.error("loadUserWagers error:", e);
             return null;
         }
     },
 
-    // 3. Save new wager to cloud DB
+    // 3. Save new wager to cloud DB (with Idempotency + Lamport Precision)
     saveWager: async function(wager, walletAddress) {
         if (!wager || !walletAddress) return;
 
@@ -145,20 +171,26 @@ const SolPlayDB = {
                 // Ensure user exists first
                 await this.syncUserAccount(walletAddress);
 
+                const amountLamports = wager.amountLamports || this.solToLamports(wager.amount);
+                const oddsBps = this.oddsToBps(wager.odds);
+                const payoutLamports = wager.potentialPayoutLamports || this.solToLamports(wager.potentialPayout || (wager.amount * wager.odds));
+                const autoCashoutLamports = wager.autoCashoutTarget ? this.solToLamports(wager.autoCashoutTarget) : null;
+
                 const dbRecord = {
                     id: wager.ticketId || wager.id,
+                    tx_signature: wager.txSignature || wager.signature || null,
                     user_wallet: walletAddress,
                     is_accumulator: Boolean(wager.isAccumulator),
                     legs_count: wager.legsCount || (wager.legs ? wager.legs.length : 1),
                     legs: (wager.legs || []).map(l => ({ ...l, copyCreatorWallet: wager.copyCreatorWallet || null })),
                     game_id: wager.gameId || null,
                     outcome_label: wager.outcomeLabel || 'Wager',
-                    amount_sol: wager.amount,
-                    total_odds: wager.odds,
+                    amount_lamports: amountLamports,
+                    total_odds_bps: oddsBps,
                     bonus_percent: wager.bonusPercent || 0,
-                    potential_payout: wager.potentialPayout || (wager.amount * wager.odds),
+                    potential_payout_lamports: payoutLamports,
                     status: wager.status || 'PENDING',
-                    auto_cashout_target: wager.autoCashoutTarget || null,
+                    auto_cashout_target_lamports: autoCashoutLamports,
                     copy_creator: wager.copyCreatorWallet || null,
                     claimed: Boolean(wager.claimed),
                     created_at: new Date().toISOString()
@@ -171,7 +203,7 @@ const SolPlayDB = {
                 if (error) {
                     console.warn("Error saving wager to cloud DB:", error);
                 } else {
-                    console.log(`☁️ Wager ${dbRecord.id} synced to Cloud Database!`);
+                    console.log(`☁️ Wager ${dbRecord.id} synced with lamport precision to Cloud DB!`);
                 }
             } catch (e) {
                 console.error("saveWager error:", e);
@@ -202,11 +234,29 @@ const SolPlayDB = {
         }
     },
 
-    // 4b. Disburse payout and 2% creator royalties in cloud DB
+    // 4b. Disburse payout and 2% creator royalties via atomic DB procedure
     payoutWager: async function(ticketId, winAmount, userWallet, creatorWallet = null) {
         if (!ticketId || !this.isInitialized || !this.supabaseClient) return;
         try {
-            // 1. Mark wager WON and claimed in DB
+            const winLamports = this.solToLamports(winAmount);
+
+            // 1. Try atomic stored procedure first (prevents race conditions)
+            const { data: rpcResult, error: rpcErr } = await this.supabaseClient
+                .rpc("atomic_settle_wager", {
+                    p_ticket_id: ticketId,
+                    p_status: "WON",
+                    p_win_payout_lamports: winLamports,
+                    p_user_wallet: userWallet,
+                    p_creator_wallet: creatorWallet
+                });
+
+            if (!rpcErr && rpcResult && rpcResult.success) {
+                console.log(`⚡ Atomic settlement executed for ticket ${ticketId}!`, rpcResult);
+                return;
+            }
+
+            // Fallback for setups before migration is run
+            console.warn("Atomic RPC unavailable, using fallback settlement:", rpcErr);
             await this.supabaseClient
                 .from("wagers")
                 .update({ 
@@ -216,39 +266,40 @@ const SolPlayDB = {
                 })
                 .eq("id", ticketId);
 
-            // 2. Credit player balance in Supabase users table
-            if (userWallet && winAmount > 0) {
+            if (userWallet && winLamports > 0) {
                 const { data: user } = await this.supabaseClient
                     .from("users")
-                    .select("balance_sol")
+                    .select("balance_lamports, balance_sol")
                     .eq("wallet_address", userWallet)
                     .maybeSingle();
 
                 if (user) {
-                    const newBal = parseFloat(user.balance_sol || 0) + parseFloat(winAmount);
+                    const currentBal = user.balance_lamports ? Number(user.balance_lamports) : this.solToLamports(user.balance_sol || 0);
+                    const newBal = currentBal + winLamports;
                     await this.supabaseClient
                         .from("users")
-                        .update({ balance_sol: newBal })
+                        .update({ balance_lamports: newBal })
                         .eq("wallet_address", userWallet);
                     console.log(`💰 Winnings (${winAmount} SOL) credited to player ${userWallet}`);
                 }
             }
 
-            // 3. 2% Creator Tipster Royalty
+            // 2% Creator Tipster Royalty
             if (creatorWallet && creatorWallet !== userWallet) {
-                const royalty = parseFloat(winAmount) * 0.02;
+                const royaltyLamports = Math.round(winLamports * 0.02);
                 const { data: creator } = await this.supabaseClient
                     .from("users")
-                    .select("balance_sol")
+                    .select("balance_lamports, balance_sol")
                     .eq("wallet_address", creatorWallet)
                     .maybeSingle();
                 if (creator) {
-                    const newCreatorBal = parseFloat(creator.balance_sol || 0) + royalty;
+                    const currentCreatorBal = creator.balance_lamports ? Number(creator.balance_lamports) : this.solToLamports(creator.balance_sol || 0);
+                    const newCreatorBal = currentCreatorBal + royaltyLamports;
                     await this.supabaseClient
                         .from("users")
-                        .update({ balance_sol: newCreatorBal })
+                        .update({ balance_lamports: newCreatorBal })
                         .eq("wallet_address", creatorWallet);
-                    console.log(`🎉 2% Tipster Royalty (${royalty.toFixed(4)} SOL) credited to @${creatorWallet}`);
+                    console.log(`🎉 2% Tipster Royalty (${this.lamportsToSol(royaltyLamports)} SOL) credited to @${creatorWallet}`);
                 }
             }
         } catch (e) {
@@ -260,44 +311,57 @@ const SolPlayDB = {
     cashoutWager: async function(ticketId, cashoutAmount, userWallet, isPartial = false, remainingStake = 0, remainingPayout = 0) {
         if (!ticketId || !this.isInitialized || !this.supabaseClient) return;
         try {
+            const cashoutLamports = this.solToLamports(cashoutAmount);
+
             if (isPartial) {
-                // Update active wager with remaining stake & potential payout
+                const remainingStakeLamports = this.solToLamports(remainingStake);
+                const remainingPayoutLamports = this.solToLamports(remainingPayout);
                 await this.supabaseClient
                     .from("wagers")
                     .update({ 
-                        amount_sol: parseFloat(remainingStake),
-                        potential_payout: parseFloat(remainingPayout)
+                        amount_lamports: remainingStakeLamports,
+                        potential_payout_lamports: remainingPayoutLamports
                     })
                     .eq("id", ticketId);
             } else {
-                // 1. Mark wager CASHED_OUT and claimed in DB
                 await this.supabaseClient
                     .from("wagers")
                     .update({ 
                         status: "CASHED_OUT", 
                         claimed: true, 
-                        potential_payout: parseFloat(cashoutAmount),
+                        potential_payout_lamports: cashoutLamports,
                         settled_at: new Date().toISOString() 
                     })
                     .eq("id", ticketId);
             }
 
-            // 2. Credit player balance in Supabase users table
-            if (userWallet && cashoutAmount > 0) {
-                const { data: user } = await this.supabaseClient
-                    .from("users")
-                    .select("balance_sol")
-                    .eq("wallet_address", userWallet)
-                    .maybeSingle();
+            // Credit player balance
+            if (userWallet && cashoutLamports > 0) {
+                // Try atomic credit first
+                const { error: creditErr } = await this.supabaseClient
+                    .rpc("atomic_credit_balance", {
+                        p_wallet: userWallet,
+                        p_amount_lamports: cashoutLamports
+                    });
 
-                if (user) {
-                    const newBal = parseFloat(user.balance_sol || 0) + parseFloat(cashoutAmount);
-                    await this.supabaseClient
+                if (creditErr) {
+                    // Fallback
+                    const { data: user } = await this.supabaseClient
                         .from("users")
-                        .update({ balance_sol: newBal })
-                        .eq("wallet_address", userWallet);
-                    console.log(`💸 Cash-out (${cashoutAmount} SOL) credited to player ${userWallet}`);
+                        .select("balance_lamports, balance_sol")
+                        .eq("wallet_address", userWallet)
+                        .maybeSingle();
+
+                    if (user) {
+                        const currentBal = user.balance_lamports ? Number(user.balance_lamports) : this.solToLamports(user.balance_sol || 0);
+                        const newBal = currentBal + cashoutLamports;
+                        await this.supabaseClient
+                            .from("users")
+                            .update({ balance_lamports: newBal })
+                            .eq("wallet_address", userWallet);
+                    }
                 }
+                console.log(`💸 Cash-out (${cashoutAmount} SOL) credited to player ${userWallet}`);
             }
         } catch (e) {
             console.error("cashoutWager error:", e);

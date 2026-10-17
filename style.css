@@ -3078,5 +3078,103 @@ body {
     color: #34d399;
 }
 
+/* ==============================================================================
+   TACTILE MICRO-INTERACTIONS & LIQUID SHADERS (BENCHO.DEV & OJIMA INSPIRED)
+   ============================================================================== */
+
+/* 1. Spring-Physics Tactile Click Feedback */
+.tactile-press, 
+.market-btn, 
+.odd-btn, 
+.btn-place-bet, 
+.btn-cashout {
+    transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1), 
+                box-shadow 0.2s cubic-bezier(0.2, 0.7, 0.2, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease !important;
+    will-change: transform;
+}
+
+.tactile-press:active, 
+.market-btn:active, 
+.odd-btn:active, 
+.btn-place-bet:active, 
+.btn-cashout:active {
+    transform: scale(0.96) translateY(1.5px) !important;
+    filter: brightness(1.1);
+}
+
+/* 2. Elevated Liquid Glass Card with Sheen */
+.fixture-card, 
+.wager-card, 
+.betslip-card {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: linear-gradient(165deg, rgba(22, 20, 32, 0.72) 0%, rgba(10, 8, 16, 0.88) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-radius: 16px !important;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                border-color 0.3s ease, 
+                box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.fixture-card:hover, 
+.wager-card:hover {
+    transform: translateY(-3px) scale(1.004) !important;
+    border-color: rgba(168, 85, 247, 0.35) !important;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 
+                0 0 20px -5px rgba(168, 85, 247, 0.2) !important;
+}
+
+/* 3. Stanley Ojima-style Live Pulse Status Indicator */
+.live-pulse-dot {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+    flex-shrink: 0;
+}
+
+.live-pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1.5px solid #10b981;
+    animation: livePulseRing 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes livePulseRing {
+    0% { transform: scale(0.8); opacity: 0.9; }
+    50% { transform: scale(1.8); opacity: 0; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* 4. Tabular Numbers for Clean Multiplier & Payout Displays */
+.tabular-numbers, 
+.odds-val, 
+.payout-val, 
+.balance-val {
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" on !important;
+    letter-spacing: -0.02em;
+}
+
+/* 5. Magnetic Focus and Glowing Border Accent */
+.market-btn.selected, 
+.odd-btn.selected {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(20, 184, 166, 0.2)) !important;
+    border-color: #a855f7 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+
 
 
