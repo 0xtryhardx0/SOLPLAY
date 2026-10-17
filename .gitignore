@@ -22,7 +22,6 @@ milestone_1.json
 # Local test JSON states
 *_test.json
 market_2026.json
-active_matches.json
 inspect_*.py
 test_tx*.py
 test_sig.py

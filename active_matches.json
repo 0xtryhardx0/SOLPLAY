@@ -1,0 +1,117 @@
+{
+  "platformStatePubkey": "7KdNabZ7rmC3BEZ8KESLJV51mDv2BBVZvoWko4HeSd2w",
+  "treasuryPubkey": "5syXsU47xYXcixG8wyV31NC1kKgDC53PZfVhsuXnDjDe",
+  "creatorPubkey": "5mmeXYXKJkNkWuz6f9WhZprkkiNLpdWkFWarqB6PN75N",
+  "matches": {
+    "2026": {
+      "gameId": 2026,
+      "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
+      "homeTeam": "Portugal",
+      "awayTeam": "Uzbekistan",
+      "status": "FINISHED",
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "time": "Full Time",
+      "timeline": [
+        {
+          "time": "0'",
+          "type": "start",
+          "desc": "Match started",
+          "icon": "\ud83c\udfc1"
+        },
+        {
+          "time": "24'",
+          "type": "goal",
+          "desc": "Goal! Portugal 1 - 0 Uzbekistan. Ronaldo slots a penalty!",
+          "icon": "\u26bd"
+        },
+        {
+          "time": "38'",
+          "type": "card",
+          "desc": "Yellow Card: Otabek Shukurov (Uzbekistan)",
+          "icon": "\ud83d\udfe8"
+        },
+        {
+          "time": "55'",
+          "type": "goal",
+          "desc": "Goal! Portugal 2 - 0 Uzbekistan. Fernandes fires a rocket into the top corner!",
+          "icon": "\u26bd"
+        },
+        {
+          "time": "72'",
+          "type": "goal",
+          "desc": "Goal! Portugal 2 - 1 Uzbekistan. Shomurodov headers home from a corner!",
+          "icon": "\u26bd"
+        },
+        {
+          "time": "88'",
+          "type": "goal",
+          "desc": "Goal! Portugal 3 - 1 Uzbekistan. Leao finishes a counter-attack!",
+          "icon": "\u26bd"
+        }
+      ]
+    },
+    "1030": {
+      "gameId": 1030,
+      "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
+      "homeTeam": "Everton",
+      "awayTeam": "Chelsea",
+      "status": "SCHEDULED",
+      "score": null,
+      "time": "12:30 WAT"
+    },
+    "1031": {
+      "gameId": 1031,
+      "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
+      "homeTeam": "Brentford",
+      "awayTeam": "Liverpool",
+      "status": "SCHEDULED",
+      "score": null,
+      "time": "15:00 WAT"
+    },
+    "1032": {
+      "gameId": 1032,
+      "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
+      "homeTeam": "Manchester City",
+      "awayTeam": "Ipswich Town",
+      "status": "SCHEDULED",
+      "score": null,
+      "time": "15:00 WAT"
+    },
+    "1033": {
+      "gameId": 1033,
+      "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
+      "homeTeam": "Newcastle United",
+      "awayTeam": "Aston Villa",
+      "status": "SCHEDULED",
+      "score": null,
+      "time": "17:30 WAT"
+    },
+    "1010": {
+      "gameId": 1010,
+      "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
+      "homeTeam": "Manchester City",
+      "awayTeam": "Paris Saint-Germain",
+      "status": "FINISHED",
+      "score": {
+        "home": 2,
+        "away": 4
+      },
+      "time": "Full Time"
+    },
+    "1011": {
+      "gameId": 1011,
+      "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
+      "homeTeam": "AS Roma",
+      "awayTeam": "Real Madrid",
+      "status": "FINISHED",
+      "score": {
+        "home": 3,
+        "away": 4
+      },
+      "time": "Full Time"
+    }
+  }
+}
