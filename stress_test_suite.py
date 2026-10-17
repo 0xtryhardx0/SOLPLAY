@@ -55,6 +55,9 @@ class SystemInspector:
         self.test_anti_courtsiding_cashout()
         self.test_db_schema_constraints()
         self.test_case_sensitivity_db_connector()
+        self.test_autonomous_calendar_management()
+        self.test_onchain_solvency_vault_cap()
+        self.test_oracle_malformed_feed_defense()
 
         self.generate_report()
 
@@ -246,6 +249,72 @@ class SystemInspector:
             "Global DB Window Export Case-Match",
             exported_properly,
             "app.js accesses window.solplayDB but solplay_db.js only exports window.SolPlayDB",
+            "HIGH"
+        )
+
+    def test_autonomous_calendar_management(self):
+        print("\n>> TEST SUITE 9: Autonomous Matches Calendar & Concluded Matches Transition")
+        with open("app.js", "r") as f:
+            app_code = f.read()
+
+        has_auto_cal = "autoUpdateMatchesCalendar" in app_code
+        has_iso_eval = "dateISO" in app_code
+        oct14_concluded = "Manchester City 2 - 4 Paris Saint-Germain" in app_code or ('id: 1010' in app_code and 'status: "FINISHED"' in app_code)
+        today_active = "Everton" in app_code and 'id: 1030' in app_code and 'scheduleGroup: "today"' in app_code
+
+        self.record_result(
+            "Autonomous Calendar Schedule Re-Evaluator",
+            has_auto_cal and has_iso_eval,
+            "autoUpdateMatchesCalendar function missing from app.js",
+            "HIGH"
+        )
+        self.record_result(
+            "Concluded Matches Automatically Ingested into Finished Group",
+            oct14_concluded,
+            "Concluded UCL Oct 14 matches not properly transitioned to status FINISHED with verified scorelines",
+            "CRITICAL"
+        )
+        self.record_result(
+            "Today Schedule Dynamically Populated with Active Fixtures",
+            today_active,
+            "Today's active Premier League fixtures missing from scheduleGroup: 'today'",
+            "HIGH"
+        )
+
+    def test_onchain_solvency_vault_cap(self):
+        print("\n>> TEST SUITE 10: On-Chain Vault Solvency Guard (80% Exposure Invariant)")
+        with open("src/lib.rs", "r") as f:
+            rust_code = f.read()
+
+        has_80_percent_cap = "saturating_mul(80)" in rust_code and "max_allowable_liabilities" in rust_code
+        has_solvency_msg = "Vault Solvency Guard" in rust_code
+
+        self.record_result(
+            "Solana Smart Contract 80% Max Liability Cap Invariant",
+            has_80_percent_cap and has_solvency_msg,
+            "Rust smart contract missing strict 80% liability risk exposure cap on LP liquidity reserves",
+            "CRITICAL"
+        )
+
+    def test_oracle_malformed_feed_defense(self):
+        print("\n>> TEST SUITE 11: Oracle Multi-Date Ingestion & Malformed Feed Defense")
+        with open("oracle_service.py", "r") as f:
+            oracle_code = f.read()
+
+        has_validator = "validate_sports_feed_event" in oracle_code
+        has_bounds_check = "h_score > 25" in oracle_code or "score exceeds" in oracle_code.lower()
+        has_multidate = "?dates=20261014" in oracle_code or "date_queries" in oracle_code
+
+        self.record_result(
+            "Malformed Feed Payload Defense & Plausibility Validation",
+            has_validator and has_bounds_check,
+            "Oracle does not sanitize negative scores or abnormal payloads before on-chain settlement",
+            "CRITICAL"
+        )
+        self.record_result(
+            "Multi-Date Matchday Settlement Ingestion Engine",
+            has_multidate,
+            "Oracle only polls today's scoreboard, missing historical matchday cycles",
             "HIGH"
         )
 

@@ -358,8 +358,12 @@ fn place_wager(
             .saturating_mul((odds_basis_points - 10000) as u128)
             .saturating_div(10000) as u64;
 
-        if total_pool_lamports < reserved_liabilities.saturating_add(liability) {
-            msg!("Error: Insufficient liquidity pool reserves to back this wager");
+        let max_allowable_liabilities = (total_pool_lamports as u128)
+            .saturating_mul(80)
+            .saturating_div(100) as u64;
+
+        if max_allowable_liabilities < reserved_liabilities.saturating_add(liability) {
+            msg!("Error: Vault Solvency Guard: Maximum allowable liability risk exposure (80% of pool) exceeded");
             return Err(ProgramError::InsufficientFunds);
         }
 
