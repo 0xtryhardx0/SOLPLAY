@@ -18,6 +18,3 @@ platform_state*.json
 punter_*.json
 treasury.json
 wager_*.json
-Dockerfile
-Dockerfile*
-.dockerignore

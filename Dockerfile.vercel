@@ -3,7 +3,7 @@ FROM python:3.11-alpine
 WORKDIR /app
 
 # Copy static frontend assets into container
-COPY index.html style.css app.js solplay_db.js logo.png sovereign_signature.jpg ./
+COPY index.html style.css app.js solplay_db.js logo.png sovereign_signature.jpg active_matches.json ./
 
 # Dynamic port binding
 ENV PORT=8080

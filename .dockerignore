@@ -10,3 +10,4 @@ Cargo.toml
 Cargo.lock
 *.json
 !vercel.json
+!active_matches.json
