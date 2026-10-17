@@ -1,0 +1,12 @@
+.git
+target/
+venv/
+test-ledger/
+cpufeatures_mock/
+docs/
+.github/
+*.rs
+Cargo.toml
+Cargo.lock
+*.json
+!vercel.json

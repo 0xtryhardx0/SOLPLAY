@@ -11,6 +11,7 @@ docs/
 .github/
 Procfile
 Dockerfile
+.dockerignore
 *_wallet.json
 bettor_*.json
 dev_wallet.json
