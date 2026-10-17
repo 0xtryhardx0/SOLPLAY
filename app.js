@@ -3896,14 +3896,18 @@ async function placeBet() {
 function evaluateTicketOutcome(w) {
     if (!w) return "PENDING";
     
-    // Multi-leg accumulator evaluation
+    // Multi-leg accumulator evaluation (Regulated Sportsbook Void / Push Standards)
     if (w.isAccumulator && w.legs && w.legs.length > 1) {
         let hasLost = false;
         let anyPending = false;
         let allWon = true;
+        let voidCount = 0;
+        let recalculatedOdds = 1.0;
 
         w.legs.forEach(leg => {
             const match = MATCHES_DATA.find(m => m.id === leg.gameId);
+            const legOdds = parseFloat(leg.oddsValue || leg.odds || 1.0);
+
             if (!match) {
                 anyPending = true;
                 allWon = false;
@@ -3911,6 +3915,16 @@ function evaluateTicketOutcome(w) {
                 return;
             }
             const isFinished = (match.status === "FINISHED" || match.time === "Full Time" || match.time === "FT");
+            const isCancelled = (match.status === "CANCELLED" || match.status === "POSTPONED" || match.status === "ABANDONED");
+
+            if (isCancelled) {
+                leg.status = "VOID";
+                voidCount++;
+                // In regulatory rules, void leg multiplier drops to 1.00x
+                recalculatedOdds *= 1.0;
+                return;
+            }
+
             if (!isFinished) {
                 anyPending = true;
                 allWon = false;
@@ -3924,22 +3938,46 @@ function evaluateTicketOutcome(w) {
                 } else if (legOutcome === "PENDING") {
                     anyPending = true;
                     allWon = false;
+                } else if (legOutcome === "VOID" || legOutcome === "void") {
+                    voidCount++;
+                    recalculatedOdds *= 1.0;
+                } else if (legOutcome === "WON") {
+                    recalculatedOdds *= legOdds;
                 }
             }
         });
 
         if (hasLost) return "LOST";
-        if (allWon && !anyPending) return "WON";
+        
+        // If all legs were cancelled/voided, refund ticket as VOID
+        if (voidCount === w.legs.length) {
+            w.odds = 1.0;
+            w.potentialPayout = w.amount;
+            return "VOID";
+        }
+
+        if (allWon && !anyPending) {
+            // If some legs were voided, recalculate final payout with reduced odds
+            if (voidCount > 0) {
+                w.odds = parseFloat(recalculatedOdds.toFixed(2));
+                const bonus = (w.bonusPercent || 0) / 100;
+                w.potentialPayout = parseFloat((w.amount * recalculatedOdds * (1 + bonus)).toFixed(4));
+            }
+            return "WON";
+        }
         return "PENDING";
     } else {
         // Single match evaluation
         const match = MATCHES_DATA.find(m => m.id === w.gameId);
         if (!match) return "PENDING";
+        const isCancelled = (match.status === "CANCELLED" || match.status === "POSTPONED" || match.status === "ABANDONED");
+        if (isCancelled) return "VOID";
         const isFinished = (match.status === "FINISHED" || match.time === "Full Time" || match.time === "FT");
         if (!isFinished) return "PENDING";
         return evaluateMatchOutcome(match, w.outcomeId, w.outcomeLabel);
     }
 }
+
 
 function renderActiveWagers() {
     const container = document.getElementById("active-wagers-container");
@@ -4376,6 +4414,12 @@ async function executeCashOut(idx, percent = 100) {
     const w = localWagers[idx];
     if (!w) return;
 
+    // Loophole Guard 0: Verify wager is active and pending
+    if (w.status !== 'PENDING') {
+        showToast("Cash Out is only available on active pending wagers.", "error");
+        return;
+    }
+
     // Loophole Guard 1: Anti-Reentrancy / Double-Click Prevention
     if (w._isProcessingCashout) {
         showToast("Cash Out is already being processed for this ticket.", "warning");
@@ -4704,6 +4748,13 @@ function cloneAccaFromChat(encodedData) {
 async function claimWagerOnchain(idx) {
     if (!isWalletConnected || !currentProgramId) return;
     const w = localWagers[idx];
+
+    // Anti-Reentrancy Guard: Immediate lock before any asynchronous operations
+    if (!w || w.claimed || w._isClaiming) {
+        showToast("Wager has already been claimed or payout is currently in-flight.", "warning");
+        return;
+    }
+    w._isClaiming = true;
 
     showToast("Submitting Claim Transaction to Solana...", "info");
 

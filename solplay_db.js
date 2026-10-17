@@ -409,5 +409,7 @@ const SolPlayDB = {
     }
 };
 
-// Export to window for global browser access
+// Export to window for global browser access (both casing conventions)
 window.SolPlayDB = SolPlayDB;
+window.solplayDB = SolPlayDB;
+
