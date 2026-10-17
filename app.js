@@ -6088,12 +6088,13 @@ function loadWagersFromStorage() {
 
 function switchExchangeTab(tabId) {
     try {
-        const tabs = ["sports", "slip", "wagers", "memes", "leaderboard"];
+        const tabs = ["sports", "slip", "wagers", "memes", "staking", "leaderboard"];
         tabs.forEach(t => {
             const btn = document.getElementById(`btn-tab-${t}`);
             const panel = document.getElementById(`panel-${t}`);
+            const isActive = (t === tabId);
+            
             if (btn) {
-                const isActive = (t === tabId);
                 btn.classList.toggle("active", isActive);
                 if (isActive) {
                     btn.classList.remove("text-on-surface/50", "hover:bg-white/5");
@@ -6103,15 +6104,22 @@ function switchExchangeTab(tabId) {
                     btn.classList.add("text-on-surface/50", "hover:bg-white/5");
                 }
             }
-            if (panel) panel.style.display = (t === tabId) ? "flex" : "none";
+            if (panel) {
+                // Remove Tailwind hidden class so inline display takes full precedence
+                panel.classList.remove("hidden");
+                panel.style.display = isActive ? "flex" : "none";
+            }
         });
+
         if (tabId === "slip") {
             const badge = document.getElementById("tab-slip-badge");
             if (badge) badge.style.display = "none";
+            if (typeof renderBetslipSelections === 'function') renderBetslipSelections();
+        } else if (tabId === "wagers") {
+            if (typeof renderActiveWagers === 'function') renderActiveWagers();
         }
     } catch (e) {
         console.error("Error inside switchExchangeTab:", e);
-        showToast("Exchange tab error: " + e.message, "error");
     }
 }
 
