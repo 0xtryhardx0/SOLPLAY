@@ -627,13 +627,28 @@ function writeStringN(buf, offset, str, maxLen) {
     buf.set(encoded, offset);
 }
 
+const activeAdminToastCache = new Map();
+
 function showToast(message, type = "info") {
+    if (!message || typeof message !== "string") return;
+    const now = Date.now();
+    const lastSeen = activeAdminToastCache.get(message);
+    if (lastSeen && (now - lastSeen) < 12000) return;
+    activeAdminToastCache.set(message, now);
+
     const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    while (container.children.length >= 3) {
+        container.removeChild(container.firstChild);
+    }
+
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
     let emoji = "ℹ️";
     if (type === "success") emoji = "✅";
     if (type === "error") emoji = "❌";
+    if (type === "warning") emoji = "⚠️";
     toast.innerHTML = `
         <span>${emoji} ${message}</span>
         <button class="toast-close" onclick="this.parentElement.remove()">×</button>

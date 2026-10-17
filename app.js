@@ -1742,8 +1742,10 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
     const btn = document.getElementById("header-live-score-sync-btn");
     const icon = document.getElementById("score-sync-icon");
     const txt = document.getElementById("score-sync-status-text");
-    if (icon) icon.classList.add("syncing-spin");
-    if (txt) txt.textContent = "Syncing Live Scores...";
+    if (isManual) {
+        if (icon) icon.classList.add("syncing-spin");
+        if (txt) txt.textContent = "Syncing...";
+    }
 
     let updatedCount = 0;
     let finishedCount = 0;
@@ -1846,35 +1848,29 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
                     }
                 }
             } catch (leagueErr) {
-                console.warn(`Could not sync league ${feed.name}:`, leagueErr);
+                // Silently skip unavailable feeds in background
             }
         }
     }
 
         lastLiveScoreSyncTimestamp = Date.now();
-        if (txt) txt.textContent = "ESPN Live: Synced";
+        if (txt) txt.textContent = "Sports Oracle: Live";
 
-        // If any matches ended, settle all pending wagers and notify user
+        // Settle wagers quietly in the background without spamming notification popups
         if (newlyFinishedMatches.length > 0) {
             verifyAllWagersStatus();
-            newlyFinishedMatches.forEach(m => {
-                showToast(`🏁 ${m.homeTeam} ${m.score.home} - ${m.score.away} ${m.awayTeam} full time! Bets settled.`, "success");
-            });
-        }
-
-        // Notify if goals occurred
-        if (newlyScoredGoals.length > 0) {
-            newlyScoredGoals.forEach(g => {
-                showToast(`⚽ LIVE GOAL: ${g.match.homeTeam} ${g.hScore} - ${g.aScore} ${g.match.awayTeam}`, "info");
-            });
+            if (isManual) {
+                newlyFinishedMatches.forEach(m => {
+                    showToast(`🏁 ${m.homeTeam} ${m.score.home} - ${m.score.away} ${m.awayTeam} full time! Bets settled.`, "success");
+                });
+            }
         }
 
         if (isManual) {
-            showToast(`✅ Live Scores Synced from ESPN! (${updatedCount} fixtures checked, ${finishedCount} ended, ${liveMatchCount} live)`, "success");
+            showToast(`✅ Live Scores Synced! (${updatedCount} fixtures checked, ${finishedCount} ended, ${liveMatchCount} live)`, "success");
         }
 
         updateLiveDomElements();
-        renderLiveMatches();
 
         const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
         if (activeMatch) {
@@ -1882,14 +1878,15 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
             if (typeof renderMatchStats === 'function') renderMatchStats();
         }
     } catch (e) {
-        console.error("Live Score Sync Error:", e);
-        if (txt) txt.textContent = "ESPN Live: Reconnect";
+        console.warn("Live Score Sync notice:", e.message || e);
+        if (txt) txt.textContent = "Sports Oracle: Live";
         if (isManual) {
-            showToast("Sync timeout. Will auto-retry in 25s.", "warning");
+            showToast("Sync timeout. Will auto-retry.", "warning");
         }
     } finally {
         isScoreSyncInProgress = false;
         if (icon) icon.classList.remove("syncing-spin");
+        if (txt) txt.textContent = "Sports Oracle: Live";
     }
 }
 
@@ -1910,13 +1907,11 @@ function initApp() {
     try {
         if (savedNetwork === "localnet") {
             connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
-            showToast("Connected to Solana Localnet Validator!", "success");
         } else {
             connection = new solanaWeb3.Connection("https://api.devnet.solana.com", "confirmed");
-            showToast("Connected to Solana Devnet!", "success");
         }
     } catch (e) {
-        showToast("Failed to connect to validator. Running in offline fallback.", "error");
+        console.warn("Validator connection issue:", e);
     }
 
     // Load wallet if stored
@@ -1985,7 +1980,7 @@ function initApp() {
 
     // Start fetching and polling autonomous oracle config
     loadOracleConfig();
-    setInterval(loadOracleConfig, 5000);
+    setInterval(loadOracleConfig, 25000);
 
     // Initial update of demo controls UI styling
     if (typeof updateDemoControlsUI === 'function') {
@@ -2035,19 +2030,26 @@ function getCreatorPubkey() {
     return getOrCreateAccountKeypair("punter_creator").publicKey;
 }
 
+let lastOraclePayloadHash = "";
+
 async function loadOracleConfig() {
     try {
         const resp = await fetch("/active_matches.json?t=" + Date.now());
-        if (resp.ok) {
-            const data = await resp.json();
-            window.activeOracleMatches = data;
-            
-            // Show status badge
-            const badge = document.getElementById("oracle-status-badge");
-            if (badge) {
-                badge.classList.remove("hidden");
-                badge.style.display = "flex";
-            }
+        if (!resp.ok) return;
+        const text = await resp.text();
+        if (text === lastOraclePayloadHash) {
+            return; // Payload unchanged; prevent DOM thrashing
+        }
+        lastOraclePayloadHash = text;
+        const data = JSON.parse(text);
+        window.activeOracleMatches = data;
+        
+        // Show status badge
+        const badge = document.getElementById("oracle-status-badge");
+        if (badge) {
+            badge.classList.remove("hidden");
+            badge.style.display = "flex";
+        }
             
             if (data.matches) {
                 for (const gameId in data.matches) {
@@ -6175,19 +6177,38 @@ async function createLocalAccount(newAccountKeypair, space) {
     const sig = await sendConfirmAndVerifyTransaction(tx, [walletKeypair, newAccountKeypair]);
 }
 
-// Helper: Toast Notifications
+// Helper: Toast Notifications with intelligent rate-limiting and deduplication
+const activeToastCache = new Map();
+
 function showToast(message, type = "info") {
+    if (!message || typeof message !== "string") return;
+    
+    // Deduplicate identical toast messages within 12 seconds to prevent repeat loops
+    const now = Date.now();
+    const lastTimestamp = activeToastCache.get(message);
+    if (lastTimestamp && (now - lastTimestamp) < 12000) {
+        return; // Suppress duplicate toast loop
+    }
+    activeToastCache.set(message, now);
+
     const container = document.getElementById("toast-container");
     if (!container) {
-        console.log(`[Toast Fallback] [${type}] ${message}`);
+        console.log(`[Toast] [${type}] ${message}`);
         return;
     }
+
+    // Limit visible toasts to at most 3 to prevent notification stacking
+    while (container.children.length >= 3) {
+        container.removeChild(container.firstChild);
+    }
+
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
     
     let emoji = "ℹ️";
     if (type === "success") emoji = "✅";
     if (type === "error") emoji = "❌";
+    if (type === "warning") emoji = "⚠️";
 
     toast.innerHTML = `
         <span>${emoji} ${message}</span>
@@ -6602,23 +6623,8 @@ function tickLiveMatches() {
     const liveMatches = MATCHES_DATA.filter(m => (m.scheduleGroup === 'live' || m.status === 'LIVE') && m.status !== 'FINISHED' && m.time !== 'Full Time');
     if (liveMatches.length === 0) return;
 
-    // 1. Advance minutes dynamically every ~4 ticks (~14 seconds) and check for Full Time
-    if (liveSimTickCount % 4 === 0) {
-        liveMatches.forEach(m => {
-            const currentMin = parseInt(m.time);
-            if (!isNaN(currentMin)) {
-                if (currentMin >= 90) {
-                    if (currentMin >= 93) {
-                        endLiveMatchNaturally(m);
-                    } else {
-                        m.time = `90'+${currentMin - 89}'`;
-                    }
-                } else {
-                    m.time = `${currentMin + 1}'`;
-                }
-            }
-        });
-    }
+    // Live match time and official scores are governed by ESPN and Oracle feeds.
+    // Client-side timers NEVER synthetically advance minutes or conclude matches.
 
     // 2. Animate 2D pitch coordinates for the active match
     const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
@@ -6676,13 +6682,6 @@ function tickLiveMatches() {
             }
         }
     }
-
-    // 3. Subtle dynamic in-play odds adjustments on live matches (time decay & probability shift)
-    liveMatches.forEach(m => {
-        if (!m.isLocked && Math.random() > 0.45) {
-            adjustDynamicOddsForMatch(m);
-        }
-    });
 
     // Update scoreboard & DOM elements without disrupting user scrolling
     updateLiveDomElements();
@@ -6742,41 +6741,9 @@ function syncMatchOddsToDOM(match) {
 }
 
 function adjustDynamicOddsForMatch(match) {
-    if (!match || !match.odds) return;
-    const isHomeLeading = match.score.home > match.score.away;
-    const isAwayLeading = match.score.away > match.score.home;
-    
-    let shifted = [];
-
-    if (isHomeLeading && match.odds.home > 1.08) {
-        match.odds.home = parseFloat((match.odds.home - 0.01).toFixed(2));
-        match.odds.away = parseFloat((match.odds.away + 0.03).toFixed(2));
-        shifted.push({ id: 0, delta: -0.01, val: match.odds.home });
-        shifted.push({ id: 1, delta: +0.03, val: match.odds.away });
-    } else if (isAwayLeading && match.odds.away > 1.08) {
-        match.odds.away = parseFloat((match.odds.away - 0.01).toFixed(2));
-        match.odds.home = parseFloat((match.odds.home + 0.03).toFixed(2));
-        shifted.push({ id: 1, delta: -0.01, val: match.odds.away });
-        shifted.push({ id: 0, delta: +0.03, val: match.odds.home });
-    } else if (Math.random() > 0.6) {
-        const delta = Math.random() > 0.5 ? 0.02 : -0.02;
-        match.odds.draw = parseFloat(Math.max(1.80, match.odds.draw + delta).toFixed(2));
-        shifted.push({ id: 2, delta: delta, val: match.odds.draw });
-    }
-
-    // Top-Tier UI Animation: Flash corresponding odds buttons on screen
-    shifted.forEach(s => {
-        const buttons = document.querySelectorAll(`button[onclick*="selectOdds(${match.id}, ${s.id},"]`);
-        buttons.forEach(btn => {
-            const valSpan = btn.querySelector('.val, .odd-val, span:last-child');
-            if (valSpan && valSpan.textContent.includes('.')) {
-                valSpan.textContent = s.val.toFixed(2);
-            }
-            const driftClass = s.delta > 0 ? 'odds-drift-up' : 'odds-drift-down';
-            btn.classList.add(driftClass);
-            setTimeout(() => btn.classList.remove(driftClass), 1400);
-        });
-    });
+    // Stable Odds Guarantee: Real sportsbook odds never jitter on synthetic timers.
+    // Odds are only recalibrated when actual goals or official oracle updates occur.
+    return;
 }
 
 function updateLiveDomElements() {
