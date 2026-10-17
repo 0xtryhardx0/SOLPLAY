@@ -2104,7 +2104,6 @@ async function loadOracleConfig() {
                     renderMatchTimeline();
                 }
             }
-        }
     } catch (e) {
         // Hide badge if offline
         const badge = document.getElementById("oracle-status-badge");
