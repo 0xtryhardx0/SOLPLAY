@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: solplay-oracle
+    env: python
+    buildCommand: "pip install --upgrade pip"
+    startCommand: "python3 oracle_service.py --daemon"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SETTLEMENT_INTERVAL
+        value: 20

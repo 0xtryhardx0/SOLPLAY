@@ -4,6 +4,10 @@ import json
 import time
 import struct
 import argparse
+import http.server
+import socketserver
+import threading
+import signal
 
 try:
     from solders.keypair import Keypair
@@ -71,12 +75,15 @@ def create_program_account(client, payer, account_keypair, space, program_id):
     print(f"[*] Created account: {account_keypair.pubkey()} (Size: {space} bytes)")
     time.sleep(2)
 
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://ervysscnenetauyszrzp.supabase.co").rstrip("/")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_cILGnExGcPn0BY__q268PQ_xXbKr7l3")
+
 def supabase_request(method, endpoint, payload=None):
     import ssl
     import urllib.request
     
-    url = f"https://ervysscnenetauyszrzp.supabase.co/rest/v1/{endpoint}"
-    key = "sb_publishable_cILGnExGcPn0BY__q268PQ_xXbKr7l3"
+    url = f"{SUPABASE_URL}/rest/v1/{endpoint}"
+    key = SUPABASE_KEY
     ctx = ssl._create_unverified_context()
     
     headers = {
@@ -112,6 +119,33 @@ def validate_sports_feed_event(h_name, a_name, h_score, a_score, state, complete
     if not (state == "post" or completed):
         return False, "Match has not concluded full time"
     return True, "Validated"
+
+VERIFIED_FIXTURES = [
+    ("Arsenal vs Lille", 3, 0),
+    ("Inter Milan vs Club Brugge", 3, 4),
+    ("Aston Villa vs Celtic", 4, 2),
+    ("Arsenal vs Monaco", 3, 0),
+    ("PSG vs Atletico Madrid", 1, 2),
+    ("Real Madrid vs AC Milan", 1, 3),
+    ("Manchester City vs Paris Saint-Germain", 2, 4),
+    ("AS Roma vs Real Madrid", 3, 4),
+    ("Aston Villa vs Fenerbahçe", 6, 0),
+    ("Bodø/Glimt vs Borussia Dortmund", 1, 0),
+    ("LASK Linz vs Liverpool", 3, 6),
+    ("Feyenoord vs Como", 3, 2),
+    ("Real Betis vs FC Porto", 3, 2),
+    ("Shakhtar Donetsk vs AEK Athens", 3, 1),
+    ("Slovan Bratislava vs VfB Stuttgart", 0, 3),
+    ("Benfica vs Celtic", 4, 1),
+    ("Lyon vs Crystal Palace", 3, 2),
+    ("RB Salzburg vs AC Milan", 0, 4),
+    ("Celta Vigo vs Juventus", 1, 2),
+    ("Marseille vs Olympiacos", 0, 1),
+    ("TSG Hoffenheim vs Beşiktaş", 2, 3),
+    ("Union St.-Gilloise vs Real Sociedad", 1, 1),
+    ("Portugal vs Uzbekistan", 3, 1),
+    ("Everton vs Chelsea", 0, 2)
+]
 
 def fetch_espn_results():
     """
@@ -172,34 +206,8 @@ def fetch_espn_results():
             except Exception:
                 pass
                 
-    # Concluded verified UEFA matches fallback
-    verified_fixtures = [
-        ("Arsenal vs Lille", 3, 0),
-        ("Inter Milan vs Club Brugge", 3, 4),
-        ("Aston Villa vs Celtic", 4, 2),
-        ("Arsenal vs Monaco", 3, 0),
-        ("PSG vs Atletico Madrid", 1, 2),
-        ("Real Madrid vs AC Milan", 1, 3),
-        ("Manchester City vs Paris Saint-Germain", 2, 4),
-        ("AS Roma vs Real Madrid", 3, 4),
-        ("Aston Villa vs Fenerbahçe", 6, 0),
-        ("Bodø/Glimt vs Borussia Dortmund", 1, 0),
-        ("LASK Linz vs Liverpool", 3, 6),
-        ("Feyenoord vs Como", 3, 2),
-        ("Real Betis vs FC Porto", 3, 2),
-        ("Shakhtar Donetsk vs AEK Athens", 3, 1),
-        ("Slovan Bratislava vs VfB Stuttgart", 0, 3),
-        ("Benfica vs Celtic", 4, 1),
-        ("Lyon vs Crystal Palace", 3, 2),
-        ("RB Salzburg vs AC Milan", 0, 4),
-        ("Celta Vigo vs Juventus", 1, 2),
-        ("Marseille vs Olympiacos", 0, 1),
-        ("TSG Hoffenheim vs Beşiktaş", 2, 3),
-        ("Union St.-Gilloise vs Real Sociedad", 1, 1),
-        ("Portugal vs Uzbekistan", 3, 1),
-        ("Everton vs Chelsea", 0, 2)
-    ]
-    for h_vs_a, h_s, a_s in verified_fixtures:
+    # Concluded verified UEFA & European matches fallback
+    for h_vs_a, h_s, a_s in VERIFIED_FIXTURES:
         if h_vs_a not in results:
             results[h_vs_a] = {"home": h_s, "away": a_s, "finished": True, "feedSource": "Consensus-Archive"}
             
@@ -243,11 +251,12 @@ def run_cloud_settlement_cycle():
     wagers = supabase_request("GET", "wagers?status=eq.PENDING&select=*")
     if not wagers:
         print("[Cloud Oracle] No pending wagers found.")
-        return 0
+        return 0, 0.0
         
     print(f"[Cloud Oracle] Found {len(wagers)} pending wagers to evaluate.")
     results = fetch_espn_results()
     settled_count = 0
+    total_disbursed = 0.0
     
     for w in wagers:
         legs = w.get("legs", [])
@@ -282,6 +291,7 @@ def run_cloud_settlement_cycle():
         elif all_won and not any_pending:
             print(f"[Cloud Oracle] 🏆 Ticket {ticket_id} WON! Disbursing {payout:.4f} SOL to {wallet}...")
             supabase_request("PATCH", f"wagers?id=eq.{ticket_id}", {"status": "WON", "claimed": True, "legs": legs, "settled_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+            total_disbursed += payout
             
             # Credit player balance in Supabase users table
             user_data = supabase_request("GET", f"users?wallet_address=eq.{wallet}&select=balance_sol")
@@ -302,16 +312,198 @@ def run_cloud_settlement_cycle():
                     print(f"[Cloud Oracle] 🎉 2% Creator Royalty ({royalty:.4f} SOL) disbursed to tipster @{creator}!")
             settled_count += 1
             
-    return settled_count
+    return settled_count, total_disbursed
+
+class OracleTelemetry:
+    def __init__(self):
+        self.start_time = time.time()
+        self.cycles_run = 0
+        self.last_cycle_time = None
+        self.total_wagers_settled = 0
+        self.total_payout_disbursed = 0.0
+        self.last_error = None
+        self.status = "INITIALIZING"
+        self.lock = threading.Lock()
+
+    def record_cycle(self, settled_count, payout_amount=0.0, err=None):
+        with self.lock:
+            self.cycles_run += 1
+            self.last_cycle_time = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            self.total_wagers_settled += settled_count
+            self.total_payout_disbursed += payout_amount
+            self.status = "HEALTHY" if not err else "DEGRADED"
+            self.last_error = str(err) if err else None
+
+    def get_summary(self):
+        with self.lock:
+            uptime = int(time.time() - self.start_time)
+            return {
+                "service": "SolPlay Autonomous Sports Oracle",
+                "version": "3.5.0",
+                "status": self.status,
+                "uptime_seconds": uptime,
+                "uptime_human": f"{uptime // 3600}h {(uptime % 3600) // 60}m {uptime % 60}s",
+                "cycles_run": self.cycles_run,
+                "last_cycle_time": self.last_cycle_time,
+                "total_wagers_settled": self.total_wagers_settled,
+                "total_payout_disbursed_sol": round(self.total_payout_disbursed, 4),
+                "last_error": self.last_error,
+                "rpc_url": RPC_URL,
+                "cloud_db": "Supabase PostgreSQL",
+                "verified_consensus_count": len(VERIFIED_FIXTURES)
+            }
+
+telemetry = OracleTelemetry()
+
+class OracleHttpHandler(http.server.BaseHTTPRequestHandler):
+    def end_cors_headers(self, status=200, content_type="application/json"):
+        self.send_response(status)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Content-Type", content_type)
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.end_headers()
+
+    def do_OPTIONS(self):
+        self.end_cors_headers(204)
+
+    def do_GET(self):
+        path = self.path.split("?")[0].rstrip("/")
+        if path in ("", "/health", "/healthz"):
+            summary = telemetry.get_summary()
+            self.end_cors_headers(200)
+            self.wfile.write(json.dumps(summary, indent=2).encode())
+        elif path == "/active_matches.json":
+            if os.path.exists("active_matches.json"):
+                with open("active_matches.json", "r") as f:
+                    content = f.read()
+                self.end_cors_headers(200)
+                self.wfile.write(content.encode())
+            else:
+                self.end_cors_headers(404)
+                self.wfile.write(json.dumps({"error": "active_matches.json not found"}).encode())
+        elif path == "/metrics":
+            summary = telemetry.get_summary()
+            metrics_lines = [
+                "# HELP solplay_oracle_uptime_seconds Total seconds oracle daemon has been active",
+                "# TYPE solplay_oracle_uptime_seconds gauge",
+                f"solplay_oracle_uptime_seconds {summary['uptime_seconds']}",
+                "# HELP solplay_oracle_cycles_total Total autonomous settlement cycles executed",
+                "# TYPE solplay_oracle_cycles_total counter",
+                f"solplay_oracle_cycles_total {summary['cycles_run']}",
+                "# HELP solplay_oracle_wagers_settled_total Total user wagers resolved",
+                "# TYPE solplay_oracle_wagers_settled_total counter",
+                f"solplay_oracle_wagers_settled_total {summary['total_wagers_settled']}",
+                "# HELP solplay_oracle_payout_disbursed_sol Total SOL payouts disbursed to winners",
+                "# TYPE solplay_oracle_payout_disbursed_sol counter",
+                f"solplay_oracle_payout_disbursed_sol {summary['total_payout_disbursed_sol']}"
+            ]
+            self.end_cors_headers(200, content_type="text/plain; version=0.0.4")
+            self.wfile.write(("\n".join(metrics_lines) + "\n").encode())
+        elif path == "/wagers/pending":
+            w = supabase_request("GET", "wagers?status=eq.PENDING&select=id,user_wallet,amount,potential_payout,created_at,legs")
+            self.end_cors_headers(200)
+            self.wfile.write(json.dumps({"pending_count": len(w) if w else 0, "wagers": w or []}, indent=2).encode())
+        else:
+            self.end_cors_headers(404)
+            self.wfile.write(json.dumps({"error": "Endpoint not found"}).encode())
+
+    def do_POST(self):
+        path = self.path.split("?")[0].rstrip("/")
+        if path == "/settle":
+            try:
+                settled, disbursed = run_cloud_settlement_cycle()
+                telemetry.record_cycle(settled, disbursed)
+                self.end_cors_headers(200)
+                self.wfile.write(json.dumps({
+                    "status": "success",
+                    "settled_count": settled,
+                    "disbursed_sol": disbursed,
+                    "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                }).encode())
+            except Exception as e:
+                self.end_cors_headers(500)
+                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode())
+        else:
+            self.end_cors_headers(404)
+            self.wfile.write(json.dumps({"error": "Endpoint not found"}).encode())
+
+    def log_message(self, format, *args):
+        sys.stdout.write(f"[Oracle HTTP] {self.address_string()} - {format % args}\n")
+        sys.stdout.flush()
+
+def start_daemon(port=8080, interval=20):
+    print("="*65)
+    print("🚀 SOLPLAY PERSISTENT AUTONOMOUS ORACLE MICRO-SERVICE")
+    print(f"📡 HTTP Ingress Port: {port}")
+    print(f"⏱️ Settlement Interval: Every {interval} seconds")
+    print(f"🌐 Solana Network: {RPC_URL}")
+    print(f"🗄️ Cloud Database: {SUPABASE_URL}")
+    print("="*65)
+
+    stop_event = threading.Event()
+
+    def settlement_worker():
+        telemetry.status = "RUNNING"
+        print("[Oracle Daemon] Autonomous settlement background worker online.")
+        while not stop_event.is_set():
+            try:
+                settled, disbursed = run_cloud_settlement_cycle()
+                telemetry.record_cycle(settled, disbursed)
+            except Exception as e:
+                print(f"[Oracle Daemon Alert] Settlement cycle exception: {e}")
+                telemetry.record_cycle(0, 0.0, err=e)
+            
+            for _ in range(interval):
+                if stop_event.is_set():
+                    break
+                time.sleep(1)
+
+    worker_thread = threading.Thread(target=settlement_worker, daemon=True, name="OracleSettlementWorker")
+    worker_thread.start()
+
+    class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+        allow_reuse_address = True
+        daemon_threads = True
+
+    server = ThreadedHTTPServer(("0.0.0.0", port), OracleHttpHandler)
+    print(f"[Oracle HTTP] Micro-service listening at http://0.0.0.0:{port}")
+    print(f"[Oracle HTTP] Health probe available at http://0.0.0.0:{port}/health")
+
+    def signal_handler(signum, frame):
+        print("\n[Oracle Daemon] Graceful shutdown initiated...")
+        stop_event.set()
+        server.shutdown()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    try:
+        server.serve_forever()
+    except Exception as e:
+        print(f"[Oracle Daemon] Server exception: {e}")
+    finally:
+        stop_event.set()
+        server.server_close()
 
 def main():
     parser = argparse.ArgumentParser(description="SolPlay Autonomous Betting Oracle")
+    parser.add_argument("--daemon", action="store_true", help="Run as persistent micro-service with HTTP health probes and background settlement")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8080)), help="Port for HTTP health server")
+    parser.add_argument("--interval", type=int, default=int(os.environ.get("SETTLEMENT_INTERVAL", 20)), help="Settlement cycle interval in seconds")
     parser.add_argument("--simulate", action="store_true", help="Run match score simulation alongside blockchain operations")
     parser.add_argument("--live-feed", action="store_true", help="Continuously poll reliable ESPN sports feed for real-time scores and on-chain settlement")
     parser.add_argument("--cloud-settle", action="store_true", help="Continuously poll and settle wagers in Supabase PostgreSQL cloud database")
     parser.add_argument("--once", action="store_true", help="Run a single pass of settlement and exit")
     parser.add_argument("--game-id", type=int, default=2026, help="Target game ID for matching")
     args = parser.parse_args()
+
+    # Automatically activate persistent daemon mode if requested or if running in cloud container ($PORT)
+    if args.daemon or (os.environ.get("PORT") and not (args.cloud_settle or args.simulate or args.live_feed)):
+        start_daemon(port=args.port, interval=args.interval)
+        return
 
     print("="*60)
     print("🤖 SOLPLAY AUTONOMOUS ORACLE & SETTLEMENT DAEMON")
@@ -324,9 +516,11 @@ def main():
         print("[*] Starting Autonomous Cloud Settlement Engine...")
         while True:
             try:
-                run_cloud_settlement_cycle()
+                settled, disbursed = run_cloud_settlement_cycle()
+                telemetry.record_cycle(settled, disbursed)
             except Exception as e:
                 print(f"[!] Cloud settlement error: {e}")
+                telemetry.record_cycle(0, 0.0, err=e)
             if args.once:
                 break
             time.sleep(15)
