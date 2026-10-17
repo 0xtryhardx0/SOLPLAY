@@ -196,7 +196,8 @@ def fetch_espn_results():
         ("Marseille vs Olympiacos", 0, 1),
         ("TSG Hoffenheim vs Beşiktaş", 2, 3),
         ("Union St.-Gilloise vs Real Sociedad", 1, 1),
-        ("Portugal vs Uzbekistan", 3, 1)
+        ("Portugal vs Uzbekistan", 3, 1),
+        ("Everton vs Chelsea", 0, 2)
     ]
     for h_vs_a, h_s, a_s in verified_fixtures:
         if h_vs_a not in results:

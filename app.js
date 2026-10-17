@@ -615,14 +615,21 @@ const MATCHES_DATA = [
         id: 1030,
         league: "Premier League",
         leagueCategory: "Premier League",
-        scheduleGroup: "today",
+        scheduleGroup: "finished",
         homeTeam: "Everton",
         awayTeam: "Chelsea",
-        time: "12:30 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 3.60, draw: 3.50, away: 2.05 },
-        dateISO: "2026-10-17T11:30:00Z"
+        time: "Full Time",
+        status: "FINISHED",
+        score: { home: 0, away: 2 },
+        odds: { home: 35.00, draw: 14.00, away: 1.04 },
+        dateISO: "2026-10-17T11:30:00Z",
+        isLocked: true,
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Final Whistle: Everton 0 - 2 Chelsea (Full Time)", icon: "🏁" },
+            { time: "64'", type: "goal", desc: "⚽ Goal! Everton 0 - 2 Chelsea. Palmer converts!", icon: "⚽" },
+            { time: "28'", type: "goal", desc: "⚽ Goal! Everton 0 - 1 Chelsea. Jackson slots home!", icon: "⚽" },
+            { time: "0'", type: "start", desc: "Match kicked off at Goodison Park", icon: "🚩" }
+        ]
     },
     {
         id: 1031,
@@ -1557,9 +1564,6 @@ function autoUpdateMatchesCalendar() {
                 match.scheduleGroup = "finished";
                 match.time = "Full Time";
                 match.isLocked = true;
-                if (!match.score) {
-                    match.score = { home: 1, away: 0 };
-                }
             } else if (diffMs >= 0 && diffMs <= (2.5 * 3600 * 1000)) {
                 // Match is currently live / in-play!
                 match.status = "LIVE";
@@ -3468,9 +3472,21 @@ function setBetslipMode(mode) {
 
 function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marketName = 'Winner (1X2)') {
     const match = MATCHES_DATA.find(m => m.id === gameId);
-    if (match && match.isLocked) {
-        showToast("Market temporarily suspended during live event 🔒. Please wait for reopening.", "error");
-        return;
+    if (match) {
+        if (match.status === 'FINISHED' || match.time === 'Full Time') {
+            showToast(`⚠️ Market Closed: ${match.homeTeam} vs ${match.awayTeam} has already concluded. Bets are no longer accepted!`, "error");
+            return;
+        }
+        if (match.isLocked) {
+            showToast("Market temporarily suspended during live event 🔒. Please wait for reopening.", "error");
+            return;
+        }
+        // Authoritative Real-Time In-Play Odds Enforcement (Prevents Latency Exploits)
+        if (marketName === 'Winner (1X2)' && match.odds) {
+            if (outcomeId === 0 && typeof match.odds.home === 'number') oddsValue = match.odds.home;
+            else if (outcomeId === 1 && typeof match.odds.away === 'number') oddsValue = match.odds.away;
+            else if (outcomeId === 2 && typeof match.odds.draw === 'number') oddsValue = match.odds.draw;
+        }
     }
 
     const existingIdx = betslipSelections.findIndex(s => s.gameId === gameId && s.outcomeId === outcomeId);
@@ -6661,87 +6677,68 @@ function tickLiveMatches() {
         }
     }
 
-    // 3. Realistic dynamic goal trigger (approx every 20 ticks = 70s)
-    if (liveSimTickCount % 20 === 0) {
-        // Pick one live match randomly to score
-        const targetMatch = liveMatches[Math.floor(Math.random() * liveMatches.length)];
-        if (targetMatch && !targetMatch.isLocked) {
-            triggerLiveMatchGoal(targetMatch);
+    // 3. Subtle dynamic in-play odds adjustments on live matches (time decay & probability shift)
+    liveMatches.forEach(m => {
+        if (!m.isLocked && Math.random() > 0.45) {
+            adjustDynamicOddsForMatch(m);
         }
-    } else {
-        // 4. Subtle dynamic in-play odds adjustments (time decay & probability shift)
-        liveMatches.forEach(m => {
-            if (!m.isLocked && Math.random() > 0.45) {
-                adjustDynamicOddsForMatch(m);
-            }
-        });
-    }
+    });
 
     // Update scoreboard & DOM elements without disrupting user scrolling
     updateLiveDomElements();
 }
 
-function triggerLiveMatchGoal(match) {
-    const isHome = (Math.random() > 0.45);
-    const scoringTeam = isHome ? match.homeTeam : match.awayTeam;
-    
-    // Temporarily lock markets for goal review (SportyBet / Bet365 in-play suspension standard)
-    match.isLocked = true;
-    
-    // Update score
-    if (isHome) match.score.home++;
-    else match.score.away++;
-    
-    const minStr = match.time || "72'";
-    
-    // Add timeline event
-    if (!match.timeline) match.timeline = [];
-    match.timeline.unshift({
-        time: minStr,
-        type: "goal",
-        desc: `⚽ GOAL! ${scoringTeam} scores! (${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam})`,
-        icon: "⚽"
-    });
-    
-    showToast(`⚽ GOAL! ${scoringTeam} has scored! (${match.homeTeam} ${match.score.home} - ${match.score.away} ${match.awayTeam}) 🔒 Markets Suspended`, "success");
-    
-    // Update live DOM
-    updateLiveDomElements();
-    if (activeMatchId === match.id) {
-        renderMatchTimeline();
-        renderMatchStats();
-    }
-    renderLiveMatches();
-    
-    // Reopen markets after 8 seconds with updated dynamic odds
-    setTimeout(() => {
-        match.isLocked = false;
-        recalculateMatchOddsAfterGoal(match, isHome);
-        updateLiveDomElements();
-        renderLiveMatches();
-        showToast(`🔓 Markets Reopened with Dynamic In-Play Odds for ${match.homeTeam} vs ${match.awayTeam}`, "info");
-    }, 8000);
-}
-
+// Authentic In-Play Odds Re-calculator & Defense against Latency Arbitrage
 function recalculateMatchOddsAfterGoal(match, isHomeGoal) {
+    if (!match || !match.score) return;
+    delete MATCH_MARKETS[match.id];
     const goalDiff = match.score.home - match.score.away;
+    const timeMin = parseInt(match.time) || 60;
+    const timeDecay = Math.max(0.1, (90 - timeMin) / 90);
+
     if (goalDiff > 0) {
-        // Home leading: home odds shorten drastically, away lengthens
-        match.odds.home = Math.max(1.08, parseFloat((1.35 / (1 + goalDiff * 0.4)).toFixed(2)));
-        match.odds.draw = parseFloat((3.60 + goalDiff * 1.8).toFixed(2));
-        match.odds.away = parseFloat((match.odds.away * 1.6 + 2.0).toFixed(2));
-    } else if (goalDiff < 0) {
-        // Away leading: away odds shorten, home lengthens
+        // Home leading (e.g. 1-0 or 2-0): home odds shorten drastically, away lengthens
         const absDiff = Math.abs(goalDiff);
-        match.odds.away = Math.max(1.08, parseFloat((1.35 / (1 + absDiff * 0.4)).toFixed(2)));
-        match.odds.draw = parseFloat((3.60 + absDiff * 1.8).toFixed(2));
-        match.odds.home = parseFloat((match.odds.home * 1.6 + 2.0).toFixed(2));
+        const baseProb = absDiff >= 2 ? 0.94 : (0.72 + (1 - timeDecay) * 0.18);
+        match.odds.home = parseFloat((Math.max(1.02, (1 / baseProb) * 0.96)).toFixed(2));
+        match.odds.draw = parseFloat((Math.max(3.20, 3.80 + absDiff * 2.2 + (1 - timeDecay) * 4.0)).toFixed(2));
+        match.odds.away = parseFloat((Math.max(4.50, 5.00 * absDiff + (1 - timeDecay) * 8.0)).toFixed(2));
+    } else if (goalDiff < 0) {
+        // Away leading (e.g. Chelsea leading 0-1 or 0-2 at Everton): away odds collapse
+        const absDiff = Math.abs(goalDiff);
+        const baseProb = absDiff >= 2 ? 0.94 : (0.72 + (1 - timeDecay) * 0.18);
+        match.odds.away = parseFloat((Math.max(1.02, (1 / baseProb) * 0.96)).toFixed(2));
+        match.odds.draw = parseFloat((Math.max(3.20, 3.80 + absDiff * 2.2 + (1 - timeDecay) * 4.0)).toFixed(2));
+        match.odds.home = parseFloat((Math.max(4.50, 5.00 * absDiff + (1 - timeDecay) * 8.0)).toFixed(2));
     } else {
         // Tied
-        match.odds.draw = 2.10;
-        match.odds.home = 2.60;
-        match.odds.away = 2.75;
+        match.odds.draw = parseFloat((2.05 + timeDecay * 0.6).toFixed(2));
+        match.odds.home = parseFloat((2.65 + (1 - timeDecay) * 0.4).toFixed(2));
+        match.odds.away = parseFloat((2.75 + (1 - timeDecay) * 0.4).toFixed(2));
     }
+
+    syncMatchOddsToDOM(match);
+}
+
+function syncMatchOddsToDOM(match) {
+    if (!match || !match.odds) return;
+    delete MATCH_MARKETS[match.id];
+
+    const outcomeOdds = [
+        { id: 0, val: match.odds.home },
+        { id: 1, val: match.odds.away },
+        { id: 2, val: match.odds.draw }
+    ];
+
+    outcomeOdds.forEach(o => {
+        const buttons = document.querySelectorAll(`button[onclick*="selectOdds(${match.id}, ${o.id},"]`);
+        buttons.forEach(btn => {
+            const valSpan = btn.querySelector('.val, .odd-val, span:last-child');
+            if (valSpan && valSpan.textContent.includes('.')) {
+                valSpan.textContent = o.val.toFixed(2);
+            }
+        });
+    });
 }
 
 function adjustDynamicOddsForMatch(match) {

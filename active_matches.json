@@ -58,9 +58,38 @@
       "marketPubkey": "4Et3XhTFdxqHQLSWBj1MBPXLgbrYDwT6dPeMCmjybuUU",
       "homeTeam": "Everton",
       "awayTeam": "Chelsea",
-      "status": "SCHEDULED",
-      "score": null,
-      "time": "12:30 WAT"
+      "status": "FINISHED",
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "time": "Full Time",
+      "timeline": [
+        {
+          "time": "FT",
+          "type": "end",
+          "desc": "🏁 Final Whistle: Everton 0 - 2 Chelsea (Full Time)",
+          "icon": "🏁"
+        },
+        {
+          "time": "64'",
+          "type": "goal",
+          "desc": "⚽ Goal! Everton 0 - 2 Chelsea. Palmer converts!",
+          "icon": "⚽"
+        },
+        {
+          "time": "28'",
+          "type": "goal",
+          "desc": "⚽ Goal! Everton 0 - 1 Chelsea. Jackson slots home!",
+          "icon": "⚽"
+        },
+        {
+          "time": "0'",
+          "type": "start",
+          "desc": "Match started at Goodison Park",
+          "icon": "🚩"
+        }
+      ]
     },
     "1031": {
       "gameId": 1031,
