@@ -2,8 +2,16 @@
 <html class="dark" lang="en">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
     <title>SolPlay | Liquid Glass Master Dashboard</title>
+    <!-- PWA Configuration & Mobile Web App Meta -->
+    <link rel="manifest" href="/manifest.json"/>
+    <meta name="theme-color" content="#07070a"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="apple-mobile-web-app-title" content="SolPlay"/>
+    <link rel="apple-touch-icon" href="/logo.png"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
@@ -507,6 +515,13 @@
                 <option value="phantom" class="bg-[#0e101d] text-white">👻 Phantom</option>
             </select>
         </div>
+
+        <!-- Instant Fiat Deposit & Bank Cash-Out Gateway Button -->
+        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center gap-1.5 shadow-md transition-all cursor-pointer" onclick="openFiatCashoutModal('deposit')" title="Deposit or Cash Out via Google/Apple/Bank without crypto knowledge">
+            <span class="material-symbols-outlined text-[15px] text-emerald-400">payments</span>
+            <span class="hidden sm:inline">Deposit / Cash Out</span>
+            <span class="sm:hidden">Cash Out</span>
+        </button>
 
         <!-- Main Connect Wallet Button -->
         <button class="liquid-button px-4 lg:px-5 py-1.5 rounded-xl text-xs font-bold text-white glass-shine flex items-center gap-1.5 shadow-lg" id="btn-connect-wallet" onclick="toggleWallet()">
@@ -1484,10 +1499,395 @@
     <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
 </div>
 
+<!-- ==========================================================================
+     PWA MOBILE INSTALL PROMPT BANNER
+     ========================================================================== -->
+<div id="pwa-install-banner" class="hidden fixed bottom-18 left-3 right-3 md:bottom-6 md:left-auto md:right-6 z-50 max-w-md p-4 rounded-2xl glass-panel border border-teal-500/30 bg-[#0c0e1a]/95 backdrop-blur-2xl shadow-2xl">
+    <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 to-teal-400 p-0.5 shadow-lg flex-shrink-0">
+                <img src="/logo.png" alt="SolPlay" class="w-full h-full object-cover rounded-[10px]"/>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
+                    <span>Install SolPlay App</span>
+                    <span class="text-[9px] bg-teal-500/20 text-teal-300 px-1.5 py-0.5 rounded font-mono font-bold">PWA</span>
+                </h4>
+                <p class="text-xs text-on-surface/60 mt-0.5">Instant 400ms sports betting & live streams right from your home screen.</p>
+            </div>
+        </div>
+        <button onclick="dismissPWAInstallPrompt()" class="text-on-surface/40 hover:text-white p-1">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+    </div>
+    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">
+        <button id="btn-pwa-install" onclick="triggerPWAInstall()" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-black font-extrabold text-xs shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">download</span>
+            <span>Install App</span>
+        </button>
+        <button onclick="dismissPWAInstallPrompt()" class="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-on-surface/70 text-xs font-semibold transition-all cursor-pointer">
+            Maybe Later
+        </button>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MOBILE BOTTOM DOCK NAVIGATION (APP-LIKE EXPERIENCE FOR PHONES)
+     ========================================================================== -->
+<nav id="mobile-bottom-dock" class="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#090b14]/95 backdrop-blur-2xl border-t border-white/10 px-2 py-1.5 flex items-center justify-around safe-area-bottom shadow-[0_-10px_25px_rgba(0,0,0,0.5)]">
+    <button onclick="mobileNavAction('sports')" id="mnav-sports" class="flex flex-col items-center gap-0.5 text-secondary text-[11px] font-bold p-1 transition-all active:scale-95 cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">sports_soccer</span>
+        <span>Matches</span>
+    </button>
+    <button onclick="mobileNavAction('stream')" id="mnav-stream" class="flex flex-col items-center gap-0.5 text-on-surface/60 text-[11px] font-bold p-1 transition-all active:scale-95 cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">tv</span>
+        <span>Live Stream</span>
+    </button>
+    <button onclick="mobileNavAction('chat')" id="mnav-chat" class="flex flex-col items-center gap-0.5 text-on-surface/60 text-[11px] font-bold p-1 transition-all active:scale-95 cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">forum</span>
+        <span>Fan Chat</span>
+    </button>
+    <button onclick="mobileNavAction('slip')" id="mnav-slip" class="flex flex-col items-center gap-0.5 text-on-surface/60 text-[11px] font-bold p-1 transition-all active:scale-95 relative cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+        <span id="mnav-slip-badge" class="absolute -top-1 right-2 bg-yellow-400 text-black text-[9px] font-black rounded-full px-1.5 py-0 min-w-[14px]">0</span>
+        <span>Betslip</span>
+    </button>
+    <button onclick="openFiatCashoutModal('cashout')" id="mnav-cashout" class="flex flex-col items-center gap-0.5 text-emerald-400 text-[11px] font-bold p-1 transition-all active:scale-95 cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">payments</span>
+        <span>Cash Out</span>
+    </button>
+</nav>
+
+<!-- ==========================================================================
+     INVISIBLE WEB3 & INSTANT BANK CASH-OUT MODAL
+     ========================================================================== -->
+<div id="modal-invisible-web3" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md hidden animate-fade-in">
+    <div class="w-full max-w-lg rounded-3xl glass-panel border border-white/10 p-5 sm:p-6 bg-[#0c0e1a]/95 backdrop-blur-3xl shadow-2xl flex flex-col gap-5 text-white max-h-[92vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-500 to-teal-400 p-0.5 flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-white text-[20px]">account_balance</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-1.5">
+                        <span>SolPlay Gateway</span>
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono font-bold">Fast Settlement</span>
+                    </h3>
+                    <p class="text-xs text-on-surface/50">Zero seed phrases. Instant bank payouts.</p>
+                </div>
+            </div>
+            <button onclick="closeFiatCashoutModal()" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-on-surface/60 hover:text-white flex items-center justify-center transition-all cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+
+        <!-- Tabs Switcher -->
+        <div class="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-2xl border border-white/10 text-xs font-bold">
+            <button id="fiat-tab-auth" onclick="switchFiatModalTab('auth')" class="py-2 rounded-xl transition-all flex items-center justify-center gap-1 text-on-surface/60 cursor-pointer">
+                <span class="material-symbols-outlined text-[15px]">lock_open</span>
+                <span>1-Click Login</span>
+            </button>
+            <button id="fiat-tab-deposit" onclick="switchFiatModalTab('deposit')" class="py-2 rounded-xl transition-all flex items-center justify-center gap-1 text-on-surface/60 cursor-pointer">
+                <span class="material-symbols-outlined text-[15px]">add_circle</span>
+                <span>Fiat Deposit</span>
+            </button>
+            <button id="fiat-tab-cashout" onclick="switchFiatModalTab('cashout')" class="py-2 rounded-xl transition-all flex items-center justify-center gap-1 bg-emerald-500/20 text-emerald-300 shadow cursor-pointer">
+                <span class="material-symbols-outlined text-[15px]">payments</span>
+                <span>Bank Cash-Out</span>
+            </button>
+        </div>
+
+        <!-- PANEL 1: 1-Click Social Sign-In (Invisible Web3 / MPC) -->
+        <div id="fiat-panel-auth" class="hidden flex flex-col gap-4">
+            <div class="bg-purple-500/10 border border-purple-500/20 p-3.5 rounded-2xl flex items-start gap-3">
+                <span class="material-symbols-outlined text-purple-400 text-[22px] mt-0.5">verified_user</span>
+                <div class="text-xs">
+                    <strong class="text-purple-300 block mb-0.5">Invisible Non-Custodial Web3</strong>
+                    <span class="text-on-surface/70">No seed phrases or crypto extension required. Logging in creates a secure MPC keypair bound to your account.</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+                <button onclick="simulateSocialLogin('Google')" class="w-full py-3 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 12s.6 3.6 1.6 5.6l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"/></svg>
+                    <span>Continue with Google</span>
+                </button>
+                <button onclick="simulateSocialLogin('Apple')" class="w-full py-3 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.69-7.85-12-14.43-6.09-9.33-10.86-19.78-14.3-31.33-3.44-11.55-5.16-22.31-5.16-32.28 0-14.89 3.82-27.27 11.45-37.13 7.64-9.87 17.1-14.86 28.39-14.98 5.48 0 11.28 1.45 17.41 4.36 6.13 2.91 10.02 4.41 11.66 4.5 1.83 0 5.86-1.55 12.08-4.63 6.22-3.09 11.83-4.52 16.83-4.32 12.87.5 23.35 4.67 31.42 12.51-11.39 6.89-16.96 16.48-16.71 28.78.25 9.77 4.07 17.86 11.45 24.28 7.38 6.42 16.14 10.08 26.27 10.99-2.32 7.05-5.28 14.51-8.88 22.38zM119.22 31.84c0-7.22 2.61-14.07 7.83-20.55 5.23-6.49 11.75-10.59 19.57-12.29.13 1.25.19 2.25.19 3 0 7.23-2.67 14.17-8.02 20.8-5.35 6.64-11.97 10.55-19.86 11.73-.13-1.01-.19-1.9-.19-2.69z"/></svg>
+                    <span>Continue with Apple</span>
+                </button>
+                <div class="flex items-center gap-2 my-1">
+                    <div class="h-[1px] bg-white/10 flex-1"></div>
+                    <span class="text-[10px] text-on-surface/40 uppercase font-bold">Or Web3 Wallet</span>
+                    <div class="h-[1px] bg-white/10 flex-1"></div>
+                </div>
+                <button onclick="toggleWallet(); closeFiatCashoutModal();" class="w-full py-2.5 px-4 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
+                    <span>Connect Phantom / Solflare</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL 2: Instant Fiat Deposit -->
+        <div id="fiat-panel-deposit" class="hidden flex flex-col gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-[11px] font-bold text-on-surface/70">Select Deposit Amount (USD)</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="selectDepositAmount(10)" class="fiat-chip-btn" id="dchip-10">$10</button>
+                    <button onclick="selectDepositAmount(25)" class="fiat-chip-btn active" id="dchip-25">$25</button>
+                    <button onclick="selectDepositAmount(50)" class="fiat-chip-btn" id="dchip-50">$50</button>
+                    <button onclick="selectDepositAmount(100)" class="fiat-chip-btn" id="dchip-100">$100</button>
+                </div>
+            </div>
+
+            <div class="bg-black/30 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-on-surface/50 block">You Will Receive:</span>
+                    <strong class="text-base font-extrabold text-secondary" id="deposit-calculated-sol">~0.166 SOL</strong>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] text-on-surface/50 block">Exchange Rate:</span>
+                    <span class="text-xs text-white/80 font-mono">1 SOL ≈ $150.00</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-[11px] font-bold text-on-surface/70">Payment Method</label>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="p-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-emerald-400 text-[18px]">credit_card</span>
+                        <span class="font-bold">Card / Apple Pay</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl border border-white/10 bg-white/5 flex items-center gap-2 text-on-surface/70">
+                        <span class="material-symbols-outlined text-[18px]">cell_tower</span>
+                        <span class="font-bold">Mobile Money / Wire</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="simulateFiatDeposit()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-black text-xs shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">bolt</span>
+                <span>Deposit $25 via Apple Pay / Card</span>
+            </button>
+        </div>
+
+        <!-- PANEL 3: Instant Bank Cash-Out (Direct to Bank Account / Card) -->
+        <div id="fiat-panel-cashout" class="flex flex-col gap-4">
+            <div class="bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-emerald-300/70 block uppercase font-mono font-bold">Available to Cash Out</span>
+                    <strong class="text-lg font-black text-emerald-300" id="cashout-available-balance">2.50 SOL ($375.00)</strong>
+                </div>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full font-bold">Instant Rails</span>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-[11px] font-bold text-on-surface/70">Withdrawal Amount (USD)</label>
+                <div class="relative">
+                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 font-bold">$</span>
+                    <input type="number" id="cashout-amount-input" value="50" min="5" max="375" class="w-full pl-8 pr-16 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white font-bold text-sm focus:border-emerald-400 outline-none" oninput="updateCashoutPreview()"/>
+                    <button onclick="setCashoutMax()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-white font-bold cursor-pointer">MAX</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-[11px] font-bold text-on-surface/70">Destination Bank / Card Details</label>
+                <input type="text" id="cashout-bank-name" placeholder="Bank Name (e.g. Chase, Barclays, GTBank, Revolut)" class="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white text-xs focus:border-emerald-400 outline-none"/>
+                <input type="text" id="cashout-account-number" placeholder="Account Number / IBAN / Debit Card #" class="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white text-xs focus:border-emerald-400 outline-none mt-1"/>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-black/40 border border-white/5 text-[11px] text-on-surface/60 flex items-center justify-between">
+                <span>Estimated Transfer Time:</span>
+                <span class="text-emerald-400 font-bold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    Instant (< 2 Minutes)
+                </span>
+            </div>
+
+            <button onclick="submitFiatCashout()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-black text-xs shadow-xl hover:brightness-110 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">payments</span>
+                <span id="cashout-btn-label">Withdraw $50.00 to Bank Account</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="toast-container" id="toast-container"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/solplay_db.js?v=3.6"></script>
 <script src="/app.js?v=3.6"></script>
+
+<!-- Mobile Navigation, PWA, and Invisible Web3 Gateway Scripts -->
+<script>
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                console.log('[SolPlay PWA] Service Worker registered:', reg.scope);
+            }).catch(err => {
+                console.warn('[SolPlay PWA] Service Worker registration failed:', err);
+            });
+        });
+    }
+
+    // PWA Install Prompt Interceptor
+    let deferredPWAInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPWAInstallPrompt = e;
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner) {
+            banner.classList.remove('hidden');
+        }
+    });
+
+    function triggerPWAInstall() {
+        if (deferredPWAInstallPrompt) {
+            deferredPWAInstallPrompt.prompt();
+            deferredPWAInstallPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('[SolPlay PWA] User accepted install prompt');
+                }
+                deferredPWAInstallPrompt = null;
+                dismissPWAInstallPrompt();
+            });
+        } else {
+            alert('To install SolPlay on iOS: Tap Share (📤) and select "Add to Home Screen".');
+            dismissPWAInstallPrompt();
+        }
+    }
+
+    function dismissPWAInstallPrompt() {
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.classList.add('hidden');
+    }
+
+    // Invisible Web3 & Fiat Modal Controller
+    function openFiatCashoutModal(tab = 'cashout') {
+        const modal = document.getElementById('modal-invisible-web3');
+        if (modal) {
+            modal.classList.remove('hidden');
+            switchFiatModalTab(tab);
+        }
+    }
+
+    function closeFiatCashoutModal() {
+        const modal = document.getElementById('modal-invisible-web3');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function switchFiatModalTab(tab) {
+        ['auth', 'deposit', 'cashout'].forEach(t => {
+            const btn = document.getElementById(`fiat-tab-${t}`);
+            const panel = document.getElementById(`fiat-panel-${t}`);
+            const isActive = (t === tab);
+            if (btn) {
+                if (isActive) {
+                    btn.classList.add('bg-emerald-500/20', 'text-emerald-300', 'shadow');
+                    btn.classList.remove('text-on-surface/60');
+                } else {
+                    btn.classList.remove('bg-emerald-500/20', 'text-emerald-300', 'shadow');
+                    btn.classList.add('text-on-surface/60');
+                }
+            }
+            if (panel) {
+                if (isActive) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    function selectDepositAmount(amt) {
+        [10, 25, 50, 100].forEach(a => {
+            const chip = document.getElementById(`dchip-${a}`);
+            if (chip) chip.classList.toggle('active', a === amt);
+        });
+        const calcSol = (amt / 150).toFixed(3);
+        const readout = document.getElementById('deposit-calculated-sol');
+        if (readout) readout.innerText = `~${calcSol} SOL`;
+    }
+
+    function simulateSocialLogin(provider) {
+        if (typeof showToast === 'function') {
+            showToast(`⚡ Authenticated via ${provider}! Invisible MPC wallet generated.`, 'success');
+        } else {
+            alert(`Authenticated via ${provider}! Your non-custodial wallet is ready.`);
+        }
+        closeFiatCashoutModal();
+    }
+
+    function simulateFiatDeposit() {
+        if (typeof showToast === 'function') {
+            showToast('💳 $25.00 deposit processed! 0.166 SOL credited to your escrow balance.', 'success');
+        } else {
+            alert('Deposit successful!');
+        }
+        closeFiatCashoutModal();
+    }
+
+    function updateCashoutPreview() {
+        const input = document.getElementById('cashout-amount-input');
+        const btn = document.getElementById('cashout-btn-label');
+        if (input && btn) {
+            const val = parseFloat(input.value) || 0;
+            btn.innerText = `Withdraw $${val.toFixed(2)} to Bank Account`;
+        }
+    }
+
+    function setCashoutMax() {
+        const input = document.getElementById('cashout-amount-input');
+        if (input) {
+            input.value = "375";
+            updateCashoutPreview();
+        }
+    }
+
+    function submitFiatCashout() {
+        const amount = document.getElementById('cashout-amount-input')?.value || "50";
+        const bank = document.getElementById('cashout-bank-name')?.value || "Direct Bank";
+        if (typeof showToast === 'function') {
+            showToast(`🏦 Withdrawal of $${amount} initiated to ${bank}! Payout will land in under 2 minutes.`, 'success');
+        } else {
+            alert(`Withdrawal of $${amount} initiated to ${bank}!`);
+        }
+        closeFiatCashoutModal();
+    }
+
+    // Mobile Bottom Dock Action Controller
+    function mobileNavAction(target) {
+        ['sports', 'stream', 'chat', 'slip'].forEach(t => {
+            const btn = document.getElementById(`mnav-${t}`);
+            if (btn) {
+                if (t === target) {
+                    btn.classList.add('text-secondary');
+                    btn.classList.remove('text-on-surface/60');
+                } else {
+                    btn.classList.remove('text-secondary');
+                    btn.classList.add('text-on-surface/60');
+                }
+            }
+        });
+
+        if (target === 'sports') {
+            switchTab('sports');
+            window.scrollTo({ top: 380, behavior: 'smooth' });
+        } else if (target === 'stream') {
+            switchTab('sports');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (target === 'chat') {
+            switchTab('sports');
+            const chatEl = document.getElementById('fan-chat-container') || document.getElementById('chat-messages-container');
+            if (chatEl) chatEl.scrollIntoView({ behavior: 'smooth' });
+        } else if (target === 'slip') {
+            switchTab('slip');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+</script>
 </body>
 </html>

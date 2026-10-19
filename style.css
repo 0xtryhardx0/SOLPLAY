@@ -3078,5 +3078,66 @@ body {
     color: #34d399;
 }
 
+/* ==========================================================================
+   MOBILE RESPONSIVENESS & PWA ENHANCEMENTS
+   ========================================================================== */
+.safe-area-bottom {
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-bottom: 72px; /* Prevent fixed bottom navigation from hiding content */
+    }
+    
+    .floating-betslip-pill {
+        bottom: 74px !important; /* Float above the mobile bottom dock */
+    }
+
+    #goal-alert-banner {
+        top: 48px !important;
+        width: 92% !important;
+    }
+    
+    .glass-panel {
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+    }
+}
+
+#pwa-install-banner {
+    animation: pwaSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pwaSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fiat-chip-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fiat-chip-btn:hover, .fiat-chip-btn.active {
+    background: rgba(20, 184, 166, 0.2);
+    border-color: #14b8a6;
+    color: #5eead4;
+}
+
+
 
 

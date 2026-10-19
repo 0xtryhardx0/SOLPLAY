@@ -1,0 +1,48 @@
+{
+  "name": "SolPlay Decentralized Sportsbook",
+  "short_name": "SolPlay",
+  "description": "High-throughput non-custodial social sportsbook on Solana with live HLS streaming, 1-click bet cloning, and instant payouts.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07070a",
+  "theme_color": "#07070a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "finance", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "Live Sports Matches",
+      "short_name": "Matches",
+      "description": "View live soccer matches and real-time odds",
+      "url": "/#sports",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Live Match Stream",
+      "short_name": "Stream",
+      "description": "Watch live video match mirror and 2D radar",
+      "url": "/#stream",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Fan Chat & Clones",
+      "short_name": "Chat",
+      "description": "Copy tipster accumulators with 1-click",
+      "url": "/#chat",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    }
+  ]
+}
