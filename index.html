@@ -838,31 +838,35 @@
                         <!-- Betting Platform Schedule & League Filter Deck -->
                         <div class="schedule-filter-container">
                             <!-- Schedule Filter Pills: All, Live Now, Today, Tomorrow, This Week -->
-                            <div class="schedule-filter-bar" id="schedule-filter-bar">
-                                <button class="schedule-pill active" id="filter-pill-all" onclick="filterMatchesBySchedule('all')">
-                                    <span>🌐 All Fixtures</span>
-                                    <span class="pill-count" id="count-pill-all">0</span>
-                                </button>
-                                <button class="schedule-pill" id="filter-pill-live" onclick="filterMatchesBySchedule('live')">
-                                    <span>🔴 Live Now</span>
-                                    <span class="pill-count" id="count-pill-live">0</span>
-                                </button>
-                                <button class="schedule-pill" id="filter-pill-today" onclick="filterMatchesBySchedule('today')">
-                                    <span>📅 Today</span>
-                                    <span class="pill-count" id="count-pill-today">0</span>
-                                </button>
-                                <button class="schedule-pill" id="filter-pill-tomorrow" onclick="filterMatchesBySchedule('tomorrow')">
-                                    <span>⚽ Tomorrow</span>
-                                    <span class="pill-count" id="count-pill-tomorrow">0</span>
-                                </button>
-                                <button class="schedule-pill" id="filter-pill-week" onclick="filterMatchesBySchedule('week')">
-                                    <span>🏆 This Week</span>
-                                    <span class="pill-count" id="count-pill-week">0</span>
-                                </button>
-                                <button class="schedule-pill" id="filter-pill-finished" onclick="filterMatchesBySchedule('finished')">
-                                    <span>🏁 Ended / FT</span>
-                                    <span class="pill-count" id="count-pill-finished">0</span>
-                                </button>
+                            <div class="scroll-nav-wrapper mb-2">
+                                <button onclick="scrollSchedule(-1)" class="scroll-arrow-btn" title="Scroll Schedule Left">◀</button>
+                                <div class="schedule-filter-bar flex-1" id="schedule-filter-bar">
+                                    <button class="schedule-pill active" id="filter-pill-all" onclick="filterMatchesBySchedule('all')">
+                                        <span>🌐 All Fixtures</span>
+                                        <span class="pill-count" id="count-pill-all">0</span>
+                                    </button>
+                                    <button class="schedule-pill" id="filter-pill-live" onclick="filterMatchesBySchedule('live')">
+                                        <span>🔴 Live Now</span>
+                                        <span class="pill-count" id="count-pill-live">0</span>
+                                    </button>
+                                    <button class="schedule-pill" id="filter-pill-today" onclick="filterMatchesBySchedule('today')">
+                                        <span>📅 Today</span>
+                                        <span class="pill-count" id="count-pill-today">0</span>
+                                    </button>
+                                    <button class="schedule-pill" id="filter-pill-tomorrow" onclick="filterMatchesBySchedule('tomorrow')">
+                                        <span>⚽ Tomorrow</span>
+                                        <span class="pill-count" id="count-pill-tomorrow">0</span>
+                                    </button>
+                                    <button class="schedule-pill" id="filter-pill-week" onclick="filterMatchesBySchedule('week')">
+                                        <span>🏆 This Week</span>
+                                        <span class="pill-count" id="count-pill-week">0</span>
+                                    </button>
+                                    <button class="schedule-pill" id="filter-pill-finished" onclick="filterMatchesBySchedule('finished')">
+                                        <span>🏁 Ended / FT</span>
+                                        <span class="pill-count" id="count-pill-finished">0</span>
+                                    </button>
+                                </div>
+                                <button onclick="scrollSchedule(1)" class="scroll-arrow-btn" title="Scroll Schedule Right">▶</button>
                             </div>
 
                             <!-- League Badges Sub-Bar with Sideways Scroll Controls -->
