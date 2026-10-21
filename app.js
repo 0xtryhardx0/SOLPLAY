@@ -73,7 +73,7 @@ let activeLeagueFilter = 'all';   // 'all', 'Premier League', 'Champions League'
 
 const MATCHES_DATA = [
     // ==========================================
-    // 📅 TODAY'S REAL MATCHES (Wednesday, Oct 21, 2026 - UEFA Champions League)
+    // 📅 TODAY'S REAL UEFA CHAMPIONS LEAGUE (Wednesday, Oct 21, 2026)
     // ==========================================
     {
         id: 2001,
@@ -81,53 +81,53 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "RB Leipzig",
-        awayTeam: "Liverpool",
+        homeTeam: "Bayern Munich",
+        awayTeam: "Arsenal",
         time: "20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 3.60, draw: 3.80, away: 1.95 },
-        formation: { home: "4-2-2-2", away: "4-3-3" },
+        odds: { home: 2.10, draw: 3.50, away: 3.25 },
+        formation: { home: "4-2-3-1", away: "4-3-3" },
         stats: {
-            possession: { home: 47, away: 53 },
-            shots: { home: 12, away: 17 },
-            onTarget: { home: 5, away: 8 },
-            attacks: { home: 58, away: 69 },
-            corners: { home: 5, away: 7 },
-            fouls: { home: 11, away: 9 },
-            cards: { home: 2, away: 1 },
+            possession: { home: 52, away: 48 },
+            shots: { home: 15, away: 13 },
+            onTarget: { home: 6, away: 5 },
+            attacks: { home: 68, away: 62 },
+            corners: { home: 6, away: 5 },
+            fouls: { home: 9, away: 10 },
+            cards: { home: 1, away: 2 },
             offsides: { home: 2, away: 2 }
         },
         lineup: {
             home: [
-                { num: 1, name: "Péter Gulácsi", pos: "GK" },
-                { num: 3, name: "Lutsharel Geertruida", pos: "DF" },
-                { num: 4, name: "Willi Orbán", pos: "DF" },
-                { num: 23, name: "Castello Lukeba", pos: "DF" },
-                { num: 39, name: "Benjamin Henrichs", pos: "DF" },
-                { num: 8, name: "Amadou Haidara", pos: "MF" },
-                { num: 18, name: "Arthur Vermeeren", pos: "MF" },
-                { num: 7, name: "Antonio Nusa", pos: "MF" },
-                { num: 10, name: "Xavi Simons", pos: "MF" },
-                { num: 11, name: "Loïs Openda", pos: "FW" },
-                { num: 30, name: "Benjamin Šeško", pos: "FW" }
+                { num: 1, name: "Manuel Neuer", pos: "GK" },
+                { num: 27, name: "Konrad Laimer", pos: "DF" },
+                { num: 2, name: "Dayot Upamecano", pos: "DF" },
+                { num: 3, name: "Min-jae Kim", pos: "DF" },
+                { num: 19, name: "Alphonso Davies", pos: "DF" },
+                { num: 6, name: "Joshua Kimmich", pos: "MF" },
+                { num: 16, name: "Joao Palhinha", pos: "MF" },
+                { num: 17, name: "Michael Olise", pos: "FW" },
+                { num: 42, name: "Jamal Musiala", pos: "MF" },
+                { num: 10, name: "Leroy Sane", pos: "FW" },
+                { num: 9, name: "Harry Kane", pos: "FW" }
             ],
             away: [
-                { num: 62, name: "Caoimhín Kelleher", pos: "GK" },
-                { num: 66, name: "Trent Alexander-Arnold", pos: "DF" },
-                { num: 5, name: "Ibrahima Konaté", pos: "DF" },
-                { num: 4, name: "Virgil van Dijk", pos: "DF" },
-                { num: 21, name: "Kostas Tsimikas", pos: "DF" },
-                { num: 38, name: "Ryan Gravenberch", pos: "MF" },
-                { num: 10, name: "Alexis Mac Allister", pos: "MF" },
-                { num: 8, name: "Dominik Szoboszlai", pos: "MF" },
-                { num: 11, name: "Mohamed Salah", pos: "FW" },
-                { num: 9, name: "Darwin Núñez", pos: "FW" },
-                { num: 18, name: "Cody Gakpo", pos: "FW" }
+                { num: 22, name: "David Raya", pos: "GK" },
+                { num: 4, name: "Ben White", pos: "DF" },
+                { num: 2, name: "William Saliba", pos: "DF" },
+                { num: 6, name: "Gabriel Magalhaes", pos: "DF" },
+                { num: 12, name: "Jurrien Timber", pos: "DF" },
+                { num: 41, name: "Declan Rice", pos: "MF" },
+                { num: 5, name: "Thomas Partey", pos: "MF" },
+                { num: 8, name: "Martin Odegaard", pos: "MF" },
+                { num: 7, name: "Bukayo Saka", pos: "FW" },
+                { num: 29, name: "Kai Havertz", pos: "FW" },
+                { num: 11, name: "Gabriel Martinelli", pos: "FW" }
             ]
         },
         timeline: [
-            { time: "Pre-Match", type: "start", desc: "Kickoff scheduled for 20:00 WAT at Red Bull Arena Leipzig", icon: "🚩" }
+            { time: "Pre-Match", type: "start", desc: "Kickoff scheduled for 20:00 WAT at Allianz Arena, Munich", icon: "🚩" }
         ]
     },
     {
@@ -136,26 +136,25 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "Bayern Munich",
-        awayTeam: "Benfica",
+        homeTeam: "Real Madrid",
+        awayTeam: "RB Leipzig",
         time: "20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.30, draw: 5.80, away: 9.00 }
+        odds: { home: 1.45, draw: 4.60, away: 6.20 }
     },
-
     {
         id: 2003,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "Manchester City",
-        awayTeam: "Sparta Prague",
-        time: "20:00 WAT",
+        homeTeam: "Como",
+        awayTeam: "Manchester United",
+        time: "17:45 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.08, draw: 11.00, away: 26.00 }
+        odds: { home: 3.80, draw: 3.60, away: 1.90 }
     },
     {
         id: 2004,
@@ -163,12 +162,12 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "Atlético Madrid",
-        awayTeam: "Lille",
-        time: "20:00 WAT",
+        homeTeam: "LOSC Lille",
+        awayTeam: "Galatasaray",
+        time: "17:45 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.50, draw: 4.30, away: 6.80 }
+        odds: { home: 2.15, draw: 3.40, away: 3.20 }
     },
     {
         id: 2005,
@@ -176,12 +175,12 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "Young Boys",
-        awayTeam: "Inter Milan",
+        homeTeam: "Inter Milan",
+        awayTeam: "Shakhtar Donetsk",
         time: "20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 7.50, draw: 4.80, away: 1.42 }
+        odds: { home: 1.30, draw: 5.40, away: 9.50 }
     },
     {
         id: 2006,
@@ -189,12 +188,12 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "Atalanta",
-        awayTeam: "Celtic",
-        time: "17:45 WAT",
+        homeTeam: "Aston Villa",
+        awayTeam: "Viking FK",
+        time: "20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.48, draw: 4.75, away: 6.20 }
+        odds: { home: 1.25, draw: 6.00, away: 11.00 }
     },
     {
         id: 2007,
@@ -202,16 +201,16 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "Brest",
-        awayTeam: "Bayer Leverkusen",
-        time: "17:45 WAT",
+        homeTeam: "Sporting CP",
+        awayTeam: "LASK Linz",
+        time: "20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 5.60, draw: 4.40, away: 1.55 }
+        odds: { home: 1.35, draw: 5.00, away: 8.50 }
     },
 
     // ==========================================
-    // 📅 TOMORROW'S REAL MATCHES (Thursday, Oct 22, 2026 - UEFA Europa & Conference League)
+    // 📅 TOMORROW'S REAL UEFA EUROPA LEAGUE (Thursday, Oct 22, 2026)
     // ==========================================
     {
         id: 2011,
@@ -219,25 +218,25 @@ const MATCHES_DATA = [
         leagueCategory: "Europa League",
         scheduleGroup: "tomorrow",
         scheduleTier: "tomorrow",
-        homeTeam: "Fenerbahçe",
-        awayTeam: "Manchester United",
+        homeTeam: "AFC Bournemouth",
+        awayTeam: "AC Milan",
         time: "Tomorrow 20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 2.80, draw: 3.50, away: 2.45 }
+        odds: { home: 2.90, draw: 3.40, away: 2.35 }
     },
     {
         id: 2012,
-        league: "UEFA Conference League",
-        leagueCategory: "Conference League",
+        league: "UEFA Europa League",
+        leagueCategory: "Europa League",
         scheduleGroup: "tomorrow",
         scheduleTier: "tomorrow",
-        homeTeam: "Panathinaikos",
-        awayTeam: "Chelsea",
+        homeTeam: "Juventus",
+        awayTeam: "Stade Rennais",
         time: "Tomorrow 17:45 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 5.20, draw: 4.00, away: 1.62 }
+        odds: { home: 1.65, draw: 3.80, away: 5.00 }
     },
     {
         id: 2013,
@@ -245,12 +244,12 @@ const MATCHES_DATA = [
         leagueCategory: "Europa League",
         scheduleGroup: "tomorrow",
         scheduleTier: "tomorrow",
-        homeTeam: "Tottenham Hotspur",
-        awayTeam: "AZ Alkmaar",
+        homeTeam: "Beşiktaş",
+        awayTeam: "Crystal Palace",
         time: "Tomorrow 20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.40, draw: 5.00, away: 7.00 }
+        odds: { home: 2.70, draw: 3.30, away: 2.55 }
     },
     {
         id: 2014,
@@ -258,12 +257,12 @@ const MATCHES_DATA = [
         leagueCategory: "Europa League",
         scheduleGroup: "tomorrow",
         scheduleTier: "tomorrow",
-        homeTeam: "AS Roma",
-        awayTeam: "Dynamo Kyiv",
-        time: "Tomorrow 17:45 WAT",
+        homeTeam: "Celtic",
+        awayTeam: "Celta Vigo",
+        time: "Tomorrow 20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.52, draw: 4.30, away: 6.00 }
+        odds: { home: 2.40, draw: 3.35, away: 2.85 }
     },
     {
         id: 2015,
@@ -271,12 +270,12 @@ const MATCHES_DATA = [
         leagueCategory: "Europa League",
         scheduleGroup: "tomorrow",
         scheduleTier: "tomorrow",
-        homeTeam: "Rangers",
-        awayTeam: "FCSB",
+        homeTeam: "Hoffenheim",
+        awayTeam: "Lyon",
         time: "Tomorrow 20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.60, draw: 4.10, away: 5.50 }
+        odds: { home: 2.50, draw: 3.50, away: 2.65 }
     },
     {
         id: 2016,
@@ -284,12 +283,12 @@ const MATCHES_DATA = [
         leagueCategory: "Europa League",
         scheduleGroup: "tomorrow",
         scheduleTier: "tomorrow",
-        homeTeam: "Lyon",
-        awayTeam: "Beşiktaş",
-        time: "Tomorrow 20:00 WAT",
+        homeTeam: "OFI Crete",
+        awayTeam: "Bayer Leverkusen",
+        time: "Tomorrow 17:45 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 1.70, draw: 4.20, away: 4.50 }
+        odds: { home: 6.50, draw: 4.50, away: 1.45 }
     },
 
     // ==========================================
@@ -334,111 +333,10 @@ const MATCHES_DATA = [
         score: null,
         odds: { home: 1.80, draw: 3.90, away: 4.20 }
     },
-    {
-        id: 2024,
-        league: "Serie A",
-        leagueCategory: "Serie A",
-        scheduleGroup: "week",
-        scheduleTier: "week",
-        homeTeam: "Inter Milan",
-        awayTeam: "Juventus",
-        time: "Sun 19:45 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 1.85, draw: 3.45, away: 4.50 }
-    },
-    {
-        id: 2025,
-        league: "Ligue 1",
-        leagueCategory: "Ligue 1",
-        scheduleGroup: "week",
-        scheduleTier: "week",
-        homeTeam: "Marseille",
-        awayTeam: "Paris Saint-Germain",
-        time: "Sun 20:00 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 3.60, draw: 3.80, away: 1.95 }
-    },
 
     // ==========================================
-    // 🏁 RECENT CONCLUDED RESULTS (Yesterday, Tuesday Oct 20, 2026 - Champions League)
+    // 🏁 REAL CONCLUDED RESULTS FROM YESTERDAY (Tuesday, Oct 20, 2026 - Champions League)
     // ==========================================
-    {
-        id: 2031,
-        league: "UEFA Champions League",
-        leagueCategory: "Champions League",
-        scheduleGroup: "finished",
-        homeTeam: "Real Madrid",
-        awayTeam: "Borussia Dortmund",
-        time: "Full Time",
-        status: "FINISHED",
-        isLocked: true,
-        score: { home: 5, away: 2 },
-        odds: { home: 1.48, draw: 4.80, away: 6.20 },
-        timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Real Madrid 5 - 2 Borussia Dortmund. Sensational Vinicius hat-trick!", icon: "🏁" },
-            { time: "90+3'", type: "goal", desc: "⚽ GOAL! Real Madrid 5 - 2. Vinicius Junior completes hat-trick!", icon: "⚽" },
-            { time: "86'", type: "goal", desc: "⚽ GOAL! Real Madrid 4 - 2. Vinicius Junior solo sprint!", icon: "⚽" },
-            { time: "83'", type: "goal", desc: "⚽ GOAL! Real Madrid 3 - 2. Lucas Vazquez blast!", icon: "⚽" },
-            { time: "62'", type: "goal", desc: "⚽ GOAL! Real Madrid 2 - 2. Vinicius Junior tap in!", icon: "⚽" },
-            { time: "60'", type: "goal", desc: "⚽ GOAL! Real Madrid 1 - 2. Antonio Rüdiger header!", icon: "⚽" },
-            { time: "34'", type: "goal", desc: "⚽ GOAL! Dortmund 0 - 2. Jamie Gittens converts!", icon: "⚽" },
-            { time: "30'", type: "goal", desc: "⚽ GOAL! Dortmund 0 - 1. Donyell Malen opener!", icon: "⚽" }
-        ]
-    },
-    {
-        id: 2032,
-        league: "UEFA Champions League",
-        leagueCategory: "Champions League",
-        scheduleGroup: "finished",
-        homeTeam: "Arsenal",
-        awayTeam: "Shakhtar Donetsk",
-        time: "Full Time",
-        status: "FINISHED",
-        isLocked: true,
-        score: { home: 1, away: 0 },
-        odds: { home: 1.12, draw: 8.50, away: 21.00 },
-        timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Arsenal 1 - 0 Shakhtar Donetsk.", icon: "🏁" },
-            { time: "29'", type: "goal", desc: "⚽ GOAL! Arsenal 1 - 0. Martinelli shot deflects in off Riznyk!", icon: "⚽" }
-        ]
-    },
-    {
-        id: 2033,
-        league: "UEFA Champions League",
-        leagueCategory: "Champions League",
-        scheduleGroup: "finished",
-        homeTeam: "Aston Villa",
-        awayTeam: "Bologna",
-        time: "Full Time",
-        status: "FINISHED",
-        isLocked: true,
-        score: { home: 2, away: 0 },
-        odds: { home: 1.62, draw: 4.00, away: 5.50 },
-        timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Aston Villa 2 - 0 Bologna.", icon: "🏁" },
-            { time: "64'", type: "goal", desc: "⚽ GOAL! Aston Villa 2 - 0. Jhon Duran volley!", icon: "⚽" },
-            { time: "55'", type: "goal", desc: "⚽ GOAL! Aston Villa 1 - 0. John McGinn free kick!", icon: "⚽" }
-        ]
-    },
-    {
-        id: 2034,
-        league: "UEFA Champions League",
-        leagueCategory: "Champions League",
-        scheduleGroup: "finished",
-        homeTeam: "Juventus",
-        awayTeam: "VfB Stuttgart",
-        time: "Full Time",
-        status: "FINISHED",
-        isLocked: true,
-        score: { home: 0, away: 1 },
-        odds: { home: 1.85, draw: 3.60, away: 4.20 },
-        timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Juventus 0 - 1 VfB Stuttgart.", icon: "🏁" },
-            { time: "90+2'", type: "goal", desc: "⚽ GOAL! Stuttgart 0 - 1. El Bilal Toure stoppage time winner!", icon: "⚽" }
-        ]
-    },
     {
         id: 2030,
         league: "UEFA Champions League",
@@ -452,14 +350,59 @@ const MATCHES_DATA = [
         score: { home: 4, away: 2 },
         odds: { home: 2.15, draw: 3.75, away: 3.10 },
         timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Paris Saint-Germain 4 - 2 Barcelona. Electrifying 6-goal European thriller!", icon: "🏁" },
-            { time: "89'", type: "goal", desc: "⚽ GOAL! PSG 4 - 2 Barcelona. Ousmane Dembélé seals victory on the break!", icon: "⚽" },
-            { time: "77'", type: "goal", desc: "⚽ GOAL! PSG 3 - 2 Barcelona. Bradley Barcola cuts inside and fires into the top corner!", icon: "⚽" },
-            { time: "65'", type: "goal", desc: "⚽ GOAL! PSG 2 - 2 Barcelona. Robert Lewandowski equalizer!", icon: "⚽" },
-            { time: "54'", type: "goal", desc: "⚽ GOAL! PSG 2 - 1 Barcelona. Vitinha precision low drive from edge of the box!", icon: "⚽" },
-            { time: "37'", type: "goal", desc: "⚽ GOAL! PSG 1 - 1 Barcelona. Raphinha curling left-foot strike!", icon: "⚽" },
-            { time: "12'", type: "goal", desc: "⚽ GOAL! PSG 1 - 0 Barcelona. Kylian Mbappé opener into the bottom corner!", icon: "⚽" },
+            { time: "FT", type: "end", desc: "🏁 Full Time: Paris Saint-Germain 4 - 2 Barcelona. Six-goal thriller at Parc des Princes!", icon: "🏁" },
+            { time: "86'", type: "goal", desc: "⚽ GOAL! PSG 4 - 2 Barcelona. Fabián Ruiz seals the victory!", icon: "⚽" },
+            { time: "81'", type: "goal", desc: "⚽ GOAL! PSG 3 - 2 Barcelona. Vitinha precision strike restores lead!", icon: "⚽" },
+            { time: "79'", type: "goal", desc: "⚽ GOAL! PSG 2 - 2 Barcelona. Lamine Yamal clinical equalizer!", icon: "⚽" },
+            { time: "72'", type: "goal", desc: "⚽ GOAL! PSG 2 - 1 Barcelona. Lucas Hernandez header from corner!", icon: "⚽" },
+            { time: "55'", type: "goal", desc: "⚽ GOAL! PSG 1 - 1 Barcelona. Xavi Espart levels for Barça!", icon: "⚽" },
+            { time: "38'", type: "goal", desc: "⚽ GOAL! PSG 1 - 0 Barcelona. Désiré Doué brilliant breakthrough opener!", icon: "⚽" },
             { time: "0'", type: "start", desc: "Kickoff at Parc des Princes!", icon: "🚩" }
+        ]
+    },
+    {
+        id: 2031,
+        league: "UEFA Champions League",
+        leagueCategory: "Champions League",
+        scheduleGroup: "finished",
+        homeTeam: "Manchester City",
+        awayTeam: "AEK Athens",
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 5, away: 1 },
+        odds: { home: 1.08, draw: 11.50, away: 24.00 },
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Full Time: Manchester City 5 - 1 AEK Athens at Etihad Stadium.", icon: "🏁" },
+            { time: "77'", type: "goal", desc: "⚽ GOAL! Man City 5 - 1 AEK. Phil Foden completes hat-trick!", icon: "⚽" },
+            { time: "65'", type: "goal", desc: "⚽ GOAL! Man City 4 - 1 AEK. Phil Foden second of the night!", icon: "⚽" },
+            { time: "57'", type: "goal", desc: "⚽ GOAL! Man City 3 - 1 AEK. Rayan Cherki curling finish!", icon: "⚽" },
+            { time: "52'", type: "goal", desc: "⚽ GOAL! Man City 2 - 1 AEK. Stavros Pilios pulls one back.", icon: "⚽" },
+            { time: "34'", type: "goal", desc: "⚽ GOAL! Man City 2 - 0 AEK. Phil Foden slots home!", icon: "⚽" },
+            { time: "12'", type: "goal", desc: "⚽ GOAL! Man City 1 - 0 AEK. Elliot Anderson opener!", icon: "⚽" }
+        ]
+    },
+    {
+        id: 2032,
+        league: "UEFA Champions League",
+        leagueCategory: "Champions League",
+        scheduleGroup: "finished",
+        homeTeam: "Liverpool",
+        awayTeam: "Villarreal",
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 4, away: 3 },
+        odds: { home: 1.40, draw: 4.80, away: 7.00 },
+        timeline: [
+            { time: "FT", type: "end", desc: "🏁 Full Time: Liverpool 4 - 3 Villarreal. Sensational Anfield comeback!", icon: "🏁" },
+            { time: "86'", type: "goal", desc: "⚽ GOAL! Liverpool 4 - 3. Tani Oluwaseyi scores late for Villarreal.", icon: "⚽" },
+            { time: "70'", type: "goal", desc: "⚽ GOAL! Liverpool 4 - 2. Alexis Mac Allister penalty!", icon: "⚽" },
+            { time: "66'", type: "goal", desc: "⚽ GOAL! Liverpool 3 - 2. Florian Wirtz brilliant winner!", icon: "⚽" },
+            { time: "45+2'", type: "goal", desc: "⚽ GOAL! Liverpool 2 - 2. Ronald Araújo header!", icon: "⚽" },
+            { time: "36'", type: "goal", desc: "⚽ GOAL! Liverpool 1 - 2. Alexis Mac Allister strikes!", icon: "⚽" },
+            { time: "29'", type: "goal", desc: "⚽ GOAL! Liverpool 0 - 2. Sergi Cardona doubles lead!", icon: "⚽" },
+            { time: "4'", type: "goal", desc: "⚽ GOAL! Liverpool 0 - 1. Georges Mikautadze early shock!", icon: "⚽" }
         ]
     }
 ];
