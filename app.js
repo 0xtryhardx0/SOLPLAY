@@ -81,53 +81,53 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "Barcelona",
-        awayTeam: "Bayern Munich",
+        homeTeam: "RB Leipzig",
+        awayTeam: "Liverpool",
         time: "20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 2.45, draw: 3.75, away: 2.70 },
-        formation: { home: "4-3-3", away: "4-2-3-1" },
+        odds: { home: 3.60, draw: 3.80, away: 1.95 },
+        formation: { home: "4-2-2-2", away: "4-3-3" },
         stats: {
-            possession: { home: 54, away: 46 },
-            shots: { home: 16, away: 14 },
-            onTarget: { home: 7, away: 6 },
-            attacks: { home: 72, away: 65 },
-            corners: { home: 6, away: 5 },
-            fouls: { home: 10, away: 11 },
-            cards: { home: 2, away: 2 },
-            offsides: { home: 2, away: 3 }
+            possession: { home: 47, away: 53 },
+            shots: { home: 12, away: 17 },
+            onTarget: { home: 5, away: 8 },
+            attacks: { home: 58, away: 69 },
+            corners: { home: 5, away: 7 },
+            fouls: { home: 11, away: 9 },
+            cards: { home: 2, away: 1 },
+            offsides: { home: 2, away: 2 }
         },
         lineup: {
             home: [
-                { num: 13, name: "Iñaki Peña", pos: "GK" },
-                { num: 23, name: "Jules Koundé", pos: "DF" },
-                { num: 2, name: "Pau Cubarsí", pos: "DF" },
-                { num: 5, name: "Iñigo Martínez", pos: "DF" },
-                { num: 3, name: "Alejandro Balde", pos: "DF" },
-                { num: 17, name: "Marc Casadó", pos: "MF" },
-                { num: 8, name: "Pedri", pos: "MF" },
-                { num: 16, name: "Fermín López", pos: "MF" },
-                { num: 19, name: "Lamine Yamal", pos: "FW" },
-                { num: 9, name: "Robert Lewandowski", pos: "FW" },
-                { num: 11, name: "Raphinha", pos: "FW" }
+                { num: 1, name: "Péter Gulácsi", pos: "GK" },
+                { num: 3, name: "Lutsharel Geertruida", pos: "DF" },
+                { num: 4, name: "Willi Orbán", pos: "DF" },
+                { num: 23, name: "Castello Lukeba", pos: "DF" },
+                { num: 39, name: "Benjamin Henrichs", pos: "DF" },
+                { num: 8, name: "Amadou Haidara", pos: "MF" },
+                { num: 18, name: "Arthur Vermeeren", pos: "MF" },
+                { num: 7, name: "Antonio Nusa", pos: "MF" },
+                { num: 10, name: "Xavi Simons", pos: "MF" },
+                { num: 11, name: "Loïs Openda", pos: "FW" },
+                { num: 30, name: "Benjamin Šeško", pos: "FW" }
             ],
             away: [
-                { num: 1, name: "Manuel Neuer", pos: "GK" },
-                { num: 22, name: "Raphael Guerreiro", pos: "DF" },
-                { num: 2, name: "Dayot Upamecano", pos: "DF" },
-                { num: 3, name: "Min-jae Kim", pos: "DF" },
-                { num: 19, name: "Alphonso Davies", pos: "DF" },
-                { num: 6, name: "Joshua Kimmich", pos: "MF" },
-                { num: 16, name: "Joao Palhinha", pos: "MF" },
-                { num: 17, name: "Michael Olise", pos: "FW" },
-                { num: 25, name: "Thomas Müller", pos: "MF" },
-                { num: 7, name: "Serge Gnabry", pos: "FW" },
-                { num: 9, name: "Harry Kane", pos: "FW" }
+                { num: 62, name: "Caoimhín Kelleher", pos: "GK" },
+                { num: 66, name: "Trent Alexander-Arnold", pos: "DF" },
+                { num: 5, name: "Ibrahima Konaté", pos: "DF" },
+                { num: 4, name: "Virgil van Dijk", pos: "DF" },
+                { num: 21, name: "Kostas Tsimikas", pos: "DF" },
+                { num: 38, name: "Ryan Gravenberch", pos: "MF" },
+                { num: 10, name: "Alexis Mac Allister", pos: "MF" },
+                { num: 8, name: "Dominik Szoboszlai", pos: "MF" },
+                { num: 11, name: "Mohamed Salah", pos: "FW" },
+                { num: 9, name: "Darwin Núñez", pos: "FW" },
+                { num: 18, name: "Cody Gakpo", pos: "FW" }
             ]
         },
         timeline: [
-            { time: "Pre-Match", type: "start", desc: "Kickoff scheduled for 20:00 WAT at Estadi Olímpic Lluís Companys", icon: "🚩" }
+            { time: "Pre-Match", type: "start", desc: "Kickoff scheduled for 20:00 WAT at Red Bull Arena Leipzig", icon: "🚩" }
         ]
     },
     {
@@ -136,13 +136,14 @@ const MATCHES_DATA = [
         leagueCategory: "Champions League",
         scheduleGroup: "today",
         scheduleTier: "today",
-        homeTeam: "RB Leipzig",
-        awayTeam: "Liverpool",
+        homeTeam: "Bayern Munich",
+        awayTeam: "Benfica",
         time: "20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 3.60, draw: 3.80, away: 1.95 }
+        odds: { home: 1.30, draw: 5.80, away: 9.00 }
     },
+
     {
         id: 2003,
         league: "UEFA Champions League",
@@ -439,21 +440,26 @@ const MATCHES_DATA = [
         ]
     },
     {
-        id: 2035,
+        id: 2030,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
         scheduleGroup: "finished",
         homeTeam: "Paris Saint-Germain",
-        awayTeam: "PSV Eindhoven",
+        awayTeam: "Barcelona",
         time: "Full Time",
         status: "FINISHED",
         isLocked: true,
-        score: { home: 1, away: 1 },
-        odds: { home: 1.35, draw: 5.50, away: 8.00 },
+        score: { home: 4, away: 2 },
+        odds: { home: 2.15, draw: 3.75, away: 3.10 },
         timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: PSG 1 - 1 PSV Eindhoven.", icon: "🏁" },
-            { time: "55'", type: "goal", desc: "⚽ GOAL! PSG 1 - 1. Achraf Hakimi long range strike!", icon: "⚽" },
-            { time: "34'", type: "goal", desc: "⚽ GOAL! PSV 0 - 1. Noa Lang opener!", icon: "⚽" }
+            { time: "FT", type: "end", desc: "🏁 Full Time: Paris Saint-Germain 4 - 2 Barcelona. Electrifying 6-goal European thriller!", icon: "🏁" },
+            { time: "89'", type: "goal", desc: "⚽ GOAL! PSG 4 - 2 Barcelona. Ousmane Dembélé seals victory on the break!", icon: "⚽" },
+            { time: "77'", type: "goal", desc: "⚽ GOAL! PSG 3 - 2 Barcelona. Bradley Barcola cuts inside and fires into the top corner!", icon: "⚽" },
+            { time: "65'", type: "goal", desc: "⚽ GOAL! PSG 2 - 2 Barcelona. Robert Lewandowski equalizer!", icon: "⚽" },
+            { time: "54'", type: "goal", desc: "⚽ GOAL! PSG 2 - 1 Barcelona. Vitinha precision low drive from edge of the box!", icon: "⚽" },
+            { time: "37'", type: "goal", desc: "⚽ GOAL! PSG 1 - 1 Barcelona. Raphinha curling left-foot strike!", icon: "⚽" },
+            { time: "12'", type: "goal", desc: "⚽ GOAL! PSG 1 - 0 Barcelona. Kylian Mbappé opener into the bottom corner!", icon: "⚽" },
+            { time: "0'", type: "start", desc: "Kickoff at Parc des Princes!", icon: "🚩" }
         ]
     }
 ];
