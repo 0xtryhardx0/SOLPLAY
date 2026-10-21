@@ -3857,8 +3857,7 @@ function setQuickStake(val) {
     if (val === 'MAX') {
         input.value = "5.0";
     } else {
-        const cur = parseFloat(input.value) || 0;
-        input.value = (cur + val).toFixed(1);
+        input.value = parseFloat(val).toFixed(4).replace(/\.?0+$/, '');
     }
     calculatePayout();
 }
@@ -4019,7 +4018,22 @@ function calculatePayout() {
     if (feeEl) feeEl.textContent = routingFee.toFixed(4) + " SOL";
 
     const payoutEl = document.getElementById("slip-potential-payout");
-    if (payoutEl) payoutEl.textContent = totalPotentialReturn.toFixed(4) + " SOL";
+    if (payoutEl) {
+        const payoutNgn = Math.round(totalPotentialReturn * 155 * 1650);
+        payoutEl.innerHTML = `${totalPotentialReturn.toFixed(4)} SOL <span style="font-size:0.75rem; color:#14b8a6; font-weight:normal;">(≈ ₦${payoutNgn.toLocaleString()})</span>`;
+    }
+
+    // Live Fiat & Naira Estimation on Stake Input (SOL ≈ $155, ₦1,650/$)
+    const fiatPreviewEl = document.getElementById("stake-fiat-preview");
+    if (fiatPreviewEl) {
+        if (stake > 0) {
+            const solInNgn = Math.round(stake * 155 * 1650);
+            const solInUsd = (stake * 155).toFixed(2);
+            fiatPreviewEl.textContent = `≈ ₦${solInNgn.toLocaleString()} ($${solInUsd})`;
+        } else {
+            fiatPreviewEl.textContent = `Min: 0.0005 SOL (≈ ₦100)`;
+        }
+    }
 
     const btnPlace = document.getElementById("btn-place-slip");
     if (btnPlace) {
