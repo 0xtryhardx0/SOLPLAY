@@ -4197,6 +4197,52 @@ async function placeBet() {
         return;
     }
 
+    // Check if any fixture in the slip is currently in-play (LIVE)
+    const hasLiveFixture = betslipSelections.some(sel => {
+        const m = MATCHES_DATA.find(match => match.id === sel.gameId);
+        return m && (m.status === 'LIVE' || (m.time && m.time.includes("'")));
+    });
+
+    const placeBtn = document.getElementById("place-bet-btn");
+
+    // In-Play Anti-Courtsiding Delay (3-second market lock countdown)
+    if (hasLiveFixture && placeBtn && !placeBtn.dataset.verifying) {
+        placeBtn.dataset.verifying = "true";
+        placeBtn.disabled = true;
+        const originalText = placeBtn.innerHTML;
+        
+        let countdown = 3;
+        placeBtn.innerHTML = `<span>⚡ Verifying Live Pitch Feed (${countdown}s)...</span>`;
+        
+        const countdownTimer = setInterval(async () => {
+            countdown -= 1;
+            if (countdown > 0) {
+                placeBtn.innerHTML = `<span>⚡ Verifying Live Pitch Feed (${countdown}s)...</span>`;
+            } else {
+                clearInterval(countdownTimer);
+                delete placeBtn.dataset.verifying;
+                placeBtn.disabled = false;
+                placeBtn.innerHTML = originalText;
+                
+                // Re-verify that no match ended or closed during the 3-second verification window
+                for (const sel of betslipSelections) {
+                    const m = MATCHES_DATA.find(match => match.id === sel.gameId);
+                    if (m && (m.status === "FINISHED" || m.time === "Full Time" || m.time === "FT")) {
+                        showToast(`Market closed: ${m.homeTeam} vs ${m.awayTeam} just concluded during verification.`, "error");
+                        return;
+                    }
+                }
+                
+                await executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, totalPotentialReturn);
+            }
+        }, 1000);
+        return;
+    }
+
+    await executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, totalPotentialReturn);
+}
+
+async function executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, totalPotentialReturn) {
     try {
         const wagerAccountKeypair = solanaWeb3.Keypair.generate();
 
