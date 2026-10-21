@@ -2080,6 +2080,70 @@ function triggerManualScoreSync() {
 }
 
 
+// ==========================================================================
+// RESILIENT MULTI-RPC FAILOVER CLUSTER & LATENCY BALANCER
+// ==========================================================================
+const SOLANA_RPC_CLUSTER = [
+    "https://api.devnet.solana.com",
+    "https://rpc.ankr.com/solana_devnet",
+    "https://devnet.helius-rpc.com/?api-key=public",
+    "https://solana-devnet.g.alchemy.com/v2/demo"
+];
+
+let activeRpcClusterIndex = 0;
+
+function getHealthySolanaConnection() {
+    const savedNetwork = localStorage.getItem("solplay_network") || "devnet";
+    if (savedNetwork === "localnet") {
+        return new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
+    }
+    const customRpc = localStorage.getItem("solplay_custom_rpc");
+    if (customRpc) {
+        return new solanaWeb3.Connection(customRpc, "confirmed");
+    }
+    const endpoint = SOLANA_RPC_CLUSTER[activeRpcClusterIndex % SOLANA_RPC_CLUSTER.length];
+    return new solanaWeb3.Connection(endpoint, {
+        commitment: "confirmed",
+        confirmTransactionInitialTimeout: 20000
+    });
+}
+
+function rotateToNextRpcEndpoint(errorReason) {
+    activeRpcClusterIndex = (activeRpcClusterIndex + 1) % SOLANA_RPC_CLUSTER.length;
+    const nextRpc = SOLANA_RPC_CLUSTER[activeRpcClusterIndex];
+    console.warn(`[RPC Failover Cluster] Rotating to backup RPC #${activeRpcClusterIndex}: ${nextRpc} (Reason: ${errorReason || 'Timeout/429'})`);
+    connection = getHealthySolanaConnection();
+    showToast(`⚡ Switched to backup RPC endpoint (${activeRpcClusterIndex + 1}/${SOLANA_RPC_CLUSTER.length}) for faster throughput.`, "info");
+    return connection;
+}
+
+// ==========================================================================
+// AUTONOMOUS SETTLEMENT & ZERO-WITHHOLDING INSTANT PAYOUT DAEMON
+// ==========================================================================
+function startAutonomousPayoutDaemon() {
+    console.log("[Auto-Payout Sentinel] Autonomous settlement daemon active. Scanning for winning tickets every 8s...");
+    
+    setInterval(async () => {
+        if (!Array.isArray(localWagers) || localWagers.length === 0) return;
+        
+        // 1. Sweep all active wagers and re-evaluate completed fixtures
+        verifyAllWagersStatus();
+        
+        // 2. Find any ticket that is WON but hasn't been paid out/claimed yet
+        for (let i = 0; i < localWagers.length; i++) {
+            const w = localWagers[i];
+            if ((w.status === "WON" || w.status === "Won") && !w.claimed && !w._isClaiming) {
+                console.log(`[Auto-Payout Sentinel] Auto-processing instant payout for winning ticket ${w.ticketId || w.id}...`);
+                try {
+                    await claimWagerOnchain(i);
+                } catch (err) {
+                    console.warn(`[Auto-Payout Sentinel] Auto-claim retry scheduled for ticket ${w.ticketId || w.id}:`, err);
+                }
+            }
+        }
+    }, 8000);
+}
+
 // Initialize on page load
 function initApp() {
     // Connect to correct validator/network based on saved settings
@@ -2090,11 +2154,7 @@ function initApp() {
     }
     
     try {
-        if (savedNetwork === "localnet") {
-            connection = new solanaWeb3.Connection("http://127.0.0.1:8899", "confirmed");
-        } else {
-            connection = new solanaWeb3.Connection("https://api.devnet.solana.com", "confirmed");
-        }
+        connection = getHealthySolanaConnection();
     } catch (e) {
         console.warn("Validator connection issue:", e);
     }
@@ -2171,6 +2231,9 @@ function initApp() {
     if (typeof updateDemoControlsUI === 'function') {
         updateDemoControlsUI();
     }
+
+    // Launch Autonomous Settlement & Instant Payout Daemon
+    startAutonomousPayoutDaemon();
 
     // Close CDN dropdown when clicking outside
     window.addEventListener("click", function(event) {

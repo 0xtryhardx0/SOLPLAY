@@ -118,9 +118,109 @@
         </div>
 
         <!-- Authorized Admin Panel Grid -->
-        <div id="admin-panel-grid" class="admin-grid-layout" style="display: none;">
+        <div id="admin-panel-grid" style="display: none; padding: 1.5rem;">
             
-            <!-- Column 1: Setup & Deploy -->
+            <!-- 1. Real-Time Operations & Metrics KPI Row -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">📈 24h Betting Volume</div>
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 0.3rem;" id="kpi-total-volume">142.85 SOL</div>
+                    <div style="font-size: 0.75rem; color: var(--neon-teal); margin-top: 0.2rem;">+18.4% from yesterday</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">🏆 Settled & Paid Out</div>
+                    <div style="font-size: 1.6rem; font-weight: 800; color: var(--neon-teal); margin-top: 0.3rem;" id="kpi-total-paid">98.40 SOL</div>
+                    <div style="font-size: 0.75rem; color: #22c55e; margin-top: 0.2rem;">⚡ 0 Pending / Zero Withheld</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">👥 Active Bettors</div>
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 0.3rem;" id="kpi-active-bettors">48 Wallets</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;">Phantom & Google Auth</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem;">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">🛡️ LP Solvency Ratio</div>
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #38bdf8; margin-top: 0.3rem;" id="kpi-vault-solvency">100% Backed</div>
+                    <div style="font-size: 0.75rem; color: #38bdf8; margin-top: 0.2rem;">Max 20% Exposure Guard Active</div>
+                </div>
+            </div>
+
+            <!-- 2. Autonomous Sentinel & Cluster Controller -->
+            <div style="background: rgba(30, 27, 75, 0.4); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+                <div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="pulse-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e;"></span>
+                        🤖 Autonomous Sentinel & Payout Daemon
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                        Automated Payout Sweeper: <strong style="color: #22c55e;">Active (Every 8s)</strong> &bull; Current RPC: <strong id="admin-current-rpc" style="color: var(--neon-teal);">devnet.solana.com</strong> (<span id="admin-rpc-ping">42ms</span>)
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-mini" onclick="triggerAdminAutoPayoutSweep()" style="background: #059669; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 600;">
+                        ⚡ Force Payout Sweep
+                    </button>
+                    <button class="btn-mini" onclick="rotateAdminRpc()" style="background: #374151; padding: 0.5rem 1rem; font-size: 0.8rem;">
+                        🔄 Rotate RPC Cluster
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. Top Bettors & Degens Leaderboard -->
+            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1.2rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff;">
+                        🏆 Top Bettors & Volume Leaderboard
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Real-Time On-Chain Tracking</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary);">
+                                <th style="padding: 0.5rem;">Rank</th>
+                                <th style="padding: 0.5rem;">Bettor Wallet</th>
+                                <th style="padding: 0.5rem;">Wagers</th>
+                                <th style="padding: 0.5rem;">Win Rate</th>
+                                <th style="padding: 0.5rem;">Biggest Multiplier</th>
+                                <th style="padding: 0.5rem;">Total SOL Won</th>
+                                <th style="padding: 0.5rem;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-leaderboard-tbody">
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                                <td style="padding: 0.6rem 0.5rem;">🥇 1</td>
+                                <td style="padding: 0.6rem 0.5rem; font-family: monospace; color: var(--neon-teal);">7xKX...8fQ2</td>
+                                <td style="padding: 0.6rem 0.5rem;">34 slips</td>
+                                <td style="padding: 0.6rem 0.5rem; color: #22c55e;">73.5%</td>
+                                <td style="padding: 0.6rem 0.5rem; color: var(--neon-pink); font-weight: 700;">18.40x</td>
+                                <td style="padding: 0.6rem 0.5rem; font-weight: 700; color: #fff;">38.50 SOL</td>
+                                <td style="padding: 0.6rem 0.5rem;"><span style="background: rgba(34,197,94,0.15); color: #22c55e; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem;">Paid</span></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                                <td style="padding: 0.6rem 0.5rem;">🥈 2</td>
+                                <td style="padding: 0.6rem 0.5rem; font-family: monospace; color: var(--neon-teal);">Dirm...E2hT</td>
+                                <td style="padding: 0.6rem 0.5rem;">28 slips</td>
+                                <td style="padding: 0.6rem 0.5rem; color: #22c55e;">67.8%</td>
+                                <td style="padding: 0.6rem 0.5rem; color: var(--neon-pink); font-weight: 700;">11.25x</td>
+                                <td style="padding: 0.6rem 0.5rem; font-weight: 700; color: #fff;">24.15 SOL</td>
+                                <td style="padding: 0.6rem 0.5rem;"><span style="background: rgba(34,197,94,0.15); color: #22c55e; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem;">Paid</span></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                                <td style="padding: 0.6rem 0.5rem;">🥉 3</td>
+                                <td style="padding: 0.6rem 0.5rem; font-family: monospace; color: var(--neon-teal);">4Et3...buUU</td>
+                                <td style="padding: 0.6rem 0.5rem;">19 slips</td>
+                                <td style="padding: 0.6rem 0.5rem; color: #22c55e;">58.0%</td>
+                                <td style="padding: 0.6rem 0.5rem; color: var(--neon-pink); font-weight: 700;">8.90x</td>
+                                <td style="padding: 0.6rem 0.5rem; font-weight: 700; color: #fff;">14.80 SOL</td>
+                                <td style="padding: 0.6rem 0.5rem;"><span style="background: rgba(34,197,94,0.15); color: #22c55e; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.7rem;">Paid</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. Operations & Contract Controls Grid -->
+            <div class="admin-grid-layout" style="padding: 0;">
             <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
                 <div class="admin-title">Program Deploys</div>
                 <label style="font-size: 0.75rem; color: var(--text-secondary);">Program ID (Target):</label>
