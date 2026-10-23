@@ -3822,7 +3822,7 @@ function shareCodeToWhatsApp() {
     const oddsEl = document.getElementById("slip-odds-multiplier");
     const code = codeEl ? codeEl.textContent : "SOL-PLAY";
     const odds = oddsEl ? oddsEl.textContent : "10.00x";
-    const text = `🔥 Locked in this ${odds} Acca on SolPlay! Instant Solana payouts directly to Phantom wallet with 0 delay. Load my booking code: ${code} on https://solplay-git-main-ayodejierioluwa.vercel.app/`;
+    const text = `🔥 Locked in this ${odds} Acca on SolPlay! Instant Solana payouts directly to Phantom wallet with 0 delay. Load my booking code: ${code} on https://solplay-delta.vercel.app/`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
 }
 
