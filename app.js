@@ -71,7 +71,7 @@ let activeMatchId = 1010; // Default to active featured El Clásico match // Def
 let activeScheduleFilter = 'all'; // 'all', 'live', 'today', 'tomorrow', 'week', 'finished'
 let activeLeagueFilter = 'all';   // 'all', 'Premier League', 'Champions League', etc.
 
-const MATCHES_DATA = [
+let MATCHES_DATA = [
     // ========================================================
     // 📅 TODAY'S REAL GLOBAL FIXTURES (Saturday, Oct 24, 2026)
     // ========================================================
@@ -1878,6 +1878,218 @@ function getClubPowerRating(teamName, leagueName) {
     return base + (Math.abs(hash) % 90) - 45;
 }
 
+// ==========================================================================
+// OFFICIAL CLUB CRESTS DIRECTORY (HD 500px ESPN CDN)
+// ==========================================================================
+const TEAM_LOGOS = {
+    "Real Madrid": "https://a.espncdn.com/i/teamlogos/soccer/500/86.png",
+    "Barcelona": "https://a.espncdn.com/i/teamlogos/soccer/500/83.png",
+    "Arsenal": "https://a.espncdn.com/i/teamlogos/soccer/500/359.png",
+    "Chelsea": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png",
+    "Tottenham": "https://a.espncdn.com/i/teamlogos/soccer/500/367.png",
+    "Tottenham Hotspur": "https://a.espncdn.com/i/teamlogos/soccer/500/367.png",
+    "Liverpool": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+    "Manchester City": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+    "Man City": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+    "Manchester United": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+    "Man United": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+    "Bayern Munich": "https://a.espncdn.com/i/teamlogos/soccer/500/132.png",
+    "Paris Saint-Germain": "https://a.espncdn.com/i/teamlogos/soccer/500/160.png",
+    "PSG": "https://a.espncdn.com/i/teamlogos/soccer/500/160.png",
+    "Inter Milan": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
+    "Juventus": "https://a.espncdn.com/i/teamlogos/soccer/500/111.png",
+    "AC Milan": "https://a.espncdn.com/i/teamlogos/soccer/500/103.png",
+    "Atlético Madrid": "https://a.espncdn.com/i/teamlogos/soccer/500/1068.png",
+    "Atletico Madrid": "https://a.espncdn.com/i/teamlogos/soccer/500/1068.png",
+    "Aston Villa": "https://a.espncdn.com/i/teamlogos/soccer/500/362.png",
+    "Newcastle": "https://a.espncdn.com/i/teamlogos/soccer/500/361.png",
+    "Newcastle United": "https://a.espncdn.com/i/teamlogos/soccer/500/361.png",
+    "Bayer Leverkusen": "https://a.espncdn.com/i/teamlogos/soccer/500/131.png",
+    "Borussia Dortmund": "https://a.espncdn.com/i/teamlogos/soccer/500/124.png",
+    "Sporting CP": "https://a.espncdn.com/i/teamlogos/soccer/500/318.png",
+    "Benfica": "https://a.espncdn.com/i/teamlogos/soccer/500/300.png",
+    "Valencia": "https://a.espncdn.com/i/teamlogos/soccer/500/94.png",
+    "Villarreal": "https://a.espncdn.com/i/teamlogos/soccer/500/102.png",
+    "Everton": "https://a.espncdn.com/i/teamlogos/soccer/500/368.png",
+    "Fulham": "https://a.espncdn.com/i/teamlogos/soccer/500/370.png",
+    "West Ham": "https://a.espncdn.com/i/teamlogos/soccer/500/371.png",
+    "West Ham United": "https://a.espncdn.com/i/teamlogos/soccer/500/371.png",
+    "Brighton": "https://a.espncdn.com/i/teamlogos/soccer/500/331.png",
+    "Brighton & Hove Albion": "https://a.espncdn.com/i/teamlogos/soccer/500/331.png",
+    "Brentford": "https://a.espncdn.com/i/teamlogos/soccer/500/337.png",
+    "Crystal Palace": "https://a.espncdn.com/i/teamlogos/soccer/500/384.png",
+    "Wolves": "https://a.espncdn.com/i/teamlogos/soccer/500/380.png",
+    "Wolverhampton": "https://a.espncdn.com/i/teamlogos/soccer/500/380.png",
+    "Bournemouth": "https://a.espncdn.com/i/teamlogos/soccer/500/349.png",
+    "Nottingham Forest": "https://a.espncdn.com/i/teamlogos/soccer/500/393.png",
+    "Leicester City": "https://a.espncdn.com/i/teamlogos/soccer/500/375.png",
+    "Southampton": "https://a.espncdn.com/i/teamlogos/soccer/500/376.png",
+    "Ipswich Town": "https://a.espncdn.com/i/teamlogos/soccer/500/373.png",
+    "Napoli": "https://a.espncdn.com/i/teamlogos/soccer/500/114.png",
+    "Roma": "https://a.espncdn.com/i/teamlogos/soccer/500/104.png",
+    "AS Roma": "https://a.espncdn.com/i/teamlogos/soccer/500/104.png",
+    "Lazio": "https://a.espncdn.com/i/teamlogos/soccer/500/112.png",
+    "Atalanta": "https://a.espncdn.com/i/teamlogos/soccer/500/125.png",
+    "Fiorentina": "https://a.espncdn.com/i/teamlogos/soccer/500/109.png",
+    "Bologna": "https://a.espncdn.com/i/teamlogos/soccer/500/107.png",
+    "Athletic Club": "https://a.espncdn.com/i/teamlogos/soccer/500/93.png",
+    "Athletic Bilbao": "https://a.espncdn.com/i/teamlogos/soccer/500/93.png",
+    "Real Sociedad": "https://a.espncdn.com/i/teamlogos/soccer/500/89.png",
+    "Real Betis": "https://a.espncdn.com/i/teamlogos/soccer/500/244.png",
+    "Sevilla": "https://a.espncdn.com/i/teamlogos/soccer/500/243.png",
+    "Girona": "https://a.espncdn.com/i/teamlogos/soccer/500/9812.png",
+    "Celta Vigo": "https://a.espncdn.com/i/teamlogos/soccer/500/85.png",
+    "Rayo Vallecano": "https://a.espncdn.com/i/teamlogos/soccer/500/101.png",
+    "Elche": "https://a.espncdn.com/i/teamlogos/soccer/500/3751.png",
+    "Espanyol": "https://a.espncdn.com/i/teamlogos/soccer/500/88.png",
+    "Racing Santander": "https://a.espncdn.com/i/teamlogos/soccer/500/87.png",
+    "Deportivo": "https://a.espncdn.com/i/teamlogos/soccer/500/90.png"
+};
+
+function getTeamLogo(teamName, defaultUrl) {
+    if (!teamName) return defaultUrl || "https://a.espncdn.com/i/teamlogos/soccer/500/default.png";
+    const clean = teamName.trim();
+    if (TEAM_LOGOS[clean]) return TEAM_LOGOS[clean];
+    const cleanLower = clean.toLowerCase();
+    for (const [k, url] of Object.entries(TEAM_LOGOS)) {
+        const kLower = k.toLowerCase();
+        if (cleanLower === kLower || cleanLower.includes(kLower) || kLower.includes(cleanLower)) {
+            return url;
+        }
+    }
+    return defaultUrl || "https://a.espncdn.com/i/teamlogos/soccer/500/default.png";
+}
+
+// Render SportyBet / Bet9ja Style Stadium Match of the Day Spotlight
+function renderMatchOfTheDaySpotlight() {
+    const container = document.getElementById("match-of-the-day-spotlight");
+    if (!container) return;
+
+    // Pick top marquee match: prioritize active LIVE match, then El Clasico (1010), then first today fixture
+    const liveMatch = MATCHES_DATA.find(m => (m.status === 'LIVE' || m.scheduleGroup === 'live') && m.status !== 'FINISHED');
+    const marqueeToday = MATCHES_DATA.find(m => m.id === 1010 || (m.scheduleGroup === 'today' && m.status !== 'FINISHED'));
+    const spotlightMatch = liveMatch || marqueeToday || MATCHES_DATA[0];
+
+    if (!spotlightMatch) return;
+
+    const homeLogo = spotlightMatch.homeLogo || getTeamLogo(spotlightMatch.homeTeam);
+    const awayLogo = spotlightMatch.awayLogo || getTeamLogo(spotlightMatch.awayTeam);
+
+    const isLive = (spotlightMatch.status === 'LIVE' || spotlightMatch.scheduleGroup === 'live') && spotlightMatch.status !== 'FINISHED';
+    const isFinished = (spotlightMatch.status === 'FINISHED' || spotlightMatch.time === 'Full Time');
+
+    // Star player matchup metadata based on teams
+    let homeStar = "Key Playmaker";
+    let awayStar = "Top Scorer";
+    const hLower = (spotlightMatch.homeTeam || "").toLowerCase();
+    const aLower = (spotlightMatch.awayTeam || "").toLowerCase();
+
+    if (hLower.includes("real madrid")) homeStar = "Vinícius Jr. ⚡ (8 Goals)";
+    else if (hLower.includes("arsenal")) homeStar = "Bukayo Saka ⚡ (6 Goals)";
+    else if (hLower.includes("chelsea")) homeStar = "Cole Palmer ⚡ (7 Goals)";
+    else if (hLower.includes("manchester city") || hLower.includes("man city")) homeStar = "Erling Haaland ⚽ (12 Goals)";
+    else if (hLower.includes("valencia")) homeStar = "Hugo Duro ⚽ (5 Goals)";
+    else if (hLower.includes("liverpool")) homeStar = "Mohamed Salah 👑 (9 Goals)";
+    else if (hLower.includes("bayern")) homeStar = "Harry Kane ⚽ (11 Goals)";
+    else if (hLower.includes("atletico")) homeStar = "Antoine Griezmann 🎯 (6 Goals)";
+
+    if (aLower.includes("barcelona")) awayStar = "Lamine Yamal 🪄 (5G + 7A)";
+    else if (aLower.includes("bayern")) awayStar = "Harry Kane ⚽ (11 Goals)";
+    else if (aLower.includes("tottenham") || aLower.includes("spurs")) awayStar = "Son Heung-min ⚡ (6 Goals)";
+    else if (aLower.includes("liverpool")) awayStar = "Mohamed Salah 👑 (9 Goals)";
+    else if (aLower.includes("villarreal")) awayStar = "Ayoze Pérez ⚽ (6 Goals)";
+    else if (aLower.includes("arsenal")) awayStar = "Kai Havertz ⚽ (5 Goals)";
+    else if (aLower.includes("manchester united") || aLower.includes("man united")) awayStar = "Bruno Fernandes 🎯 (4 Goals)";
+
+    const homeOdd = spotlightMatch.odds?.home || 2.10;
+    const drawOdd = spotlightMatch.odds?.draw || 3.35;
+    const awayOdd = spotlightMatch.odds?.away || 3.20;
+
+    let centerBoxHtml = '';
+    if (isLive && spotlightMatch.score) {
+        centerBoxHtml = `
+            <div class="spotlight-versus-box">
+                <span class="spotlight-score-live">${spotlightMatch.score.home} - ${spotlightMatch.score.away}</span>
+                <div style="font-size: 0.72rem; color: #ef4444; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px;">
+                    <span class="ticker-pulse-green" style="background:#ef4444; box-shadow:0 0 8px #ef4444;"></span> ${spotlightMatch.time}
+                </div>
+            </div>
+        `;
+    } else if (isFinished && spotlightMatch.score) {
+        centerBoxHtml = `
+            <div class="spotlight-versus-box">
+                <span class="spotlight-score-live" style="color: #38bdf8;">${spotlightMatch.score.home} - ${spotlightMatch.score.away}</span>
+                <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; margin-top: 2px;">FULL TIME</div>
+            </div>
+        `;
+    } else {
+        centerBoxHtml = `
+            <div class="spotlight-versus-box">
+                <span class="spotlight-vs-text">VS</span>
+                <div style="font-size: 0.68rem; color: #38bdf8; font-weight: 700; margin-top: 2px; text-transform: uppercase;">Kickoff</div>
+            </div>
+        `;
+    }
+
+    const homeOutcomeId = 0;
+    const drawOutcomeId = 2;
+    const awayOutcomeId = 1;
+
+    const isHomeSel = (typeof isOutcomeSelected === 'function') && isOutcomeSelected(spotlightMatch.id, homeOutcomeId);
+    const isDrawSel = (typeof isOutcomeSelected === 'function') && isOutcomeSelected(spotlightMatch.id, drawOutcomeId);
+    const isAwaySel = (typeof isOutcomeSelected === 'function') && isOutcomeSelected(spotlightMatch.id, awayOutcomeId);
+
+    const escapedHome = (spotlightMatch.homeTeam || '').replace(/'/g, "\\'");
+    const escapedAway = (spotlightMatch.awayTeam || '').replace(/'/g, "\\'");
+    const matchLabel = `${escapedHome} vs ${escapedAway}`;
+
+    container.innerHTML = `
+        <div class="spotlight-top-badge-row">
+            <span class="spotlight-derby-badge">
+                🔥 MATCH OF THE DAY &bull; ${(spotlightMatch.league || '').toUpperCase()}
+            </span>
+            <span class="spotlight-kickoff-timer">
+                ${isLive ? '🔴 LIVE IN PLAY' : (isFinished ? '🏁 RESULT SETTLED' : spotlightMatch.time)}
+            </span>
+        </div>
+
+        <div class="spotlight-clash-grid">
+            <div class="spotlight-team home" onclick="selectActiveMatch(${spotlightMatch.id}, true)" style="cursor: pointer;">
+                <img src="${homeLogo}" class="spotlight-team-logo" alt="${spotlightMatch.homeTeam}" onerror="this.src='https://a.espncdn.com/i/teamlogos/soccer/500/default.png'">
+                <div class="spotlight-team-meta">
+                    <span class="spotlight-team-name">${spotlightMatch.homeTeam}</span>
+                    <span class="spotlight-star-player">Key: <strong>${homeStar}</strong></span>
+                </div>
+            </div>
+
+            ${centerBoxHtml}
+
+            <div class="spotlight-team away" onclick="selectActiveMatch(${spotlightMatch.id}, true)" style="cursor: pointer;">
+                <img src="${awayLogo}" class="spotlight-team-logo" alt="${spotlightMatch.awayTeam}" onerror="this.src='https://a.espncdn.com/i/teamlogos/soccer/500/default.png'">
+                <div class="spotlight-team-meta">
+                    <span class="spotlight-team-name">${spotlightMatch.awayTeam}</span>
+                    <span class="spotlight-star-player">Key: <strong>${awayStar}</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="spotlight-quick-odds-grid">
+            <button class="spotlight-odds-btn ${isHomeSel ? 'selected' : ''}" onclick="selectOdds(${spotlightMatch.id}, ${homeOutcomeId}, ${homeOdd}, '${escapedHome} Win', '${matchLabel}', 'Winner (1X2)')">
+                <span class="btn-label">1 (${spotlightMatch.homeTeam})</span>
+                <span class="btn-val">${homeOdd.toFixed(2)}</span>
+            </button>
+            <button class="spotlight-odds-btn ${isDrawSel ? 'selected' : ''}" onclick="selectOdds(${spotlightMatch.id}, ${drawOutcomeId}, ${drawOdd}, 'Draw', '${matchLabel}', 'Winner (1X2)')">
+                <span class="btn-label">X (Draw)</span>
+                <span class="btn-val">${drawOdd.toFixed(2)}</span>
+            </button>
+            <button class="spotlight-odds-btn ${isAwaySel ? 'selected' : ''}" onclick="selectOdds(${spotlightMatch.id}, ${awayOutcomeId}, ${awayOdd}, '${escapedAway} Win', '${matchLabel}', 'Winner (1X2)')">
+                <span class="btn-label">2 (${spotlightMatch.awayTeam})</span>
+                <span class="btn-val">${awayOdd.toFixed(2)}</span>
+            </button>
+        </div>
+    `;
+}
+
 // Convert American (+150 / -180) to European Decimal odds (2.50 / 1.56)
 function convertAmericanToDecimalOdds(val) {
     if (val === undefined || val === null) return null;
@@ -2005,8 +2217,14 @@ async function fetchUpcomingMatchesFromAPI() {
                 const espnOdds = parseEspnDraftKingsOdds(comp);
                 const sharpOdds = espnOdds || calculateSharpMatchOdds(hName, aName, feed.name);
 
+                const hLogo = homeComp.team?.logo || getTeamLogo(hName);
+                const aLogo = awayComp.team?.logo || getTeamLogo(aName);
+
                 if (match) {
                     if (evDate) match.dateISO = evDate;
+                    if (!match.homeLogo) match.homeLogo = hLogo;
+                    if (!match.awayLogo) match.awayLogo = aLogo;
+
                     if (state === 'post' || completed) {
                         match.status = 'FINISHED';
                         match.scheduleGroup = 'finished';
@@ -2022,8 +2240,10 @@ async function fetchUpcomingMatchesFromAPI() {
                         // Dynamically update existing fixture with live DraftKings odds
                         match.odds = espnOdds;
                     }
-                } else if (state !== 'post' && !completed && evDate) {
-                    // Dynamically ingest new upcoming match with authentic sharp bookmaker odds
+                } else if (evDate) {
+                    // Dynamically ingest new upcoming, live or recently concluded match with authentic sharp bookmaker odds
+                    const isFinished = (state === 'post' || completed);
+                    const isLive = (state === 'in');
                     const newId = 20000 + (parseInt(ev.id, 10) % 10000 || Math.floor(Math.random() * 9000));
                     const newMatch = {
                         id: newId,
@@ -2036,13 +2256,15 @@ async function fetchUpcomingMatchesFromAPI() {
                                         feed.name.includes("Ligue 1") ? "Ligue 1" :
                                         feed.name.includes("Saudi") ? "Saudi Pro" :
                                         feed.name.includes("MLS") ? "MLS" : feed.name,
-                        scheduleGroup: "today",
+                        scheduleGroup: isLive ? "live" : (isFinished ? "finished" : "today"),
                         homeTeam: hName,
                         awayTeam: aName,
+                        homeLogo: hLogo,
+                        awayLogo: aLogo,
                         dateISO: evDate,
-                        time: detail || "Today",
-                        status: state === 'in' ? "LIVE" : "SCHEDULED",
-                        score: state === 'in' ? { home: hScore, away: aScore } : null,
+                        time: isFinished ? "Full Time" : (isLive ? (clock ? `${clock}'` : (detail || "Live")) : (detail || "Today")),
+                        status: isFinished ? "FINISHED" : (isLive ? "LIVE" : "SCHEDULED"),
+                        score: (isLive || isFinished) ? { home: hScore, away: aScore } : null,
                         odds: sharpOdds,
                         isDynamic: true
                     };
@@ -2063,6 +2285,7 @@ async function fetchUpcomingMatchesFromAPI() {
     });
 
     renderLiveMatches();
+    renderMatchOfTheDaySpotlight();
 }
 
 let lastLiveScoreSyncTimestamp = 0;
@@ -2162,7 +2385,8 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
                                (hNorm.includes(mhNorm) && aNorm.includes(maNorm));
                     });
 
-                    if (!match) continue;
+                    const hLogo = homeComp.team?.logo || getTeamLogo(hName);
+                    const aLogo = awayComp.team?.logo || getTeamLogo(aName);
 
                     const state = ev.status?.type?.state; // 'in', 'post', 'pre'
                     const detail = ev.status?.type?.detail || "";
@@ -2172,6 +2396,42 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
 
                     const hScore = parseInt(homeComp.score || "0", 10);
                     const aScore = parseInt(awayComp.score || "0", 10);
+
+                    if (!match) {
+                        const isLiveMatch = (state === 'in' || statusName.includes('PROGRESS') || statusName.includes('HALF'));
+                        const isFinishedMatch = (state === 'post' || completed || statusName.includes('FULL_TIME') || statusName.includes('FINAL'));
+                        
+                        if (isLiveMatch || isFinishedMatch) {
+                            const newId = 30000 + (parseInt(ev.id, 10) % 10000 || Math.floor(Math.random() * 9000));
+                            match = {
+                                id: newId,
+                                league: feed.name,
+                                leagueCategory: feed.name.includes("Champions") ? "Champions League" : 
+                                                feed.name.includes("Europa") ? "Europa League" :
+                                                feed.name.includes("La Liga") ? "La Liga" :
+                                                feed.name.includes("Serie A") ? "Serie A" :
+                                                feed.name.includes("Bundesliga") ? "Bundesliga" :
+                                                feed.name.includes("Ligue 1") ? "Ligue 1" : feed.name,
+                                scheduleGroup: isLiveMatch ? 'live' : 'finished',
+                                homeTeam: hName,
+                                awayTeam: aName,
+                                homeLogo: hLogo,
+                                awayLogo: aLogo,
+                                dateISO: ev.date || new Date().toISOString(),
+                                time: isFinishedMatch ? 'Full Time' : (clock ? `${clock}'` : (detail || 'Live')),
+                                status: isFinishedMatch ? 'FINISHED' : 'LIVE',
+                                score: { home: hScore, away: aScore },
+                                odds: calculateSharpMatchOdds(hName, aName, feed.name),
+                                isDynamic: true
+                            };
+                            MATCHES_DATA.unshift(match);
+                        } else {
+                            continue;
+                        }
+                    } else {
+                        if (!match.homeLogo) match.homeLogo = hLogo;
+                        if (!match.awayLogo) match.awayLogo = aLogo;
+                    }
 
                     const prevStatus = match.status;
                     const prevHome = (match.score && typeof match.score.home === 'number') ? match.score.home : 0;
@@ -2247,6 +2507,7 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
         }
 
         updateLiveDomElements();
+        renderMatchOfTheDaySpotlight();
 
         const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
         if (activeMatch) {
@@ -2399,8 +2660,9 @@ function initApp() {
     syncLiveScoresFromReliableSource();
     setInterval(syncLiveScoresFromReliableSource, 25000);
 
-    // Render multi-league matches and select default match without auto-scrolling
+    // Render multi-league matches, stadium spotlight and select default match without auto-scrolling
     renderLiveMatches();
+    renderMatchOfTheDaySpotlight();
     selectActiveMatch(1001, false);
     renderMatchStats();
     
@@ -2578,16 +2840,24 @@ function loadOrCreateWallet() {
 
     if (!walletKeypair) {
         try {
-            walletKeypair = solanaWeb3.Keypair.generate();
-            const secretArray = Array.from(walletKeypair.secretKey);
-            localStorage.setItem(`solplay_wallet_secret_${currentSandboxProfile}`, JSON.stringify(secretArray));
+            if (typeof solanaWeb3 !== 'undefined' && solanaWeb3.Keypair) {
+                walletKeypair = solanaWeb3.Keypair.generate();
+                if (walletKeypair && walletKeypair.secretKey) {
+                    const secretArray = Array.from(walletKeypair.secretKey);
+                    localStorage.setItem(`solplay_wallet_secret_${currentSandboxProfile}`, JSON.stringify(secretArray));
+                }
+            }
         } catch (e) {
             console.error("Failed to generate developer fallback keypair", e);
         }
     }
 
-    if (currentSandboxProfile === "profile_a") {
-        localStorage.setItem("solplay_wallet_secret", JSON.stringify(Array.from(walletKeypair.secretKey)));
+    if (walletKeypair && walletKeypair.secretKey && currentSandboxProfile === "profile_a") {
+        try {
+            localStorage.setItem("solplay_wallet_secret", JSON.stringify(Array.from(walletKeypair.secretKey)));
+        } catch (e) {
+            console.warn("Could not save wallet secret:", e);
+        }
     }
 
     if (walletKeypair && activeWalletType === 'sandbox') {
@@ -6086,6 +6356,8 @@ function renderLiveMatches() {
             const hasMatchStarted = (isMatchLive || isMatchConcluded);
             const scoreDisplayHome = (hasMatchStarted && match.score && typeof match.score.home === 'number') ? match.score.home : '';
             const scoreDisplayAway = (hasMatchStarted && match.score && typeof match.score.away === 'number') ? match.score.away : '';
+            const homeLogo = match.homeLogo || getTeamLogo(match.homeTeam);
+            const awayLogo = match.awayLogo || getTeamLogo(match.awayTeam);
 
             rowWrapper.innerHTML = `
                 <div class="match-matrix-row">
@@ -6096,11 +6368,13 @@ function renderLiveMatches() {
                             ${statusBadge}
                         </div>
                         <div class="match-teams-block">
-                            <div class="matrix-team-name">
+                            <div class="matrix-team-name matrix-team-row-crest">
+                                <img src="${homeLogo}" class="team-crest-img" alt="${match.homeTeam}" onerror="this.style.display='none'">
                                 <span>${match.homeTeam}</span>
                                 <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayHome}</span>
                             </div>
-                            <div class="matrix-team-name">
+                            <div class="matrix-team-name matrix-team-row-crest">
+                                <img src="${awayLogo}" class="team-crest-img" alt="${match.awayTeam}" onerror="this.style.display='none'">
                                 <span>${match.awayTeam}</span>
                                 <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayAway}</span>
                             </div>
@@ -6305,8 +6579,9 @@ function renderLiveMatches() {
         }
     }
 
-    // Render horizontal featured carousel deck
+    // Render horizontal featured carousel deck & stadium spotlight
     renderFeaturedCarousel();
+    renderMatchOfTheDaySpotlight();
 }
 
 function setBettingMarket(matchId, marketKey) {
@@ -6363,6 +6638,9 @@ function renderFeaturedCarousel() {
             else winning1x2Id = 2;
         }
 
+        const homeLogo = match.homeLogo || getTeamLogo(match.homeTeam);
+        const awayLogo = match.awayLogo || getTeamLogo(match.awayTeam);
+
         card.innerHTML = `
             <div class="featured-card-top" onclick="selectActiveMatch(${match.id})">
                 <span style="font-weight: 600; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 140px;">${match.league}</span>
@@ -6370,11 +6648,17 @@ function renderFeaturedCarousel() {
             </div>
             <div class="featured-card-teams" onclick="selectActiveMatch(${match.id})">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>⚽ ${match.homeTeam}</span>
+                    <div style="display: flex; align-items: center; gap: 7px; overflow: hidden;">
+                        <img src="${homeLogo}" class="featured-crest-img" alt="" onerror="this.style.display='none'">
+                        <span style="font-weight: 700; color: #fff; font-size: 0.85rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${match.homeTeam}</span>
+                    </div>
                     ${homeScoreSpan}
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
-                    <span>🛡️ ${match.awayTeam}</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.4rem;">
+                    <div style="display: flex; align-items: center; gap: 7px; overflow: hidden;">
+                        <img src="${awayLogo}" class="featured-crest-img" alt="" onerror="this.style.display='none'">
+                        <span style="font-weight: 700; color: #fff; font-size: 0.85rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${match.awayTeam}</span>
+                    </div>
                     ${awayScoreSpan}
                 </div>
             </div>
@@ -6440,11 +6724,23 @@ function selectActiveMatch(matchId, shouldScroll = true) {
     const hasScore = hasStarted && match.score && typeof match.score.home === 'number';
 
     const liveScoreEl = document.getElementById("player-live-score");
+    const homeLogo = match.homeLogo || getTeamLogo(match.homeTeam);
+    const awayLogo = match.awayLogo || getTeamLogo(match.awayTeam);
+
     if (liveScoreEl) {
         if (hasScore) {
-            liveScoreEl.innerHTML = `${match.homeTeam} <span id="player-score-home" style="color: ${isConcluded ? '#38bdf8' : '#34d399'}; font-weight: 800;">${match.score.home}</span> - <span id="player-score-away" style="color: ${isConcluded ? '#38bdf8' : '#34d399'}; font-weight: 800;">${match.score.away}</span> ${match.awayTeam} ${isConcluded ? '<span style="font-size: 0.72rem; color: #38bdf8; margin-left: 0.35rem; font-weight: 700;">(FT)</span>' : ''}`;
+            liveScoreEl.innerHTML = `
+                <span class="inline-flex items-center gap-1.5"><img src="${homeLogo}" class="team-crest-img inline" alt="" onerror="this.style.display='none'"> <strong>${match.homeTeam}</strong></span>
+                <span id="player-score-home" style="color: ${isConcluded ? '#38bdf8' : '#34d399'}; font-weight: 800; margin: 0 4px;">${match.score.home}</span> - <span id="player-score-away" style="color: ${isConcluded ? '#38bdf8' : '#34d399'}; font-weight: 800; margin: 0 4px;">${match.score.away}</span>
+                <span class="inline-flex items-center gap-1.5"><img src="${awayLogo}" class="team-crest-img inline" alt="" onerror="this.style.display='none'"> <strong>${match.awayTeam}</strong></span>
+                ${isConcluded ? '<span style="font-size: 0.72rem; color: #38bdf8; margin-left: 0.35rem; font-weight: 700;">(FT)</span>' : ''}
+            `;
         } else {
-            liveScoreEl.innerHTML = `${match.homeTeam} <span style="font-size: 0.75rem; color: rgba(255,255,255,0.4); padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.06); margin: 0 0.3rem;">vs</span> ${match.awayTeam}`;
+            liveScoreEl.innerHTML = `
+                <span class="inline-flex items-center gap-1.5"><img src="${homeLogo}" class="team-crest-img inline" alt="" onerror="this.style.display='none'"> <strong>${match.homeTeam}</strong></span>
+                <span style="font-size: 0.75rem; color: rgba(255,255,255,0.4); padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(255,255,255,0.06); margin: 0 0.4rem;">vs</span>
+                <span class="inline-flex items-center gap-1.5"><img src="${awayLogo}" class="team-crest-img inline" alt="" onerror="this.style.display='none'"> <strong>${match.awayTeam}</strong></span>
+            `;
         }
     }
     
