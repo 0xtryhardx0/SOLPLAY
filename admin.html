@@ -219,6 +219,61 @@
                 </div>
             </div>
 
+            <!-- 3b. Registered SQL Users & Individual Accounts (Centralized Database) -->
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(20, 184, 166, 0.35); border-radius: 12px; padding: 1.4rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+                    <div>
+                        <div style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.6rem;">
+                            <span>👥 Registered SQL Users & Individual Accounts</span>
+                            <span id="admin-user-count-badge" style="background: rgba(20, 184, 166, 0.15); color: var(--neon-teal); font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid rgba(20, 184, 166, 0.3);">
+                                Loading...
+                            </span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                            Tracks each user's unique email, generated embedded Solana keypair, on-chain balances, and historical wager slips in the SQL database.
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="admin-search-users-input" oninput="filterAdminUsersTable(this.value)" placeholder="Search email or address..." style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 0.8rem; color: #fff; outline: none; width: 220px;">
+                        <button class="btn-mini" onclick="loadAndRenderAdminUsers()" style="background: rgba(20, 184, 166, 0.2); border: 1px solid rgba(20, 184, 166, 0.4); color: var(--neon-teal); padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">
+                                <th style="padding: 0.6rem 0.5rem;">Punter / Email</th>
+                                <th style="padding: 0.6rem 0.5rem;">Solana Wallet Address</th>
+                                <th style="padding: 0.6rem 0.5rem;">Balance (SOL)</th>
+                                <th style="padding: 0.6rem 0.5rem;">Wagers</th>
+                                <th style="padding: 0.6rem 0.5rem;">Volume Staked</th>
+                                <th style="padding: 0.6rem 0.5rem;">Registered / Last Login</th>
+                                <th style="padding: 0.6rem 0.5rem; text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-tbody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 1.5rem; color: var(--text-secondary);">Connecting to SQL Database...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Individual User Slips Modal / Detail Drawer (Hidden by default) -->
+                <div id="admin-user-slips-drawer" style="display: none; margin-top: 1.2rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <div style="font-weight: 700; color: #fff; font-size: 0.9rem;">
+                            📋 Individual Wager History for: <span id="admin-detail-user-target" style="color: var(--neon-teal); font-family: monospace;"></span>
+                        </div>
+                        <button onclick="closeUserSlipsDrawer()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem;">✕</button>
+                    </div>
+                    <div id="admin-detail-slips-content" style="font-size: 0.8rem; color: var(--text-secondary);"></div>
+                </div>
+            </div>
+
             <!-- 4. Operations & Contract Controls Grid -->
             <div class="admin-grid-layout" style="padding: 0;">
             <div class="admin-col" style="background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
@@ -305,6 +360,8 @@
     <!-- Toast Notifications Area -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- Database Layer & Admin Operations Script -->
+    <script src="/solplay_db.js?v=3.6"></script>
     <script src="/admin.js?v=3.6"></script>
 </body>
 </html>

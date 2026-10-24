@@ -48,37 +48,260 @@ const SolPlayDB = {
         }
     },
 
-    // 1. Ensure user exists in cloud database
-    syncUserAccount: async function(walletAddress, username = null, balanceSol = 10.0) {
+    // --------------------------------------------------------------------------
+    // LOCAL SQL STORAGE SCHEMA ENGINE (Guarantees individual persistence across restarts)
+    // --------------------------------------------------------------------------
+    _getLocalSqlUsers: function() {
+        try {
+            const raw = localStorage.getItem("solplay_sql_users");
+            if (raw) return JSON.parse(raw);
+            // Default seed users for backend table demonstration if brand new
+            const defaultUsers = [
+                {
+                    id: "usr_superbettor",
+                    email: "punter.prime@solplay.io",
+                    wallet_address: "7xKXtgP2n9wQj8fQ2LmkVzYv7r9y4mP1kZ2vX8qN7mD",
+                    username: "punter_prime",
+                    display_name: "Punter Prime",
+                    balance_sol: 14.50,
+                    balance_lamports: 14500000000,
+                    created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+                    last_login: new Date().toISOString()
+                },
+                {
+                    id: "usr_sharp",
+                    email: "alpha.trader@solplay.io",
+                    wallet_address: "DirmZaAX8CuoHyvwick6wjnvfDWxnyZyTSf1yoSME2hT",
+                    username: "alpha_trader",
+                    display_name: "Alpha Trader",
+                    balance_sol: 28.20,
+                    balance_lamports: 28200000000,
+                    created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+                    last_login: new Date(Date.now() - 3600000 * 2).toISOString()
+                }
+            ];
+            localStorage.setItem("solplay_sql_users", JSON.stringify(defaultUsers));
+            return defaultUsers;
+        } catch (e) {
+            return [];
+        }
+    },
+
+    _saveLocalSqlUsers: function(users) {
+        try {
+            localStorage.setItem("solplay_sql_users", JSON.stringify(users));
+        } catch (e) {}
+    },
+
+    _getLocalSqlWagers: function() {
+        try {
+            const raw = localStorage.getItem("solplay_sql_wagers");
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    _saveLocalSqlWagers: function(wagers) {
+        try {
+            localStorage.setItem("solplay_sql_wagers", JSON.stringify(wagers));
+        } catch (e) {}
+    },
+
+    // --------------------------------------------------------------------------
+    // DETERMINISTIC SOLANA KEYPAIR DERIVATION FROM EMAIL
+    // --------------------------------------------------------------------------
+    deriveKeypairFromEmail: async function(email) {
+        const cleanEmail = email.trim().toLowerCase();
+        const encoder = new TextEncoder();
+        const data = encoder.encode("solplay_deterministic_seed_v1:" + cleanEmail);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const seed = new Uint8Array(hashBuffer);
+        const solWeb3 = window.solanaWeb3 || (typeof solanaWeb3 !== 'undefined' ? solanaWeb3 : null);
+        if (!solWeb3) {
+            throw new Error("Solana Web3 SDK not loaded in browser context");
+        }
+        const keypair = solWeb3.Keypair.fromSeed(seed);
+        return {
+            email: cleanEmail,
+            keypair: keypair,
+            publicKey: keypair.publicKey,
+            address: keypair.publicKey.toBase58()
+        };
+    },
+
+    // --------------------------------------------------------------------------
+    // EMAIL AUTHENTICATION & EMBEDDED WALLET INITIALIZATION
+    // --------------------------------------------------------------------------
+    loginWithEmail: async function(email, startingBalanceSol = 10.0) {
+        const derived = await this.deriveKeypairFromEmail(email);
+        const address = derived.address;
+        const cleanEmail = derived.email;
+        const username = cleanEmail.split('@')[0];
+
+        // 1. Sync with local SQL store
+        let localUsers = this._getLocalSqlUsers();
+        let user = localUsers.find(u => u.email === cleanEmail || u.wallet_address === address);
+        if (!user) {
+            user = {
+                id: 'usr_' + Math.random().toString(36).substring(2, 10),
+                email: cleanEmail,
+                wallet_address: address,
+                username: username,
+                display_name: username,
+                balance_sol: startingBalanceSol,
+                balance_lamports: this.solToLamports(startingBalanceSol),
+                created_at: new Date().toISOString(),
+                last_login: new Date().toISOString()
+            };
+            localUsers.unshift(user);
+        } else {
+            user.last_login = new Date().toISOString();
+            if (!user.email) user.email = cleanEmail;
+        }
+        this._saveLocalSqlUsers(localUsers);
+
+        // 2. Sync with cloud Supabase DB if available
+        if (this.isInitialized && this.supabaseClient) {
+            try {
+                const { data: cloudUser } = await this.supabaseClient
+                    .from("users")
+                    .select("*")
+                    .or(`wallet_address.eq.${address},email.eq.${cleanEmail}`)
+                    .maybeSingle();
+
+                if (cloudUser) {
+                    await this.supabaseClient
+                        .from("users")
+                        .update({ last_login: new Date().toISOString(), email: cleanEmail })
+                        .eq("id", cloudUser.id);
+                    user = { ...user, ...cloudUser };
+                } else {
+                    const { data: newCloudUser } = await this.supabaseClient
+                        .from("users")
+                        .insert([{
+                            wallet_address: address,
+                            email: cleanEmail,
+                            username: username,
+                            display_name: username,
+                            balance_lamports: this.solToLamports(startingBalanceSol),
+                            last_login: new Date().toISOString()
+                        }])
+                        .select()
+                        .maybeSingle();
+                    if (newCloudUser) user = { ...user, ...newCloudUser };
+                }
+            } catch (err) {
+                console.warn("Cloud DB sync warning (continuing with local SQL store):", err);
+            }
+        }
+
+        // Store active session
+        localStorage.setItem("solplay_active_session", JSON.stringify({
+            authType: 'email',
+            email: cleanEmail,
+            walletAddress: address,
+            secretKeyHex: Array.from(derived.keypair.secretKey).map(b => b.toString(16).padStart(2, '0')).join('')
+        }));
+
+        return { user, keypair: derived.keypair, address };
+    },
+
+    // --------------------------------------------------------------------------
+    // RETRIEVE ALL USERS FOR BACKEND ADMIN PANEL
+    // --------------------------------------------------------------------------
+    getAllUsers: async function() {
+        let users = [];
+        // First try Cloud DB
+        if (this.isInitialized && this.supabaseClient) {
+            try {
+                const { data, error } = await this.supabaseClient
+                    .from("users")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+                if (!error && data && data.length > 0) {
+                    users = data;
+                }
+            } catch (e) {}
+        }
+
+        // Merge with local SQL users
+        const localUsers = this._getLocalSqlUsers();
+        localUsers.forEach(lu => {
+            if (!users.some(u => u.wallet_address === lu.wallet_address)) {
+                users.push(lu);
+            }
+        });
+
+        // Enrich with wager statistics
+        const allWagers = this._getLocalSqlWagers();
+        return users.map(u => {
+            const userWagers = allWagers.filter(w => w.user_wallet === u.wallet_address || (u.email && w.email === u.email));
+            const totalWageredSol = userWagers.reduce((sum, w) => sum + (parseFloat(w.amount) || 0), 0);
+            const totalWonSol = userWagers.filter(w => w.status === 'WON').reduce((sum, w) => sum + (parseFloat(w.potentialPayout) || 0), 0);
+            return {
+                ...u,
+                wagerCount: userWagers.length,
+                totalWageredSol: totalWageredSol.toFixed(2),
+                totalWonSol: totalWonSol.toFixed(2),
+                wagers: userWagers
+            };
+        });
+    },
+
+    // 1. Ensure user exists in cloud or local database
+    syncUserAccount: async function(walletAddress, email = null, username = null, balanceSol = 10.0) {
         if (!walletAddress) return null;
         
+        // Always ensure presence in local SQL store
+        let localUsers = this._getLocalSqlUsers();
+        let user = localUsers.find(u => u.wallet_address === walletAddress || (email && u.email === email));
+        if (!user) {
+            const defaultUsername = username || (email ? email.split('@')[0] : `punter_${walletAddress.slice(0, 5).toLowerCase()}`);
+            user = {
+                id: 'usr_' + Math.random().toString(36).substring(2, 10),
+                email: email,
+                wallet_address: walletAddress,
+                username: defaultUsername,
+                display_name: defaultUsername,
+                balance_sol: balanceSol,
+                balance_lamports: this.solToLamports(balanceSol),
+                created_at: new Date().toISOString(),
+                last_login: new Date().toISOString()
+            };
+            localUsers.unshift(user);
+            this._saveLocalSqlUsers(localUsers);
+        } else {
+            user.last_login = new Date().toISOString();
+            if (email && !user.email) user.email = email;
+            this._saveLocalSqlUsers(localUsers);
+        }
+
         if (!this.isInitialized || !this.supabaseClient) {
-            // Local fallback
-            return { wallet_address: walletAddress, balance_sol: balanceSol, balance_lamports: this.solToLamports(balanceSol) };
+            return user;
         }
 
         try {
-            const { data: existingUser, error: fetchErr } = await this.supabaseClient
+            const { data: existingUser } = await this.supabaseClient
                 .from("users")
                 .select("*")
                 .eq("wallet_address", walletAddress)
                 .maybeSingle();
 
             if (existingUser) {
-                // Update last login
                 await this.supabaseClient
                     .from("users")
-                    .update({ last_login: new Date().toISOString() })
+                    .update({ last_login: new Date().toISOString(), ...(email ? { email } : {}) })
                     .eq("wallet_address", walletAddress);
-                return existingUser;
+                return { ...user, ...existingUser };
             } else {
-                // Create new user record with unique wallet and integer lamports
-                const defaultUsername = username || `punter_${walletAddress.slice(0, 5).toLowerCase()}`;
+                const defaultUsername = username || (email ? email.split('@')[0] : `punter_${walletAddress.slice(0, 5).toLowerCase()}`);
                 const balanceLamports = this.solToLamports(balanceSol);
-                const { data: newUser, error: insertErr } = await this.supabaseClient
+                const { data: newUser } = await this.supabaseClient
                     .from("users")
                     .insert([{
                         wallet_address: walletAddress,
+                        email: email,
                         username: defaultUsername,
                         display_name: defaultUsername,
                         balance_lamports: balanceLamports,
@@ -87,14 +310,11 @@ const SolPlayDB = {
                     .select()
                     .single();
 
-                if (insertErr) {
-                    console.warn("Error creating cloud user record:", insertErr);
-                }
-                return newUser;
+                return newUser || user;
             }
         } catch (e) {
             console.error("syncUserAccount error:", e);
-            return null;
+            return user;
         }
     },
 
@@ -166,6 +386,33 @@ const SolPlayDB = {
     saveWager: async function(wager, walletAddress) {
         if (!wager || !walletAddress) return;
 
+        // 1. Always record in local SQL storage schema
+        try {
+            let localWagers = this._getLocalSqlWagers();
+            const wId = wager.ticketId || wager.id;
+            const existingIdx = localWagers.findIndex(w => w.id === wId);
+            const record = {
+                id: wId,
+                tx_signature: wager.txSignature || wager.signature || null,
+                user_wallet: walletAddress,
+                amount: wager.amount,
+                odds: wager.odds,
+                potentialPayout: wager.potentialPayout || (wager.amount * wager.odds),
+                outcome_label: wager.outcomeLabel || 'Wager',
+                isAccumulator: Boolean(wager.isAccumulator),
+                legs: wager.legs || [],
+                status: wager.status || 'PENDING',
+                created_at: new Date().toISOString()
+            };
+            if (existingIdx >= 0) {
+                localWagers[existingIdx] = record;
+            } else {
+                localWagers.unshift(record);
+            }
+            this._saveLocalSqlWagers(localWagers);
+        } catch (e) {}
+
+        // 2. Cloud DB synchronization
         if (this.isInitialized && this.supabaseClient) {
             try {
                 // Ensure user exists first

@@ -10,6 +10,7 @@
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     wallet_address TEXT UNIQUE NOT NULL,               -- 100% globally unique Solana address (Base58)
+    email TEXT UNIQUE,                                -- User verified email address for passwordless login
     username TEXT UNIQUE,                             -- Optional unique handle (e.g. @david_sol)
     display_name TEXT,                                -- Friendly display name
     avatar_url TEXT,
@@ -23,6 +24,8 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 -- Backward compatibility for existing databases
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS balance_lamports BIGINT DEFAULT 10000000000;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 
 -- 2. WAGERS TABLE
 -- Stores every single bet and multi-leg accumulator with idempotency guarantees

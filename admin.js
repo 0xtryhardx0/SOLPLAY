@@ -748,8 +748,152 @@ function rotateAdminRpc() {
     }
 }
 
-// Auto-run metrics when page loads
+// Auto-run metrics and SQL user registry when page loads
 window.addEventListener('load', () => {
     loadAdminMetricsAndLeaderboard();
+    loadAndRenderAdminUsers();
     setInterval(loadAdminMetricsAndLeaderboard, 10000);
+    setInterval(loadAndRenderAdminUsers, 12000);
 });
+
+// ==============================================================================
+// REGISTERED SQL USERS & INDIVIDUAL ACCOUNT INSPECTION
+// ==============================================================================
+let cachedAdminUsers = [];
+
+async function loadAndRenderAdminUsers() {
+    const tbody = document.getElementById("admin-users-tbody");
+    const countBadge = document.getElementById("admin-user-count-badge");
+    if (!tbody) return;
+
+    try {
+        if (typeof SolPlayDB !== 'undefined' && typeof SolPlayDB.getAllUsers === 'function') {
+            cachedAdminUsers = await SolPlayDB.getAllUsers();
+        } else {
+            const raw = localStorage.getItem("solplay_sql_users");
+            cachedAdminUsers = raw ? JSON.parse(raw) : [];
+        }
+
+        if (countBadge) {
+            countBadge.textContent = `${cachedAdminUsers.length} Users`;
+        }
+
+        renderAdminUsersTableRows(cachedAdminUsers);
+    } catch (err) {
+        console.error("loadAndRenderAdminUsers error:", err);
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 1rem; color: #ef4444;">Error loading SQL users: ${err.message}</td></tr>`;
+    }
+}
+
+function renderAdminUsersTableRows(users) {
+    const tbody = document.getElementById("admin-users-tbody");
+    if (!tbody) return;
+
+    if (!users || users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 1.5rem; color: var(--text-secondary);">No registered users in SQL database yet.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = users.map(user => {
+        const emailDisplay = user.email ? `<span style="color: #fff; font-weight: 600;">${user.email}</span>` : `<span style="color: var(--text-secondary); font-style: italic;">Web3 Only</span>`;
+        const shortAddr = user.wallet_address ? `${user.wallet_address.slice(0, 6)}...${user.wallet_address.slice(-4)}` : "—";
+        const bal = parseFloat(user.balance_sol || (user.balance_lamports ? user.balance_lamports / 1e9 : 10.0)).toFixed(2);
+        const wagersCount = user.wagerCount || 0;
+        const vol = user.totalWageredSol || "0.00";
+        const regDate = user.created_at ? new Date(user.created_at).toLocaleDateString() : "Today";
+        const lastLogin = user.last_login ? new Date(user.last_login).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active";
+
+        return `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 0.65rem 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span style="font-size: 1rem;">👤</span>
+                        <div>
+                            <div>${emailDisplay}</div>
+                            <div style="font-size: 0.72rem; color: var(--text-secondary);">${user.display_name || user.username || ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="padding: 0.65rem 0.5rem; font-family: monospace;">
+                    <span style="color: var(--neon-teal); cursor: pointer;" title="Copy Address" onclick="navigator.clipboard.writeText('${user.wallet_address}'); showToast('Wallet Address Copied!', 'info');">
+                        ${shortAddr} 📋
+                    </span>
+                </td>
+                <td style="padding: 0.65rem 0.5rem; font-weight: 700; color: #22c55e;">
+                    ${bal} SOL
+                </td>
+                <td style="padding: 0.65rem 0.5rem;">
+                    <span style="background: rgba(255,255,255,0.08); padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600;">
+                        ${wagersCount} slips
+                    </span>
+                </td>
+                <td style="padding: 0.65rem 0.5rem; font-weight: 700; color: #fff;">
+                    ${vol} SOL
+                </td>
+                <td style="padding: 0.65rem 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+                    ${regDate} &bull; ${lastLogin}
+                </td>
+                <td style="padding: 0.65rem 0.5rem; text-align: right;">
+                    <button class="btn-mini" onclick="inspectUserSlips('${user.wallet_address}', '${user.email || user.username || 'Punter'}')" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c084fc; padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 6px; cursor: pointer;">
+                        Inspect Slips ➔
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function filterAdminUsersTable(query) {
+    if (!query) {
+        renderAdminUsersTableRows(cachedAdminUsers);
+        return;
+    }
+    const q = query.toLowerCase().trim();
+    const filtered = cachedAdminUsers.filter(u => 
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.wallet_address && u.wallet_address.toLowerCase().includes(q)) ||
+        (u.username && u.username.toLowerCase().includes(q))
+    );
+    renderAdminUsersTableRows(filtered);
+}
+
+function inspectUserSlips(walletAddress, identifier) {
+    const drawer = document.getElementById("admin-user-slips-drawer");
+    const targetEl = document.getElementById("admin-detail-user-target");
+    const contentEl = document.getElementById("admin-detail-slips-content");
+    if (!drawer || !contentEl) return;
+
+    targetEl.textContent = `${identifier} (${walletAddress.slice(0, 8)}...)`;
+    drawer.style.display = "block";
+
+    const allWagers = typeof SolPlayDB !== 'undefined' && typeof SolPlayDB._getLocalSqlWagers === 'function' ? SolPlayDB._getLocalSqlWagers() : [];
+    const userWagers = allWagers.filter(w => w.user_wallet === walletAddress);
+
+    if (userWagers.length === 0) {
+        contentEl.innerHTML = `<div style="padding: 0.8rem; text-align: center; color: var(--text-secondary);">No historical bets placed by this user yet.</div>`;
+        return;
+    }
+
+    contentEl.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto;">
+            ${userWagers.map(w => `
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 0.6rem 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-weight: 700; color: #fff;">${w.outcome_label || 'Match Pick'}</span>
+                        <span style="font-size: 0.75rem; color: var(--neon-teal); margin-left: 0.4rem;">@${w.odds}x</span>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.1rem;">Ticket: ${w.id} &bull; ${new Date(w.created_at).toLocaleString()}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 700; color: #fff;">${w.amount} SOL</div>
+                        <span style="font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; ${w.status === 'WON' ? 'background: rgba(34,197,94,0.2); color: #22c55e;' : w.status === 'LOST' ? 'background: rgba(239,68,68,0.2); color: #ef4444;' : 'background: rgba(234,179,8,0.2); color: #eab308;'}">${w.status}</span>
+                    </div>
+                </div>
+            `).join("")}
+        </div>
+    `;
+}
+
+function closeUserSlipsDrawer() {
+    const drawer = document.getElementById("admin-user-slips-drawer");
+    if (drawer) drawer.style.display = "none";
+}

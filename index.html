@@ -1560,33 +1560,67 @@
             </button>
         </div>
 
-        <!-- PANEL 1: 1-Click Social Sign-In (Invisible Web3 / MPC) -->
+        <!-- PANEL 1: Email Sign-In & Embedded Solana Wallet -->
         <div id="fiat-panel-auth" class="hidden flex flex-col gap-4">
-            <div class="bg-purple-500/10 border border-purple-500/20 p-3.5 rounded-2xl flex items-start gap-3">
-                <span class="material-symbols-outlined text-purple-400 text-[22px] mt-0.5">verified_user</span>
+            <div class="bg-gradient-to-r from-purple-500/10 via-teal-500/10 to-transparent border border-teal-500/20 p-3.5 rounded-2xl flex items-start gap-3">
+                <span class="material-symbols-outlined text-teal-400 text-[22px] mt-0.5">mail_lock</span>
                 <div class="text-xs">
-                    <strong class="text-purple-300 block mb-0.5">Invisible Non-Custodial Web3</strong>
-                    <span class="text-on-surface/70">No seed phrases or crypto extension required. Logging in creates a secure MPC keypair bound to your account.</span>
+                    <strong class="text-teal-300 block mb-0.5">Passwordless Email Auth (Embedded Solana Wallet)</strong>
+                    <span class="text-on-surface/70">Entering your email generates a personal, persistent on-chain Solana keypair stored directly in the SQL database with 10.0 SOL starting bankroll.</span>
                 </div>
             </div>
 
-            <div class="flex flex-col gap-2.5">
-                <button onclick="simulateSocialLogin('Google')" class="w-full py-3 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 12s.6 3.6 1.6 5.6l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"/></svg>
-                    <span>Continue with Google</span>
-                </button>
-                <button onclick="simulateSocialLogin('Apple')" class="w-full py-3 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-md cursor-pointer">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.69-7.85-12-14.43-6.09-9.33-10.86-19.78-14.3-31.33-3.44-11.55-5.16-22.31-5.16-32.28 0-14.89 3.82-27.27 11.45-37.13 7.64-9.87 17.1-14.86 28.39-14.98 5.48 0 11.28 1.45 17.41 4.36 6.13 2.91 10.02 4.41 11.66 4.5 1.83 0 5.86-1.55 12.08-4.63 6.22-3.09 11.83-4.52 16.83-4.32 12.87.5 23.35 4.67 31.42 12.51-11.39 6.89-16.96 16.48-16.71 28.78.25 9.77 4.07 17.86 11.45 24.28 7.38 6.42 16.14 10.08 26.27 10.99-2.32 7.05-5.28 14.51-8.88 22.38zM119.22 31.84c0-7.22 2.61-14.07 7.83-20.55 5.23-6.49 11.75-10.59 19.57-12.29.13 1.25.19 2.25.19 3 0 7.23-2.67 14.17-8.02 20.8-5.35 6.64-11.97 10.55-19.86 11.73-.13-1.01-.19-1.9-.19-2.69z"/></svg>
-                    <span>Continue with Apple</span>
-                </button>
-                <div class="flex items-center gap-2 my-1">
-                    <div class="h-[1px] bg-white/10 flex-1"></div>
-                    <span class="text-[10px] text-on-surface/40 uppercase font-bold">Or Web3 Wallet</span>
-                    <div class="h-[1px] bg-white/10 flex-1"></div>
+            <!-- Email Form -->
+            <div class="flex flex-col gap-2" id="auth-email-form-container">
+                <label class="text-[11px] font-bold text-on-surface/80 flex items-center justify-between">
+                    <span>Enter Your Email Address</span>
+                    <span class="text-teal-400 font-mono text-[10px]">Instant Keypair ⚡</span>
+                </label>
+                <div class="flex gap-2">
+                    <input type="email" id="auth-email-input" onkeydown="if(event.key==='Enter') handleEmailLoginSubmit()" placeholder="punter@example.com" class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-on-surface/40 focus:border-teal-400 outline-none transition-all font-mono">
+                    <button onclick="handleEmailLoginSubmit()" class="liquid-button px-4 py-2.5 rounded-xl font-bold text-white text-xs whitespace-nowrap cursor-pointer shadow-lg hover:scale-105 transition-all">
+                        <span>Continue</span> ➔
+                    </button>
                 </div>
-                <button onclick="toggleWallet(); closeFiatCashoutModal();" class="w-full py-2.5 px-4 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-                    <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
-                    <span>Connect Phantom / Solflare</span>
+            </div>
+
+            <!-- Logged-In User Profile Card (Shown when connected) -->
+            <div id="auth-user-profile-card" style="display: none;" class="bg-black/40 border border-teal-500/30 p-3.5 rounded-2xl flex flex-col gap-2.5">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-xs font-bold text-white" id="auth-user-email-label">user@example.com</span>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded border border-teal-500/30">SQL Verified</span>
+                </div>
+                <div class="text-[11px] text-on-surface/60 font-mono flex items-center justify-between bg-white/[0.03] p-2 rounded-lg">
+                    <span>Solana Keypair:</span>
+                    <span class="text-white font-bold" id="auth-user-wallet-label">5G9X...7kP</span>
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="disconnectAccount()" class="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-bold transition-all cursor-pointer">
+                        Sign Out / Switch Account
+                    </button>
+                    <button onclick="closeFiatCashoutModal()" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all cursor-pointer">
+                        Done
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 my-1">
+                <div class="h-[1px] bg-white/10 flex-1"></div>
+                <span class="text-[10px] text-on-surface/40 uppercase font-bold">Or Connect Browser Wallet</span>
+                <div class="h-[1px] bg-white/10 flex-1"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="connectPhantomWalletDirect()" class="py-2.5 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
+                    <span>👻</span>
+                    <span>Phantom</span>
+                </button>
+                <button onclick="connectDevnetSandboxDirect()" class="py-2.5 px-3 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
+                    <span>⚡</span>
+                    <span>Devnet Sandbox</span>
                 </button>
             </div>
         </div>

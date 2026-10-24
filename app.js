@@ -2618,77 +2618,174 @@ function changeWalletType() {
     document.getElementById("btn-airdrop").style.display = "none";
 }
 
-async function toggleWallet() {
-    const connectBtn = document.getElementById("btn-connect-wallet");
-    const balanceContainer = document.getElementById("sol-balance-container");
-    const airdropBtn = document.getElementById("btn-airdrop");
+let activeUserEmail = null;
 
-    if (!isWalletConnected) {
-        if (activeWalletType === 'sandbox') {
-            isWalletConnected = true;
-            activePublicKey = walletKeypair.publicKey;
-            connectBtn.textContent = activePublicKey.toString().slice(0, 6) + "..." + activePublicKey.toString().slice(-4);
-            connectBtn.style.background = "linear-gradient(135deg, var(--neon-teal), #0d9488)";
-            connectBtn.style.boxShadow = "var(--glow-teal)";
-            balanceContainer.style.display = "block";
-            airdropBtn.style.display = "block";
-            
-            showToast("Sandbox Wallet Connected!", "success");
-            await updateWalletBalance();
-            loadWagersFromStorage();
-            renderActiveWagers();
-            startWatchMilestone();
-        } else if (activeWalletType === 'phantom') {
-            if (!window.solana) {
-                showToast("Phantom extension not detected! Please install it first.", "error");
-                return;
-            }
-            try {
-                showToast("Requesting Phantom Wallet connection...", "info");
-                const response = await window.solana.connect();
-                activePublicKey = response.publicKey;
-                isWalletConnected = true;
-                
-                connectBtn.textContent = activePublicKey.toString().slice(0, 6) + "..." + activePublicKey.toString().slice(-4);
-                connectBtn.style.background = "linear-gradient(135deg, #ab9ff2, #512da8)";
-                connectBtn.style.boxShadow = "0 0 15px rgba(81, 45, 168, 0.4)";
-                balanceContainer.style.display = "block";
-                airdropBtn.style.display = "none";
-                
-                showToast("Phantom Wallet Connected!", "success");
-                await updateWalletBalance();
-                loadWagersFromStorage();
-                renderActiveWagers();
-                startWatchMilestone();
-                
-                window.solana.on('disconnect', handlePhantomDisconnect);
-            } catch (err) {
-                showToast("Failed to connect Phantom: " + err.message, "error");
-                console.error(err);
-            }
-        }
-    } else {
-        isWalletConnected = false;
-        if (activeWalletType === 'phantom' && window.solana) {
-            try {
-                window.solana.disconnect();
-            } catch (err) {}
-            window.solana.removeListener('disconnect', handlePhantomDisconnect);
-        }
-        activePublicKey = activeWalletType === 'sandbox' && walletKeypair ? walletKeypair.publicKey : null;
-        loadWagersFromStorage();
-        renderActiveWagers();
-        
-        connectBtn.textContent = activeWalletType === 'sandbox' ? "Connect Sandbox Wallet" : "Connect Phantom Wallet";
-        connectBtn.style.background = "linear-gradient(135deg, var(--neon-purple), #7c3aed)";
-        connectBtn.style.boxShadow = "var(--glow-purple)";
-        balanceContainer.style.display = "none";
-        airdropBtn.style.display = "none";
-        
-        stopWatchMilestone();
-        showToast("Wallet Disconnected", "info");
+async function toggleWallet() {
+    if (typeof openFiatCashoutModal === 'function') {
+        openFiatCashoutModal('auth');
     }
 }
+
+async function handleEmailLoginSubmit() {
+    const input = document.getElementById("auth-email-input");
+    if (!input || !input.value.trim()) {
+        showToast("Please enter a valid email address.", "error");
+        return;
+    }
+    await executeEmailLogin(input.value.trim(), true);
+}
+
+async function executeEmailLogin(email, showNotification = true) {
+    if (!email || !email.includes('@')) {
+        showToast("Please enter a valid email address.", "error");
+        return;
+    }
+    try {
+        if (!window.SolPlayDB || typeof SolPlayDB.loginWithEmail !== 'function') {
+            showToast("Database connector initializing, please try again in a moment.", "info");
+            return;
+        }
+
+        const result = await SolPlayDB.loginWithEmail(email);
+        walletKeypair = result.keypair;
+        activePublicKey = result.keypair.publicKey;
+        isWalletConnected = true;
+        activeWalletType = 'email';
+        activeUserEmail = result.user.email;
+
+        // Update UI
+        updateConnectedUserUI();
+
+        // Update balance and wagers
+        await updateWalletBalance();
+        loadWagersFromStorage();
+        renderActiveWagers();
+
+        if (showNotification) {
+            showToast(`🎉 Signed in as ${activeUserEmail}!`, "success");
+        }
+
+        if (typeof closeFiatCashoutModal === 'function') {
+            closeFiatCashoutModal();
+        }
+    } catch (err) {
+        console.error("Email login error:", err);
+        showToast("Email sign in failed: " + err.message, "error");
+    }
+}
+
+function updateConnectedUserUI() {
+    const connectBtn = document.getElementById("btn-connect-wallet");
+    const connectLabel = document.getElementById("btn-connect-label");
+    const balanceContainer = document.getElementById("sol-balance-container");
+    const emailProfileCard = document.getElementById("auth-user-profile-card");
+    const emailFormContainer = document.getElementById("auth-email-form-container");
+    const userEmailLabel = document.getElementById("auth-user-email-label");
+    const userWalletLabel = document.getElementById("auth-user-wallet-label");
+
+    if (isWalletConnected && activePublicKey) {
+        const shortAddr = activePublicKey.toString().slice(0, 4) + "..." + activePublicKey.toString().slice(-4);
+        const displayLabel = activeUserEmail ? `${activeUserEmail.split('@')[0]} (${shortAddr})` : shortAddr;
+
+        if (connectLabel) connectLabel.textContent = displayLabel;
+        else if (connectBtn) connectBtn.textContent = displayLabel;
+
+        if (connectBtn) {
+            connectBtn.style.background = activeUserEmail ? "linear-gradient(135deg, #10b981, #0d9488)" : "linear-gradient(135deg, var(--neon-teal), #0d9488)";
+            connectBtn.style.boxShadow = "var(--glow-teal)";
+        }
+        if (balanceContainer) balanceContainer.style.display = "flex";
+
+        if (emailProfileCard && activeUserEmail) {
+            emailProfileCard.style.display = "flex";
+            if (userEmailLabel) userEmailLabel.textContent = activeUserEmail;
+            if (userWalletLabel) userWalletLabel.textContent = activePublicKey.toString();
+        }
+        if (emailFormContainer && activeUserEmail) {
+            emailFormContainer.style.display = "none";
+        }
+    } else {
+        if (connectLabel) connectLabel.textContent = "Connect";
+        else if (connectBtn) connectBtn.textContent = "Connect";
+
+        if (connectBtn) {
+            connectBtn.style.background = "linear-gradient(135deg, rgba(153, 69, 255, 0.2) 0%, rgba(0, 236, 145, 0.1) 100%)";
+            connectBtn.style.boxShadow = "none";
+        }
+        if (balanceContainer) balanceContainer.style.display = "none";
+
+        if (emailProfileCard) emailProfileCard.style.display = "none";
+        if (emailFormContainer) emailFormContainer.style.display = "flex";
+    }
+}
+
+function disconnectAccount() {
+    isWalletConnected = false;
+    activeUserEmail = null;
+    activeWalletType = 'sandbox';
+    localStorage.removeItem("solplay_active_session");
+
+    if (window.solana) {
+        try { window.solana.disconnect(); } catch (e) {}
+    }
+
+    loadOrCreateWallet();
+    updateConnectedUserUI();
+    loadWagersFromStorage();
+    renderActiveWagers();
+    showToast("Signed out successfully.", "info");
+    if (typeof closeFiatCashoutModal === 'function') {
+        closeFiatCashoutModal();
+    }
+}
+
+async function connectPhantomWalletDirect() {
+    if (!window.solana) {
+        showToast("Phantom wallet extension not detected! Please install Phantom.", "error");
+        return;
+    }
+    try {
+        const resp = await window.solana.connect();
+        activePublicKey = resp.publicKey;
+        isWalletConnected = true;
+        activeWalletType = 'phantom';
+        activeUserEmail = null;
+        updateConnectedUserUI();
+        await updateWalletBalance();
+        loadWagersFromStorage();
+        renderActiveWagers();
+        showToast("Phantom Wallet Connected!", "success");
+        if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
+    } catch (e) {
+        showToast("Connection rejected: " + e.message, "error");
+    }
+}
+
+async function connectDevnetSandboxDirect() {
+    loadOrCreateWallet();
+    isWalletConnected = true;
+    activeWalletType = 'sandbox';
+    activeUserEmail = null;
+    updateConnectedUserUI();
+    await updateWalletBalance();
+    loadWagersFromStorage();
+    renderActiveWagers();
+    showToast("Devnet Sandbox Wallet Connected!", "success");
+    if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
+}
+
+async function checkAndResumeEmailSession() {
+    try {
+        const raw = localStorage.getItem("solplay_active_session");
+        if (raw) {
+            const sess = JSON.parse(raw);
+            if (sess.authType === 'email' && sess.email) {
+                await executeEmailLogin(sess.email, false);
+            }
+        }
+    } catch (e) {}
+}
+setTimeout(checkAndResumeEmailSession, 500);
 
 function handlePhantomDisconnect() {
     isWalletConnected = false;
