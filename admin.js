@@ -748,12 +748,20 @@ function rotateAdminRpc() {
     }
 }
 
-// Auto-run metrics and SQL user registry when page loads
+// Auto-run metrics, SQL user registry, and MultiHopper routing when page loads
 window.addEventListener('load', () => {
     loadAdminMetricsAndLeaderboard();
     loadAndRenderAdminUsers();
+    if (typeof loadAndRenderMultiHopperRoutes === 'function') {
+        loadAndRenderMultiHopperRoutes();
+    }
     setInterval(loadAdminMetricsAndLeaderboard, 10000);
     setInterval(loadAndRenderAdminUsers, 12000);
+    setInterval(() => {
+        if (typeof loadAndRenderMultiHopperRoutes === 'function') {
+            loadAndRenderMultiHopperRoutes();
+        }
+    }, 10000);
 });
 
 // ==============================================================================
@@ -896,4 +904,44 @@ function inspectUserSlips(walletAddress, identifier) {
 function closeUserSlipsDrawer() {
     const drawer = document.getElementById("admin-user-slips-drawer");
     if (drawer) drawer.style.display = "none";
+}
+
+// ==============================================================================
+// MULTIHOPPER PROTOCOL ROUTING & REVENUE ATTRIBUTION
+// ==============================================================================
+function loadAndRenderMultiHopperRoutes() {
+    const tbody = document.getElementById("admin-multihopper-tbody");
+    if (!tbody) return;
+
+    const routes = (typeof window.multiHopper !== "undefined") ? window.multiHopper.getAllRoutes() : [];
+    
+    let totalVol = 0;
+    let totalRev = 0;
+    routes.forEach(r => {
+        totalVol += parseFloat(r.amount || 0);
+        totalRev += parseFloat(r.partnerRev || 0);
+    });
+
+    const volEl = document.getElementById("mhop-kpi-volume");
+    if (volEl) volEl.textContent = `${totalVol.toFixed(2)} SOL`;
+    const revEl = document.getElementById("mhop-kpi-revenue");
+    if (revEl) revEl.textContent = `${totalRev.toFixed(4)} SOL`;
+
+    if (routes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 1.2rem; color: var(--text-secondary);">No MultiHopper routes recorded yet. Initiate one from the cashier drawer!</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = routes.map(r => `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem;">
+            <td style="padding: 0.6rem 0.5rem; font-family: monospace; color: var(--neon-teal); font-weight: 700;">#${r.routeId}</td>
+            <td style="padding: 0.6rem 0.5rem; font-family: monospace; color: var(--text-secondary);">${(r.origin || '').substring(0, 8)}...</td>
+            <td style="padding: 0.6rem 0.5rem; font-family: monospace; color: #fff;">${(r.destination || '').substring(0, 8)}...</td>
+            <td style="padding: 0.6rem 0.5rem; font-weight: 700; color: #fff;">${r.amount} ${r.asset || 'SOL'}</td>
+            <td style="padding: 0.6rem 0.5rem;"><span style="background: rgba(20, 184, 166, 0.15); color: var(--neon-teal); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700;">${r.hopCount} hops</span></td>
+            <td style="padding: 0.6rem 0.5rem;"><span style="color: #22c55e; font-weight: 700;">${r.trmRiskScore}/100</span></td>
+            <td style="padding: 0.6rem 0.5rem;"><span style="background: ${r.status === 'COMPLETED' ? 'rgba(34,197,94,0.15); color: #22c55e;' : 'rgba(234,179,8,0.15); color: #eab308;'}; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700; font-size: 0.72rem;">${r.status}</span></td>
+            <td style="padding: 0.6rem 0.5rem; font-family: monospace; font-size: 0.75rem;"><a href="https://solscan.io/tx/${r.txSignature}?cluster=devnet" target="_blank" style="color: var(--neon-teal); text-decoration: underline;">${(r.txSignature || 'pending').substring(0, 10)}...</a></td>
+        </tr>
+    `).join("");
 }
