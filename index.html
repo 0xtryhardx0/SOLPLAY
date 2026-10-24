@@ -417,20 +417,9 @@
             Solana Devnet
         </span>
         <span class="text-white/20">•</span>
-        <span class="text-white/70">400ms Sub-Second Escrows</span>
+        <span class="text-white/70" id="header-live-clock">⏰ Loading...</span>
         <span class="text-white/20 hidden sm:inline">•</span>
-        <span class="text-teal-400 hidden sm:inline flex items-center gap-1">
-            <span class="material-symbols-outlined text-[13px]">bolt</span>
-            Pyth & Autonomous Oracles Live
-        </span>
-        <span class="text-white/20 hidden md:inline">•</span>
-        <span class="text-white/50 hidden md:inline" id="header-live-clock">⏰ 16:25 WAT</span>
-        <span class="text-white/20 hidden sm:inline">•</span>
-        <button id="header-live-score-sync-btn" onclick="triggerManualScoreSync()" class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 rounded cursor-pointer transition-all" title="Synchronize live match scores and check for concluded matches via reliable sports API">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-            <span id="score-sync-status-text">ESPN Scores: Live</span>
-            <span class="material-symbols-outlined text-[13px]" id="score-sync-icon">sync</span>
-        </button>
+        <span class="text-emerald-400/90 hidden sm:inline font-semibold">Instant On-Chain Settlement</span>
     </div>
     <div class="flex items-center gap-3 text-[11px]">
         <div class="flex items-center gap-1.5 bg-white/[0.04] px-2 py-0.5 rounded border border-white/5">
@@ -441,13 +430,8 @@
                 <option value="american" class="bg-[#0e101d] text-white">American (+110)</option>
             </select>
         </div>
-        <span class="text-white/20 hidden lg:inline">•</span>
-        <span class="text-white/60 hidden lg:inline">Platform Take: <strong class="text-emerald-400 font-bold">0% Fee</strong></span>
         <span class="text-white/20 hidden sm:inline">•</span>
-        <a href="https://github.com/0xtryhardx0/SOLPLAY" target="_blank" class="text-primary hover:text-white transition-colors flex items-center gap-0.5 font-bold">
-            <span>Repo</span>
-            <span class="material-symbols-outlined text-[12px]">open_in_new</span>
-        </a>
+        <span class="text-white/60 hidden sm:inline"><strong class="text-emerald-400 font-bold">0% Protocol Fee</strong></span>
     </div>
 </div>
 
@@ -457,23 +441,23 @@
     <div class="flex items-center gap-6 xl:gap-8">
         <h1 class="text-headline-md font-black tracking-tight cursor-pointer flex items-center gap-2 select-none" onclick="location.reload()">
             <span class="iridescent-gradient text-xl lg:text-2xl font-black">⚡ SolPlay</span>
-            <span class="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30">PRO SPORTSBOOK</span>
+            <span class="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30">SPORTSBOOK</span>
         </h1>
 
         <!-- Primary Sport Nav Links -->
         <nav class="hidden md:flex items-center gap-1.5 lg:gap-2">
-            <button onclick="switchTab('sports')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/10 border border-white/10 hover:bg-white/15 transition-all flex items-center gap-1.5">
-                <span>⚽ Sports</span>
+            <button onclick="switchTab('sports')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-white/10 border border-white/10 hover:bg-white/15 transition-all flex items-center gap-1.5">
+                <span>⚽ Sportsbook</span>
+            </button>
+            <button onclick="switchTab('sports'); filterMatchesBySchedule('live')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <span>Live In-Play</span>
             </button>
             <button onclick="switchTab('sports'); filterMatchesBySchedule('today')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Today's UCL</span>
+                <span>📅 Today's Card</span>
             </button>
             <button onclick="switchTab('sports'); filterMatchesBySchedule('tomorrow')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all">
                 <span>Tomorrow</span>
-            </button>
-            <button onclick="switchTab('wagers')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1">
-                <span>📊 My Wagers</span>
             </button>
             <button onclick="switchTab('leaderboard')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-on-surface/60 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1">
                 <span>🥇 Leaderboard</span>
@@ -488,97 +472,62 @@
         <button onclick="clearMatchSearch()" id="clear-search-btn" class="absolute right-2.5 text-on-surface/40 hover:text-white text-xs font-bold" style="display: none;">✕</button>
     </div>
 
-    <!-- Right: Wallet, Network, Slip Trigger & Profile -->
-    <div class="flex items-center gap-2.5 lg:gap-3.5">
-        <!-- Compact Network Select Pill with Live Latency Badge -->
-        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03]">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-green" id="network-indicator-dot"></span>
-            <select id="network-rpc-select" onchange="switchNetwork()" class="bg-transparent border-none focus:ring-0 text-[11px] font-bold text-white/80 cursor-pointer outline-none p-0 pr-1">
-                <option value="devnet" selected class="bg-[#0e101d] text-white">Solana Devnet</option>
-                <option value="helius" class="bg-[#0e101d] text-white">⚡ Helius Fast RPC</option>
-                <option value="quicknode" class="bg-[#0e101d] text-white">🚀 QuickNode RPC</option>
-                <option value="localnet" class="bg-[#0e101d] text-white">💻 Local Validator</option>
-            </select>
-            <span id="rpc-latency-badge" class="hidden sm:inline-block text-[9px] font-mono font-bold text-emerald-400/80 bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20" title="RPC Latency Ping">38ms</span>
-        </div>
-
+    <!-- Right: Wallet, Balance, Slip Trigger & Connect -->
+    <div class="flex items-center gap-2.5 lg:gap-3">
         <!-- Wallet Balance with Instant Faucet -->
         <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg border border-white/10 bg-white/[0.03]" id="sol-balance-container">
             <div class="flex items-center gap-1.5">
                 <span class="text-[10px] text-on-surface/50 font-bold uppercase">Bal:</span>
                 <span class="text-xs font-black text-secondary font-mono"><span id="wallet-balance">0.0000</span> SOL</span>
             </div>
-            <button class="text-[10px] bg-primary/20 hover:bg-primary/30 text-teal-300 px-1.5 py-0.5 rounded font-bold border border-teal-500/30 transition-colors" id="btn-airdrop" onclick="requestAirdrop()">+ Faucet</button>
+            <button class="text-[10px] bg-primary/20 hover:bg-primary/30 text-teal-300 px-1.5 py-0.5 rounded font-bold border border-teal-500/30 transition-colors cursor-pointer" id="btn-airdrop" onclick="requestAirdrop()">+ Faucet</button>
         </div>
 
         <!-- Persistent Quick Betslip Header Button with Counter Badge -->
         <button onclick="switchTab('slip')" class="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-white font-bold text-xs transition-all shadow-md select-none cursor-pointer">
             <span class="material-symbols-outlined text-[16px] text-secondary">receipt_long</span>
-            <span class="hidden sm:inline">Slip</span>
+            <span class="hidden sm:inline">Betslip</span>
             <span id="header-slip-counter" class="bg-secondary text-black font-black text-[10px] px-1.5 py-0.2 rounded-full min-w-[16px] text-center">0</span>
         </button>
 
-        <!-- Wallet Mode Toggle (Sandbox / Phantom) -->
-        <div class="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03]">
-            <select id="wallet-type-select" onchange="changeWalletType()" class="bg-transparent border-none focus:ring-0 text-[11px] text-primary font-bold cursor-pointer outline-none p-0">
-                <option value="sandbox" class="bg-[#0e101d] text-white">💻 Sandbox</option>
-                <option value="phantom" class="bg-[#0e101d] text-white">👻 Phantom</option>
-            </select>
-        </div>
-
-        <!-- Instant Fiat Deposit & Bank Cash-Out Gateway Button -->
-        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center gap-1.5 shadow-md transition-all cursor-pointer" onclick="openFiatCashoutModal('deposit')" title="Deposit or Cash Out via Google/Apple/Bank without crypto knowledge">
+        <!-- Instant Cash-Out Gateway Button -->
+        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center gap-1.5 shadow-md transition-all cursor-pointer" onclick="openFiatCashoutModal('deposit')" title="Deposit or Cash Out">
             <span class="material-symbols-outlined text-[15px] text-emerald-400">payments</span>
-            <span class="hidden sm:inline">Deposit / Cash Out</span>
-            <span class="sm:hidden">Cash Out</span>
+            <span class="hidden sm:inline">Cash Out</span>
         </button>
 
         <!-- Main Connect Wallet Button -->
-        <button class="liquid-button px-4 lg:px-5 py-1.5 rounded-xl text-xs font-bold text-white glass-shine flex items-center gap-1.5 shadow-lg" id="btn-connect-wallet" onclick="toggleWallet()">
+        <button class="liquid-button px-4 lg:px-5 py-1.5 rounded-xl text-xs font-bold text-white glass-shine flex items-center gap-1.5 shadow-lg cursor-pointer" id="btn-connect-wallet" onclick="toggleWallet()">
             <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
             <span id="btn-connect-label">Connect</span>
         </button>
 
-        <!-- User Profile Avatar with VIP Tag -->
-        <div class="relative group cursor-pointer" onclick="switchTab('wagers')">
-            <div class="w-8 h-8 rounded-full border border-white/15 bg-white/5 flex items-center justify-center overflow-hidden">
-                <img class="w-full h-full object-cover" alt="Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD84NlTGN-rzIHqUCFHEqifyhL8Dn-FszPA-cKItpU16y4Ul5b8CYNLsjNbZCdaOSKFbx0UKq42abqe6guIbCFfOFDGbNKInyY-xSbSEbDO67356DxBWPatY1iwDOah76qoWsKnyqWIxzBQhDHajD5Igkx7YZTbe5tx6KzPXbdKoPPBi2HxJXmy4IzIsv5D-m7n-39j2dctCwUlqJiaspdrmimRpzzvnjcVJcnaco0ug-N0YMso31lIjvlfqzaToskQ2fTeBOUeSYGa"/>
-            </div>
-            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0a0c16] flex items-center justify-center text-[7px] font-black text-black">✓</span>
-        </div>
+        <!-- Hidden inputs kept for JS compatibility -->
+        <select id="wallet-type-select" style="display: none;"><option value="phantom">Phantom</option></select>
+        <select id="network-rpc-select" style="display: none;"><option value="devnet">Devnet</option></select>
     </div>
 </header>
 
 <main class="max-w-[1800px] mx-auto p-4 lg:p-6">
     <!-- View Mode Switcher & Sideways Scrolling Navigation Bar -->
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 p-3 glass-panel rounded-2xl border border-white/5 bg-surface/40">
-        <div class="flex items-center gap-3">
-            <span class="text-label-sm font-bold text-on-surface/50 uppercase tracking-widest flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px] text-secondary">view_compact</span>
-                Display Mode:
-            </span>
+    <div class="flex items-center justify-between gap-3 mb-6 p-2.5 glass-panel rounded-2xl border border-white/5 bg-surface/40">
+        <div class="flex items-center gap-2">
             <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/10">
                 <button id="view-mode-split" onclick="setSportsbookViewMode('split')" class="view-mode-btn">
                     <span class="material-symbols-outlined text-[15px]">splitscreen</span>
-                    Split View (Stream + Betting)
+                    Stream View
                 </button>
                 <button id="view-mode-full" onclick="setSportsbookViewMode('full')" class="view-mode-btn active">
                     <span class="material-symbols-outlined text-[15px]">fullscreen</span>
-                    Full Sportsbook Display (Panoramic)
+                    Wide Sportsbook
                 </button>
             </div>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-[11px] text-secondary font-semibold bg-secondary/10 px-3 py-1.5 rounded-full border border-secondary/20 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[14px]">swap_horiz</span>
-                Sideways Scroll Enabled (Swipe or Scroll ➔)
+        <div class="hidden sm:flex items-center gap-2 pr-2">
+            <span class="text-xs font-mono text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Active Global Markets</span>
             </span>
-            <button onclick="scrollMarketMatrix(-1)" class="scroll-arrow-btn text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold flex items-center gap-1" title="Scroll Markets Left">
-                <span>◀</span> Scroll Odds
-            </button>
-            <button onclick="scrollMarketMatrix(1)" class="scroll-arrow-btn text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold flex items-center gap-1" title="Scroll Markets Right">
-                Scroll Odds <span>▶</span>
-            </button>
         </div>
     </div>
 
@@ -821,16 +770,22 @@
         <div class="flex flex-col gap-8" id="exchange-sportsbook-pane">
             <!-- Main Exchange Tabs -->
             <div class="flex gap-2 glass-panel p-1.5 rounded-2xl">
-                <button class="flex-1 py-3 rounded-xl bg-white/10 text-white shadow-xl text-label-md font-bold" id="btn-tab-sports" onclick="switchTab('sports')">Sportsbook</button>
-                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-1.5" id="btn-tab-slip" onclick="switchTab('slip')">
+                <button class="flex-1 py-3 rounded-xl bg-white/10 text-white shadow-xl text-label-md font-bold cursor-pointer" id="btn-tab-sports" onclick="switchTab('sports')">Sportsbook</button>
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-1.5 cursor-pointer" id="btn-tab-slip" onclick="switchTab('slip')">
                     Betslip <span class="tab-badge bg-error text-white text-[10px] px-2 py-0.5 rounded-full" id="tab-slip-badge" style="display:none;">0</span>
                 </button>
-                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors" id="btn-tab-wagers" onclick="switchTab('wagers')">My Wagers</button>
-                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-2" id="btn-tab-memes" onclick="switchTab('memes')">
-                    <span class="material-symbols-outlined text-[18px] text-secondary">trending_up</span>
-                    Memes
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-1 cursor-pointer" id="btn-tab-wagers" onclick="switchTab('wagers')">
+                    <span>My Wagers</span>
+                    <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">🔒 Soon</span>
                 </button>
-                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors" id="btn-tab-staking" onclick="switchTab('staking')">📈 Staking</button>
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-1 cursor-pointer" id="btn-tab-memes" onclick="switchTab('memes')">
+                    <span>Memes</span>
+                    <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">🔒 Soon</span>
+                </button>
+                <button class="flex-1 py-3 rounded-xl text-label-md font-bold text-on-surface/50 hover:bg-white/5 transition-colors flex items-center justify-center gap-1 cursor-pointer" id="btn-tab-staking" onclick="switchTab('staking')">
+                    <span>Staking</span>
+                    <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">🔒 Soon</span>
+                </button>
             </div>
 
             <!-- Tab Panels Container -->
@@ -1167,173 +1122,116 @@
                     </div>
                 </div>
 
-                <!-- Wagers & LP Vault Panel -->
+                <!-- Wagers & LP Vault Panel (Locked - Coming Soon) -->
                 <div class="hidden flex flex-col gap-6 tab-panel" id="panel-wagers" style="display: none;">
-                    <!-- Active Yield Card -->
-                    <div class="glass-panel rounded-2xl p-8 glass-shine border-secondary/30 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-6">
-                            <span class="text-label-sm text-secondary font-black uppercase tracking-widest px-3 py-1 glass-panel rounded-full border-secondary/20">Active Yielding</span>
-                        </div>
-                        <h3 class="text-headline-lg font-black text-white mb-2">My Wagers & LP Vault</h3>
-                        <p class="text-label-md text-on-surface/50 mb-8">Participate in on-chain wagers and liquidity vault pools.</p>
-                        <div class="grid grid-cols-2 gap-8 mb-8">
-                            <div>
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Total LP Stake</span>
-                                <span class="text-headline-md font-black text-white"><span id="lp-deposited-sol">0.00</span> <span class="text-secondary text-label-md">SOL</span></span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Vault APY</span>
-                                <span class="text-headline-md font-black text-secondary">24.5% <span class="text-label-md">APY</span></span>
-                            </div>
-                        </div>
-                        <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-2">
-                            <div class="h-full liquid-progress" style="width: 100%"></div>
-                        </div>
-                    </div>
+                    <div class="glass-panel rounded-3xl p-10 lg:p-14 glass-shine border-amber-500/30 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[420px]">
+                        <div class="absolute -top-16 -right-16 w-52 h-52 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-16 -left-16 w-52 h-52 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                    <!-- Dynamic Predictions/Wagers List -->
-                    <div class="space-y-4">
-                        <h4 class="text-label-md font-bold text-white px-1">Active Predictions & Claims</h4>
-                        <div class="space-y-4" id="active-wagers-container">
-                            <div class="text-center py-6 text-on-surface/40 text-label-md" id="active-wagers-empty-text">No active wagers found</div>
+                        <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl mb-6 shadow-[0_0_25px_rgba(245,158,11,0.2)]">
+                            🔒
                         </div>
-                    </div>
 
-                    <!-- LP Vault Management Control -->
-                    <div class="glass-panel rounded-2xl p-6">
-                        <h3 class="text-label-md font-bold text-white mb-2">Be the House (LP Vault)</h3>
-                        <p class="text-label-sm text-on-surface/50 mb-4 font-normal">Deposit SOL to provide liquidity for predictions markets and earn yield from losing bets.</p>
-                        <div class="flex gap-3">
-                            <input class="flex-1 bg-black/40 border-white/10 rounded-xl text-label-md px-4 focus:ring-secondary focus:border-secondary transition-all text-white" id="lp-deposit-amount" placeholder="Amount (SOL)" type="number"/>
-                            <button class="px-8 py-3 rounded-xl glass-panel text-label-md font-bold text-secondary hover:bg-secondary/10 transition-colors border-secondary/30 glass-shine" onclick="depositLP()">Deposit</button>
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider mb-4">
+                            <span>Vault Module</span>
+                            <span>•</span>
+                            <span>Coming Soon</span>
+                        </div>
+
+                        <h3 class="text-headline-lg font-black text-white mb-3">My Wagers & History</h3>
+                        <p class="text-body-md text-on-surface/60 max-w-lg mb-8 leading-relaxed">
+                            Personalized on-chain bet tracking, historical slips, and automated escrow claim vaults are undergoing security hardening. Place live bets now directly in the Sportsbook.
+                        </p>
+
+                        <button onclick="switchTab('sports')" class="liquid-button px-8 py-3 rounded-xl font-bold text-white text-label-md flex items-center gap-2 shadow-xl hover:scale-105 transition-transform cursor-pointer">
+                            <span>⚽ Explore Live Sportsbook</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </button>
+
+                        <!-- Preserved DOM IDs for JS compatibility -->
+                        <div style="display: none;">
+                            <span id="lp-deposited-sol">0.00</span>
+                            <div id="active-wagers-container"></div>
+                            <div id="active-wagers-empty-text"></div>
+                            <input id="lp-deposit-amount" type="number" />
                         </div>
                     </div>
                 </div>
 
-                <!-- Victory Memecoin Factory Panel -->
+                <!-- Victory Memecoin Factory Panel (Locked - Coming Soon) -->
                 <div class="hidden flex flex-col gap-6 tab-panel" id="panel-memes" style="display: none;">
-                    <!-- Empty placeholder state -->
-                    <div id="meme-launcher-placeholder" class="glass-panel rounded-2xl p-8 text-center text-on-surface/40 space-y-4">
-                        <div class="text-5xl">🚀</div>
-                        <div class="text-label-md">Victory Memecoin Factory is ready. A resolved match will automatically deploy a memecoin to troll the losing fans.</div>
-                    </div>
+                    <div class="glass-panel rounded-3xl p-10 lg:p-14 glass-shine border-teal-500/30 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[420px]">
+                        <div class="absolute -top-16 -right-16 w-52 h-52 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-16 -left-16 w-52 h-52 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                    <!-- Victory Memecoin Launcher Card -->
-                    <div class="glass-panel rounded-2xl p-8 glass-shine border-primary/30 relative overflow-hidden" id="meme-launcher-card" style="display: none;">
-                        <div class="flex justify-between items-center mb-8">
-                            <h3 class="text-headline-md font-black text-white italic tracking-tighter" id="meme-token-name">$CANNONBLAST (Arsenal Win)</h3>
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-                                <span class="text-label-sm text-secondary font-bold">LIVE CHART</span>
-                            </div>
+                        <div class="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-3xl mb-6 shadow-[0_0_25px_rgba(20,184,166,0.2)]">
+                            🚀
                         </div>
-                        <div class="relative h-64 w-full mb-8 border border-white/5 rounded-xl overflow-hidden">
-                            <canvas class="w-full h-full rounded-xl" id="meme-chart-canvas"></canvas>
-                            <div class="absolute inset-0 bg-gradient-to-t from-[#07070a]/80 via-transparent to-transparent pointer-events-none"></div>
-                            <!-- Floating Price Label -->
-                            <div class="absolute top-4 right-4 glass-panel px-4 py-2 rounded-lg border-primary/40 backdrop-blur-md">
-                                <span class="text-label-sm text-on-surface/50 block">Current Dominance</span>
-                                <span class="text-label-md font-black text-white" id="meme-price">0.00014 SOL</span>
-                            </div>
+
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 font-mono text-xs font-bold uppercase tracking-wider mb-4">
+                            <span>Pump & Victory</span>
+                            <span>•</span>
+                            <span>Coming Soon</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-8 mb-8 bg-white/[0.02] p-4 rounded-xl border border-white/5">
-                            <div>
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Token Price</span>
-                                <span class="text-label-md font-black text-secondary" id="meme-price-val">0.00014 SOL</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Market Cap</span>
-                                <span class="text-label-md font-black text-white" id="meme-mcap">140 SOL</span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <button class="w-full py-3 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 font-bold text-label-sm hover:bg-secondary hover:text-on-secondary transition-all glass-shine" onclick="buyMemeToken(0.1)">BUY 0.1 SOL</button>
-                            <button class="w-full py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-bold text-label-sm hover:bg-primary hover:text-on-primary transition-all glass-shine" onclick="buyMemeToken(0.5)">BUY 0.5 SOL</button>
+
+                        <h3 class="text-headline-lg font-black text-white mb-3">Victory Memecoin Factory</h3>
+                        <p class="text-body-md text-on-surface/60 max-w-lg mb-8 leading-relaxed">
+                            Automated match-outcome memecoin launches on Solana bonding curves. When your team wins an El Clásico or derby match, the victory token mints automatically for celebration trading.
+                        </p>
+
+                        <button onclick="switchTab('sports')" class="liquid-button px-8 py-3 rounded-xl font-bold text-white text-label-md flex items-center gap-2 shadow-xl hover:scale-105 transition-transform cursor-pointer">
+                            <span>⚽ Back to Sportsbook</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </button>
+
+                        <!-- Preserved DOM elements for JS safe binding -->
+                        <div style="display: none;">
+                            <div id="meme-launcher-placeholder"></div>
+                            <div id="meme-launcher-card"></div>
+                            <span id="meme-token-name"></span>
+                            <canvas id="meme-chart-canvas"></canvas>
+                            <span id="meme-price"></span>
+                            <span id="meme-price-val"></span>
+                            <span id="meme-mcap"></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Staking (LP Pool) Panel -->
+                <!-- Staking (LP Pool) Panel (Locked - Coming Soon) -->
                 <div class="hidden flex flex-col gap-6 tab-panel" id="panel-staking" style="display: none;">
-                    <div class="glass-panel rounded-2xl p-6 glass-shine border-primary/20 flex flex-col gap-6">
-                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
-                            <div>
-                                <h3 class="text-headline-sm font-black text-white italic tracking-tighter">📈 BE THE HOUSE</h3>
-                                <p class="text-label-sm text-on-surface/40">Deposit SOL to act as the sportsbook bankroll and earn yields.</p>
-                            </div>
-                            <span class="px-3 py-1 rounded-full bg-success/10 text-success text-[10px] font-black tracking-wider uppercase animate-pulse">Pool Active</span>
+                    <div class="glass-panel rounded-3xl p-10 lg:p-14 glass-shine border-purple-500/30 text-center relative overflow-hidden flex flex-col items-center justify-center min-h-[420px]">
+                        <div class="absolute -top-16 -right-16 w-52 h-52 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-16 -left-16 w-52 h-52 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div class="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-3xl mb-6 shadow-[0_0_25px_rgba(168,85,247,0.2)]">
+                            📈
                         </div>
 
-                        <!-- Pool Statistics Grid -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Total Value Locked</span>
-                                <span class="text-headline-sm font-black text-white" id="lp-tvl">0.00 SOL</span>
-                            </div>
-                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Available Liquidity</span>
-                                <span class="text-headline-sm font-black text-secondary" id="lp-available">0.00 SOL</span>
-                            </div>
-                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Reserved Liabilities</span>
-                                <span class="text-headline-sm font-black text-white" id="lp-reserved">0.00 SOL</span>
-                            </div>
-                            <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5">
-                                <span class="text-label-sm text-on-surface/40 block mb-1">Estimated APY</span>
-                                <span class="text-headline-sm font-black text-neon-teal">12.50%</span>
-                            </div>
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-xs font-bold uppercase tracking-wider mb-4">
+                            <span>Be The House</span>
+                            <span>•</span>
+                            <span>Coming Soon</span>
                         </div>
 
-                        <!-- Staking Actions & User Balances -->
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Staking Operations Form -->
-                            <div class="flex flex-col gap-4 bg-white/[0.01] p-5 rounded-xl border border-white/5">
-                                <h4 class="text-label-md font-bold text-white mb-2">Stake / Unstake SOL</h4>
-                                
-                                <!-- Deposit Operations -->
-                                <div class="flex flex-col gap-2">
-                                    <label class="text-[11px] font-bold text-on-surface/50 uppercase tracking-wider">Deposit into LP</label>
-                                    <div class="flex gap-2">
-                                        <input type="number" step="0.1" min="0.1" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-body-md font-bold focus:outline-none focus:border-primary/50" id="input-stake-amount" placeholder="Amount (SOL)">
-                                        <button class="px-6 py-3 rounded-xl bg-primary text-on-primary text-label-sm font-bold hover:bg-primary-hover transition-all" onclick="depositLpFunds()">Stake SOL</button>
-                                    </div>
-                                </div>
+                        <h3 class="text-headline-lg font-black text-white mb-3">Decentralized Staking & LP Vaults</h3>
+                        <p class="text-body-md text-on-surface/60 max-w-lg mb-8 leading-relaxed">
+                            Deposit SOL into the protocol liquidity pool to underwrite prediction markets and earn a share of platform house fees (estimated 12–24% APY). Staking opens post-audit.
+                        </p>
 
-                                <div class="border-t border-white/5 my-2"></div>
+                        <button onclick="switchTab('sports')" class="liquid-button px-8 py-3 rounded-xl font-bold text-white text-label-md flex items-center gap-2 shadow-xl hover:scale-105 transition-transform cursor-pointer">
+                            <span>⚽ Return to Sportsbook</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </button>
 
-                                <!-- Withdraw Operations -->
-                                <div class="flex flex-col gap-2">
-                                    <label class="text-[11px] font-bold text-on-surface/50 uppercase tracking-wider">Withdraw from LP</label>
-                                    <div class="flex gap-2">
-                                        <input type="number" step="0.1" min="0.1" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-white text-body-md font-bold focus:outline-none focus:border-secondary/50" id="input-unstake-amount" placeholder="LP Shares">
-                                        <button class="px-6 py-3 rounded-xl bg-secondary text-on-secondary text-label-sm font-bold hover:bg-secondary-hover transition-all" onclick="withdrawLpFunds()">Unstake LP</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- User Position Card -->
-                            <div class="flex flex-col justify-between p-5 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 relative overflow-hidden">
-                                <div class="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
-                                <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-secondary/20 rounded-full blur-2xl pointer-events-none"></div>
-                                
-                                <div>
-                                    <h4 class="text-label-md font-bold text-white mb-4">Your Staking Position</h4>
-                                    <div class="flex flex-col gap-3">
-                                        <div class="flex justify-between items-center text-body-sm">
-                                            <span class="text-on-surface/50">Your LP Shares:</span>
-                                            <span class="font-black text-white" id="user-lp-shares">0.00 LP</span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-body-sm">
-                                            <span class="text-on-surface/50">Staked Equivalent:</span>
-                                            <span class="font-black text-secondary" id="user-lp-value">0.00 SOL</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="border-t border-white/5 my-4"></div>
-
-                                <button class="w-full py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white text-label-xs font-bold transition-all" onclick="refreshStakingMetrics()">🔄 Refresh Position Metrics</button>
-                            </div>
+                        <!-- Preserved DOM elements for JS safe binding -->
+                        <div style="display: none;">
+                            <span id="lp-tvl">0.00 SOL</span>
+                            <span id="lp-available">0.00 SOL</span>
+                            <span id="lp-reserved">0.00 SOL</span>
+                            <input id="input-stake-amount" type="number" />
+                            <input id="input-unstake-amount" type="number" />
+                            <span id="user-lp-shares">0.00 LP</span>
+                            <span id="user-lp-value">0.00 SOL</span>
                         </div>
                     </div>
                 </div>

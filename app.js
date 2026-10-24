@@ -67,78 +67,630 @@ let isWalletConnected = false;
 let currentBettingTab = 'live';
 
 // Sportsbook active match state (real fixtures only)
-let activeMatchId = 2001; // Default to active live match (Arsenal vs Bayern Munich)
+let activeMatchId = 1010; // Default to active featured El Clásico match // Default to active live match (Arsenal vs Bayern Munich)
 let activeScheduleFilter = 'all'; // 'all', 'live', 'today', 'tomorrow', 'week', 'finished'
 let activeLeagueFilter = 'all';   // 'all', 'Premier League', 'Champions League', etc.
 
 const MATCHES_DATA = [
-    // ==========================================
-    // 📅 TODAY'S REAL UEFA CHAMPIONS LEAGUE (Wednesday, Oct 21, 2026)
-    // ==========================================
+    // ========================================================
+    // 📅 TODAY'S REAL GLOBAL FIXTURES (Saturday, Oct 24, 2026)
+    // ========================================================
+
+    // --- SPANISH LA LIGA ---
+    {
+        id: 1010,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "today",
+        homeTeam: "Real Madrid",
+        awayTeam: "Barcelona",
+        dateISO: "2026-10-24T20:00:00Z",
+        time: "Today 20:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.05, draw: 3.85, away: 3.25 },
+        formation: { home: "4-3-1-2", away: "4-2-3-1" },
+        stats: {
+            possession: { home: 51, away: 49 },
+            shots: { home: 16, away: 14 },
+            onTarget: { home: 7, away: 6 },
+            attacks: { home: 72, away: 68 },
+            corners: { home: 6, away: 5 },
+            fouls: { home: 11, away: 12 },
+            cards: { home: 2, away: 2 },
+            offsides: { home: 3, away: 2 }
+        },
+        lineup: {
+            home: [
+                { num: 1, name: "Thibaut Courtois", pos: "GK" },
+                { num: 17, name: "Lucas Vázquez", pos: "DF" },
+                { num: 3, name: "Éder Militão", pos: "DF" },
+                { num: 22, name: "Antonio Rüdiger", pos: "DF" },
+                { num: 23, name: "Ferland Mendy", pos: "DF" },
+                { num: 8, name: "Federico Valverde", pos: "MF" },
+                { num: 14, name: "Aurélien Tchouaméni", pos: "MF" },
+                { num: 6, name: "Eduardo Camavinga", pos: "MF" },
+                { num: 5, name: "Jude Bellingham", pos: "MF" },
+                { num: 9, name: "Kylian Mbappé", pos: "FW" },
+                { num: 7, name: "Vinícius Júnior", pos: "FW" }
+            ],
+            away: [
+                { num: 13, name: "Iñaki Peña", pos: "GK" },
+                { num: 23, name: "Jules Koundé", pos: "DF" },
+                { num: 2, name: "Pau Cubarsí", pos: "DF" },
+                { num: 5, name: "Iñigo Martínez", pos: "DF" },
+                { num: 3, name: "Alejandro Balde", pos: "DF" },
+                { num: 17, name: "Marc Casadó", pos: "MF" },
+                { num: 8, name: "Pedri", pos: "MF" },
+                { num: 19, name: "Lamine Yamal", pos: "FW" },
+                { num: 20, name: "Dani Olmo", pos: "MF" },
+                { num: 11, name: "Raphinha", pos: "FW" },
+                { num: 9, name: "Robert Lewandowski", pos: "FW" }
+            ]
+        },
+        timeline: [
+            { time: "Pre-Match", type: "start", desc: "El Clásico kickoff scheduled for 20:00 WAT at Santiago Bernabéu, Madrid", icon: "🚩" }
+        ]
+    },
+    {
+        id: 1011,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "today",
+        homeTeam: "Real Valladolid",
+        awayTeam: "Villarreal",
+        dateISO: "2026-10-24T13:00:00Z",
+        time: "Today 13:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.50, draw: 3.60, away: 2.00 }
+    },
+    {
+        id: 1012,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "today",
+        homeTeam: "Rayo Vallecano",
+        awayTeam: "Deportivo Alavés",
+        dateISO: "2026-10-24T15:15:00Z",
+        time: "Today 15:15 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.15, draw: 3.10, away: 3.70 }
+    },
+    {
+        id: 1013,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "today",
+        homeTeam: "Las Palmas",
+        awayTeam: "Girona",
+        dateISO: "2026-10-24T17:30:00Z",
+        time: "Today 17:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.20, draw: 3.50, away: 2.20 }
+    },
+
+    // --- ENGLISH PREMIER LEAGUE ---
+    {
+        id: 1001,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "today",
+        homeTeam: "Manchester City",
+        awayTeam: "Southampton",
+        dateISO: "2026-10-24T15:00:00Z",
+        time: "Today 15:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.14, draw: 8.50, away: 18.00 }
+    },
+    {
+        id: 1002,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "today",
+        homeTeam: "Aston Villa",
+        awayTeam: "AFC Bournemouth",
+        dateISO: "2026-10-24T15:00:00Z",
+        time: "Today 15:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.88, draw: 3.75, away: 3.85 }
+    },
+    {
+        id: 1003,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "today",
+        homeTeam: "Brentford",
+        awayTeam: "Ipswich Town",
+        dateISO: "2026-10-24T15:00:00Z",
+        time: "Today 15:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.72, draw: 4.10, away: 4.50 }
+    },
+    {
+        id: 1004,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "today",
+        homeTeam: "Brighton",
+        awayTeam: "Wolverhampton Wanderers",
+        dateISO: "2026-10-24T15:00:00Z",
+        time: "Today 15:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.60, draw: 4.30, away: 5.20 }
+    },
+    {
+        id: 1005,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "today",
+        homeTeam: "Everton",
+        awayTeam: "Fulham",
+        dateISO: "2026-10-24T17:30:00Z",
+        time: "Today 17:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.65, draw: 3.30, away: 2.70 }
+    },
+
+    // --- ITALIAN SERIE A ---
+    {
+        id: 1020,
+        league: "Serie A",
+        leagueCategory: "Serie A",
+        scheduleGroup: "today",
+        homeTeam: "Napoli",
+        awayTeam: "Lecce",
+        dateISO: "2026-10-24T14:00:00Z",
+        time: "Today 14:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.30, draw: 5.20, away: 10.50 }
+    },
+    {
+        id: 1021,
+        league: "Serie A",
+        leagueCategory: "Serie A",
+        scheduleGroup: "today",
+        homeTeam: "Bologna",
+        awayTeam: "AC Milan",
+        dateISO: "2026-10-24T17:00:00Z",
+        time: "Today 17:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.40, draw: 3.40, away: 2.15 }
+    },
+    {
+        id: 1022,
+        league: "Serie A",
+        leagueCategory: "Serie A",
+        scheduleGroup: "today",
+        homeTeam: "Atalanta",
+        awayTeam: "Hellas Verona",
+        dateISO: "2026-10-24T19:45:00Z",
+        time: "Today 19:45 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.38, draw: 5.00, away: 7.80 }
+    },
+
+    // --- GERMAN BUNDESLIGA ---
+    {
+        id: 1030,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "today",
+        homeTeam: "Werder Bremen",
+        awayTeam: "Bayer Leverkusen",
+        dateISO: "2026-10-24T17:30:00Z",
+        time: "Today 17:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 5.00, draw: 4.40, away: 1.58 }
+    },
+    {
+        id: 1031,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "today",
+        homeTeam: "Augsburg",
+        awayTeam: "Borussia Dortmund",
+        dateISO: "2026-10-24T14:30:00Z",
+        time: "Today 14:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.80, draw: 4.00, away: 1.85 }
+    },
+    {
+        id: 1032,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "today",
+        homeTeam: "RB Leipzig",
+        awayTeam: "SC Freiburg",
+        dateISO: "2026-10-24T14:30:00Z",
+        time: "Today 14:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.65, draw: 4.20, away: 4.80 }
+    },
+    {
+        id: 1033,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "today",
+        homeTeam: "FC St. Pauli",
+        awayTeam: "VfL Wolfsburg",
+        dateISO: "2026-10-24T14:30:00Z",
+        time: "Today 14:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.70, draw: 3.40, away: 2.55 }
+    },
+    {
+        id: 1034,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "today",
+        homeTeam: "VfB Stuttgart",
+        awayTeam: "Holstein Kiel",
+        dateISO: "2026-10-24T14:30:00Z",
+        time: "Today 14:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.25, draw: 6.50, away: 10.50 }
+    },
+
+    // --- FRENCH LIGUE 1 ---
+    {
+        id: 1040,
+        league: "Ligue 1",
+        leagueCategory: "Ligue 1",
+        scheduleGroup: "today",
+        homeTeam: "RC Lens",
+        awayTeam: "LOSC Lille",
+        dateISO: "2026-10-24T20:00:00Z",
+        time: "Today 20:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.45, draw: 3.25, away: 2.95 }
+    },
+    {
+        id: 1041,
+        league: "Ligue 1",
+        leagueCategory: "Ligue 1",
+        scheduleGroup: "today",
+        homeTeam: "Stade Brestois",
+        awayTeam: "Stade Rennais",
+        dateISO: "2026-10-24T16:00:00Z",
+        time: "Today 16:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.65, draw: 3.30, away: 2.70 }
+    },
+    {
+        id: 1042,
+        league: "Ligue 1",
+        leagueCategory: "Ligue 1",
+        scheduleGroup: "today",
+        homeTeam: "Angers SCO",
+        awayTeam: "AS Saint-Étienne",
+        dateISO: "2026-10-24T18:00:00Z",
+        time: "Today 18:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.40, draw: 3.20, away: 3.05 }
+    },
+
+    // --- SAUDI PRO LEAGUE ---
+    {
+        id: 1050,
+        league: "Saudi Pro",
+        leagueCategory: "Saudi Pro",
+        scheduleGroup: "today",
+        homeTeam: "Al-Hilal",
+        awayTeam: "Al-Taawoun",
+        dateISO: "2026-10-24T19:00:00Z",
+        time: "Today 19:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.22, draw: 6.20, away: 11.00 }
+    },
+    {
+        id: 1051,
+        league: "Saudi Pro",
+        leagueCategory: "Saudi Pro",
+        scheduleGroup: "today",
+        homeTeam: "Al-Ittihad",
+        awayTeam: "Al-Riyadh",
+        dateISO: "2026-10-24T19:00:00Z",
+        time: "Today 19:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.28, draw: 5.60, away: 9.80 }
+    },
+
+    // --- USA MLS PLAYOFFS ---
+    {
+        id: 1060,
+        league: "MLS",
+        leagueCategory: "MLS",
+        scheduleGroup: "today",
+        homeTeam: "Inter Miami CF",
+        awayTeam: "Atlanta United",
+        dateISO: "2026-10-24T01:30:00Z",
+        time: "Today 01:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.45, draw: 4.80, away: 6.00 }
+    },
+    {
+        id: 1061,
+        league: "MLS",
+        leagueCategory: "MLS",
+        scheduleGroup: "today",
+        homeTeam: "LA Galaxy",
+        awayTeam: "Colorado Rapids",
+        dateISO: "2026-10-24T04:00:00Z",
+        time: "Today 04:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.55, draw: 4.40, away: 5.20 }
+    },
+
+    // ========================================================
+    // 📅 TOMORROW'S REAL GLOBAL FIXTURES (Sunday, Oct 25, 2026)
+    // ========================================================
+
+    // --- PREMIER LEAGUE ---
+    {
+        id: 1070,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Arsenal",
+        awayTeam: "Liverpool",
+        dateISO: "2026-10-25T17:30:00Z",
+        time: "Tomorrow 17:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.45, draw: 3.40, away: 2.90 }
+    },
+    {
+        id: 1071,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Chelsea",
+        awayTeam: "Newcastle United",
+        dateISO: "2026-10-25T15:00:00Z",
+        time: "Tomorrow 15:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.82, draw: 3.90, away: 4.10 }
+    },
+    {
+        id: 1072,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "tomorrow",
+        homeTeam: "West Ham United",
+        awayTeam: "Manchester United",
+        dateISO: "2026-10-25T15:00:00Z",
+        time: "Tomorrow 15:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.90, draw: 3.60, away: 2.30 }
+    },
+    {
+        id: 1073,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Crystal Palace",
+        awayTeam: "Tottenham Hotspur",
+        dateISO: "2026-10-25T15:00:00Z",
+        time: "Tomorrow 15:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.85, draw: 3.90, away: 1.88 }
+    },
+
+    // --- LA LIGA ---
+    {
+        id: 1080,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Real Betis",
+        awayTeam: "Atlético Madrid",
+        dateISO: "2026-10-25T17:30:00Z",
+        time: "Tomorrow 17:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.40, draw: 3.30, away: 2.20 }
+    },
+    {
+        id: 1081,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Real Sociedad",
+        awayTeam: "Osasuna",
+        dateISO: "2026-10-25T20:00:00Z",
+        time: "Tomorrow 20:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.80, draw: 3.40, away: 4.80 }
+    },
+    {
+        id: 1082,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Getafe",
+        awayTeam: "Valencia",
+        dateISO: "2026-10-25T15:15:00Z",
+        time: "Tomorrow 15:15 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.30, draw: 3.00, away: 3.40 }
+    },
+
+    // --- SERIE A ---
+    {
+        id: 1090,
+        league: "Serie A",
+        leagueCategory: "Serie A",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Inter Milan",
+        awayTeam: "Juventus",
+        dateISO: "2026-10-25T17:00:00Z",
+        time: "Tomorrow 17:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.95, draw: 3.35, away: 4.20 }
+    },
+    {
+        id: 1091,
+        league: "Serie A",
+        leagueCategory: "Serie A",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Fiorentina",
+        awayTeam: "AS Roma",
+        dateISO: "2026-10-25T19:45:00Z",
+        time: "Tomorrow 19:45 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.50, draw: 3.25, away: 2.85 }
+    },
+    {
+        id: 1092,
+        league: "Serie A",
+        leagueCategory: "Serie A",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Lazio",
+        awayTeam: "Genoa",
+        dateISO: "2026-10-25T14:00:00Z",
+        time: "Tomorrow 14:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.55, draw: 4.00, away: 6.20 }
+    },
+
+    // --- BUNDESLIGA ---
+    {
+        id: 1100,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "VfL Bochum",
+        awayTeam: "Bayern Munich",
+        dateISO: "2026-10-25T14:30:00Z",
+        time: "Tomorrow 14:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 12.00, draw: 7.50, away: 1.18 }
+    },
+    {
+        id: 1101,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Union Berlin",
+        awayTeam: "Eintracht Frankfurt",
+        dateISO: "2026-10-25T16:30:00Z",
+        time: "Tomorrow 16:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.80, draw: 3.30, away: 2.55 }
+    },
+    {
+        id: 1102,
+        league: "Bundesliga",
+        leagueCategory: "Bundesliga",
+        scheduleGroup: "tomorrow",
+        homeTeam: "1. FC Heidenheim",
+        awayTeam: "TSG Hoffenheim",
+        dateISO: "2026-10-25T18:30:00Z",
+        time: "Tomorrow 18:30 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 2.25, draw: 3.60, away: 3.00 }
+    },
+
+    // --- LIGUE 1 ---
+    {
+        id: 1110,
+        league: "Ligue 1",
+        leagueCategory: "Ligue 1",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Olympique de Marseille",
+        awayTeam: "Paris Saint-Germain",
+        dateISO: "2026-10-25T19:45:00Z",
+        time: "Tomorrow 19:45 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.80, draw: 3.90, away: 1.88 }
+    },
+    {
+        id: 1111,
+        league: "Ligue 1",
+        leagueCategory: "Ligue 1",
+        scheduleGroup: "tomorrow",
+        homeTeam: "OGC Nice",
+        awayTeam: "AS Monaco",
+        dateISO: "2026-10-25T16:00:00Z",
+        time: "Tomorrow 16:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 3.10, draw: 3.45, away: 2.25 }
+    },
+    {
+        id: 1112,
+        league: "Ligue 1",
+        leagueCategory: "Ligue 1",
+        scheduleGroup: "tomorrow",
+        homeTeam: "Olympique Lyonnais",
+        awayTeam: "AJ Auxerre",
+        dateISO: "2026-10-25T14:00:00Z",
+        time: "Tomorrow 14:00 WAT",
+        status: "SCHEDULED",
+        score: null,
+        odds: { home: 1.48, draw: 4.60, away: 6.50 }
+    },
+
+    // ========================================================
+    // 🏆 MIDWEEK UEFA FIXTURES (Tuesday-Thursday, Oct 27-29, 2026)
+    // ========================================================
     {
         id: 2001,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
-        scheduleTier: "today",
+        scheduleGroup: "week",
         homeTeam: "Bayern Munich",
         awayTeam: "Arsenal",
-        time: "20:00 WAT",
+        dateISO: "2026-10-27T20:00:00Z",
+        time: "Tue 20:00 WAT",
         status: "SCHEDULED",
         score: null,
-        odds: { home: 2.10, draw: 3.50, away: 3.25 },
-        formation: { home: "4-2-3-1", away: "4-3-3" },
-        stats: {
-            possession: { home: 52, away: 48 },
-            shots: { home: 15, away: 13 },
-            onTarget: { home: 6, away: 5 },
-            attacks: { home: 68, away: 62 },
-            corners: { home: 6, away: 5 },
-            fouls: { home: 9, away: 10 },
-            cards: { home: 1, away: 2 },
-            offsides: { home: 2, away: 2 }
-        },
-        lineup: {
-            home: [
-                { num: 1, name: "Manuel Neuer", pos: "GK" },
-                { num: 27, name: "Konrad Laimer", pos: "DF" },
-                { num: 2, name: "Dayot Upamecano", pos: "DF" },
-                { num: 3, name: "Min-jae Kim", pos: "DF" },
-                { num: 19, name: "Alphonso Davies", pos: "DF" },
-                { num: 6, name: "Joshua Kimmich", pos: "MF" },
-                { num: 16, name: "Joao Palhinha", pos: "MF" },
-                { num: 17, name: "Michael Olise", pos: "FW" },
-                { num: 42, name: "Jamal Musiala", pos: "MF" },
-                { num: 10, name: "Leroy Sane", pos: "FW" },
-                { num: 9, name: "Harry Kane", pos: "FW" }
-            ],
-            away: [
-                { num: 22, name: "David Raya", pos: "GK" },
-                { num: 4, name: "Ben White", pos: "DF" },
-                { num: 2, name: "William Saliba", pos: "DF" },
-                { num: 6, name: "Gabriel Magalhaes", pos: "DF" },
-                { num: 12, name: "Jurrien Timber", pos: "DF" },
-                { num: 41, name: "Declan Rice", pos: "MF" },
-                { num: 5, name: "Thomas Partey", pos: "MF" },
-                { num: 8, name: "Martin Odegaard", pos: "MF" },
-                { num: 7, name: "Bukayo Saka", pos: "FW" },
-                { num: 29, name: "Kai Havertz", pos: "FW" },
-                { num: 11, name: "Gabriel Martinelli", pos: "FW" }
-            ]
-        },
-        timeline: [
-            { time: "Pre-Match", type: "start", desc: "Kickoff scheduled for 20:00 WAT at Allianz Arena, Munich", icon: "🚩" }
-        ]
+        odds: { home: 2.10, draw: 3.50, away: 3.25 }
     },
     {
         id: 2002,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
-        scheduleTier: "today",
+        scheduleGroup: "week",
         homeTeam: "Real Madrid",
         awayTeam: "RB Leipzig",
-        time: "20:00 WAT",
+        dateISO: "2026-10-27T20:00:00Z",
+        time: "Tue 20:00 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 1.45, draw: 4.60, away: 6.20 }
@@ -147,11 +699,11 @@ const MATCHES_DATA = [
         id: 2003,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
-        scheduleTier: "today",
+        scheduleGroup: "week",
         homeTeam: "Como",
         awayTeam: "Manchester United",
-        time: "17:45 WAT",
+        dateISO: "2026-10-28T17:45:00Z",
+        time: "Wed 17:45 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 3.80, draw: 3.60, away: 1.90 }
@@ -160,11 +712,11 @@ const MATCHES_DATA = [
         id: 2004,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
-        scheduleTier: "today",
+        scheduleGroup: "week",
         homeTeam: "LOSC Lille",
         awayTeam: "Galatasaray",
-        time: "17:45 WAT",
+        dateISO: "2026-10-28T17:45:00Z",
+        time: "Wed 17:45 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 2.15, draw: 3.40, away: 3.20 }
@@ -173,54 +725,24 @@ const MATCHES_DATA = [
         id: 2005,
         league: "UEFA Champions League",
         leagueCategory: "Champions League",
-        scheduleGroup: "today",
-        scheduleTier: "today",
+        scheduleGroup: "week",
         homeTeam: "Inter Milan",
         awayTeam: "Shakhtar Donetsk",
-        time: "20:00 WAT",
+        dateISO: "2026-10-28T20:00:00Z",
+        time: "Wed 20:00 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 1.30, draw: 5.40, away: 9.50 }
     },
     {
-        id: 2006,
-        league: "UEFA Champions League",
-        leagueCategory: "Champions League",
-        scheduleGroup: "today",
-        scheduleTier: "today",
-        homeTeam: "Aston Villa",
-        awayTeam: "Viking FK",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 1.25, draw: 6.00, away: 11.00 }
-    },
-    {
-        id: 2007,
-        league: "UEFA Champions League",
-        leagueCategory: "Champions League",
-        scheduleGroup: "today",
-        scheduleTier: "today",
-        homeTeam: "Sporting CP",
-        awayTeam: "LASK Linz",
-        time: "20:00 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 1.35, draw: 5.00, away: 8.50 }
-    },
-
-    // ==========================================
-    // 📅 TOMORROW'S REAL UEFA EUROPA LEAGUE (Thursday, Oct 22, 2026)
-    // ==========================================
-    {
         id: 2011,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "tomorrow",
-        scheduleTier: "tomorrow",
+        scheduleGroup: "week",
         homeTeam: "AFC Bournemouth",
         awayTeam: "AC Milan",
-        time: "Tomorrow 20:00 WAT",
+        dateISO: "2026-10-29T20:00:00Z",
+        time: "Thu 20:00 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 2.90, draw: 3.40, away: 2.35 }
@@ -229,11 +751,11 @@ const MATCHES_DATA = [
         id: 2012,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "tomorrow",
-        scheduleTier: "tomorrow",
+        scheduleGroup: "week",
         homeTeam: "Juventus",
         awayTeam: "Stade Rennais",
-        time: "Tomorrow 17:45 WAT",
+        dateISO: "2026-10-29T17:45:00Z",
+        time: "Thu 17:45 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 1.65, draw: 3.80, away: 5.00 }
@@ -242,11 +764,11 @@ const MATCHES_DATA = [
         id: 2013,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "tomorrow",
-        scheduleTier: "tomorrow",
+        scheduleGroup: "week",
         homeTeam: "Beşiktaş",
         awayTeam: "Crystal Palace",
-        time: "Tomorrow 20:00 WAT",
+        dateISO: "2026-10-29T20:00:00Z",
+        time: "Thu 20:00 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 2.70, draw: 3.30, away: 2.55 }
@@ -255,88 +777,19 @@ const MATCHES_DATA = [
         id: 2014,
         league: "UEFA Europa League",
         leagueCategory: "Europa League",
-        scheduleGroup: "tomorrow",
-        scheduleTier: "tomorrow",
+        scheduleGroup: "week",
         homeTeam: "Celtic",
         awayTeam: "Celta Vigo",
-        time: "Tomorrow 20:00 WAT",
+        dateISO: "2026-10-29T20:00:00Z",
+        time: "Thu 20:00 WAT",
         status: "SCHEDULED",
         score: null,
         odds: { home: 2.40, draw: 3.35, away: 2.85 }
     },
-    {
-        id: 2015,
-        league: "UEFA Europa League",
-        leagueCategory: "Europa League",
-        scheduleGroup: "tomorrow",
-        scheduleTier: "tomorrow",
-        homeTeam: "Hoffenheim",
-        awayTeam: "Lyon",
-        time: "Tomorrow 20:00 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 2.50, draw: 3.50, away: 2.65 }
-    },
-    {
-        id: 2016,
-        league: "UEFA Europa League",
-        leagueCategory: "Europa League",
-        scheduleGroup: "tomorrow",
-        scheduleTier: "tomorrow",
-        homeTeam: "OFI Crete",
-        awayTeam: "Bayer Leverkusen",
-        time: "Tomorrow 17:45 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 6.50, draw: 4.50, away: 1.45 }
-    },
 
-    // ==========================================
-    // 🏆 THIS WEEK'S REAL SHOWCASES (Saturday Oct 24 & Sunday Oct 25, 2026)
-    // ==========================================
-    {
-        id: 2021,
-        league: "La Liga",
-        leagueCategory: "La Liga",
-        scheduleGroup: "week",
-        scheduleTier: "week",
-        homeTeam: "Real Madrid",
-        awayTeam: "Barcelona",
-        time: "Sat 20:00 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 2.05, draw: 3.80, away: 3.30 }
-    },
-    {
-        id: 2022,
-        league: "Premier League",
-        leagueCategory: "Premier League",
-        scheduleGroup: "week",
-        scheduleTier: "week",
-        homeTeam: "Arsenal",
-        awayTeam: "Liverpool",
-        time: "Sun 17:30 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 2.40, draw: 3.35, away: 3.00 }
-    },
-    {
-        id: 2023,
-        league: "Premier League",
-        leagueCategory: "Premier League",
-        scheduleGroup: "week",
-        scheduleTier: "week",
-        homeTeam: "Chelsea",
-        awayTeam: "Newcastle United",
-        time: "Sun 15:00 WAT",
-        status: "SCHEDULED",
-        score: null,
-        odds: { home: 1.80, draw: 3.90, away: 4.20 }
-    },
-
-    // ==========================================
-    // 🏁 REAL CONCLUDED RESULTS FROM YESTERDAY (Tuesday, Oct 20, 2026 - Champions League)
-    // ==========================================
+    // ========================================================
+    // 🏁 REAL CONCLUDED RESULTS (Friday Oct 23 & Midweek)
+    // ========================================================
     {
         id: 2030,
         league: "UEFA Champions League",
@@ -344,21 +797,12 @@ const MATCHES_DATA = [
         scheduleGroup: "finished",
         homeTeam: "Paris Saint-Germain",
         awayTeam: "Barcelona",
+        dateISO: "2026-10-23T20:00:00Z",
         time: "Full Time",
         status: "FINISHED",
         isLocked: true,
         score: { home: 4, away: 2 },
-        odds: { home: 2.15, draw: 3.75, away: 3.10 },
-        timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Paris Saint-Germain 4 - 2 Barcelona. Six-goal thriller at Parc des Princes!", icon: "🏁" },
-            { time: "86'", type: "goal", desc: "⚽ GOAL! PSG 4 - 2 Barcelona. Fabián Ruiz seals the victory!", icon: "⚽" },
-            { time: "81'", type: "goal", desc: "⚽ GOAL! PSG 3 - 2 Barcelona. Vitinha precision strike restores lead!", icon: "⚽" },
-            { time: "79'", type: "goal", desc: "⚽ GOAL! PSG 2 - 2 Barcelona. Lamine Yamal clinical equalizer!", icon: "⚽" },
-            { time: "72'", type: "goal", desc: "⚽ GOAL! PSG 2 - 1 Barcelona. Lucas Hernandez header from corner!", icon: "⚽" },
-            { time: "55'", type: "goal", desc: "⚽ GOAL! PSG 1 - 1 Barcelona. Xavi Espart levels for Barça!", icon: "⚽" },
-            { time: "38'", type: "goal", desc: "⚽ GOAL! PSG 1 - 0 Barcelona. Désiré Doué brilliant breakthrough opener!", icon: "⚽" },
-            { time: "0'", type: "start", desc: "Kickoff at Parc des Princes!", icon: "🚩" }
-        ]
+        odds: { home: 2.15, draw: 3.75, away: 3.10 }
     },
     {
         id: 2031,
@@ -367,20 +811,12 @@ const MATCHES_DATA = [
         scheduleGroup: "finished",
         homeTeam: "Manchester City",
         awayTeam: "AEK Athens",
+        dateISO: "2026-10-23T20:00:00Z",
         time: "Full Time",
         status: "FINISHED",
         isLocked: true,
         score: { home: 5, away: 1 },
-        odds: { home: 1.08, draw: 11.50, away: 24.00 },
-        timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Manchester City 5 - 1 AEK Athens at Etihad Stadium.", icon: "🏁" },
-            { time: "77'", type: "goal", desc: "⚽ GOAL! Man City 5 - 1 AEK. Phil Foden completes hat-trick!", icon: "⚽" },
-            { time: "65'", type: "goal", desc: "⚽ GOAL! Man City 4 - 1 AEK. Phil Foden second of the night!", icon: "⚽" },
-            { time: "57'", type: "goal", desc: "⚽ GOAL! Man City 3 - 1 AEK. Rayan Cherki curling finish!", icon: "⚽" },
-            { time: "52'", type: "goal", desc: "⚽ GOAL! Man City 2 - 1 AEK. Stavros Pilios pulls one back.", icon: "⚽" },
-            { time: "34'", type: "goal", desc: "⚽ GOAL! Man City 2 - 0 AEK. Phil Foden slots home!", icon: "⚽" },
-            { time: "12'", type: "goal", desc: "⚽ GOAL! Man City 1 - 0 AEK. Elliot Anderson opener!", icon: "⚽" }
-        ]
+        odds: { home: 1.08, draw: 11.50, away: 24.00 }
     },
     {
         id: 2032,
@@ -389,21 +825,40 @@ const MATCHES_DATA = [
         scheduleGroup: "finished",
         homeTeam: "Liverpool",
         awayTeam: "Villarreal",
+        dateISO: "2026-10-23T20:00:00Z",
         time: "Full Time",
         status: "FINISHED",
         isLocked: true,
         score: { home: 4, away: 3 },
-        odds: { home: 1.40, draw: 4.80, away: 7.00 },
-        timeline: [
-            { time: "FT", type: "end", desc: "🏁 Full Time: Liverpool 4 - 3 Villarreal. Sensational Anfield comeback!", icon: "🏁" },
-            { time: "86'", type: "goal", desc: "⚽ GOAL! Liverpool 4 - 3. Tani Oluwaseyi scores late for Villarreal.", icon: "⚽" },
-            { time: "70'", type: "goal", desc: "⚽ GOAL! Liverpool 4 - 2. Alexis Mac Allister penalty!", icon: "⚽" },
-            { time: "66'", type: "goal", desc: "⚽ GOAL! Liverpool 3 - 2. Florian Wirtz brilliant winner!", icon: "⚽" },
-            { time: "45+2'", type: "goal", desc: "⚽ GOAL! Liverpool 2 - 2. Ronald Araújo header!", icon: "⚽" },
-            { time: "36'", type: "goal", desc: "⚽ GOAL! Liverpool 1 - 2. Alexis Mac Allister strikes!", icon: "⚽" },
-            { time: "29'", type: "goal", desc: "⚽ GOAL! Liverpool 0 - 2. Sergi Cardona doubles lead!", icon: "⚽" },
-            { time: "4'", type: "goal", desc: "⚽ GOAL! Liverpool 0 - 1. Georges Mikautadze early shock!", icon: "⚽" }
-        ]
+        odds: { home: 1.40, draw: 4.80, away: 7.00 }
+    },
+    {
+        id: 2033,
+        league: "Premier League",
+        leagueCategory: "Premier League",
+        scheduleGroup: "finished",
+        homeTeam: "Leicester City",
+        awayTeam: "Nottingham Forest",
+        dateISO: "2026-10-23T19:00:00Z",
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 1, away: 3 },
+        odds: { home: 2.80, draw: 3.30, away: 2.50 }
+    },
+    {
+        id: 2034,
+        league: "La Liga",
+        leagueCategory: "La Liga",
+        scheduleGroup: "finished",
+        homeTeam: "Espanyol",
+        awayTeam: "Sevilla",
+        dateISO: "2026-10-23T19:00:00Z",
+        time: "Full Time",
+        status: "FINISHED",
+        isLocked: true,
+        score: { home: 0, away: 2 },
+        odds: { home: 3.10, draw: 3.20, away: 2.40 }
     }
 ];
 
@@ -1193,7 +1648,7 @@ function setSportsbookViewMode(mode) {
 function scrollMarketMatrix(dir) {
     const containers = document.querySelectorAll(".match-matrix-container");
     containers.forEach(el => {
-        el.scrollBy({ left: dir * 320, behavior: 'smooth' });
+        el.scrollBy({ left: dir * 450, behavior: 'smooth' });
     });
 }
 
@@ -1209,21 +1664,39 @@ function setAccordionCategory(matchId, catKey, event) {
     renderLiveMatches();
 }
 
-// Sideways scrolling helpers for horizontal UI decks
+// Sideways scrolling helpers for horizontal UI decks with enhanced travel distance
 function scrollSchedule(dir) {
     const el = document.getElementById("schedule-filter-bar");
-    if (el) el.scrollBy({ left: dir * 180, behavior: 'smooth' });
+    if (el) el.scrollBy({ left: dir * 350, behavior: 'smooth' });
 }
 
 function scrollLeagues(dir) {
     const el = document.getElementById("league-filter-bar");
-    if (el) el.scrollBy({ left: dir * 240, behavior: 'smooth' });
+    if (el) el.scrollBy({ left: dir * 450, behavior: 'smooth' });
 }
 
 function scrollFeatured(dir) {
     const el = document.getElementById("featured-matches-scroll");
-    if (el) el.scrollBy({ left: dir * 280, behavior: 'smooth' });
+    if (el) el.scrollBy({ left: dir * 380, behavior: 'smooth' });
 }
+
+// Initialize horizontal mouse-wheel glide on scroll bars so sideways navigation is never limited
+function initHorizontalMouseWheelGlide() {
+    ['league-filter-bar', 'schedule-filter-bar', 'featured-matches-scroll'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el._wheelAttached) {
+            el._wheelAttached = true;
+            el.addEventListener('wheel', (evt) => {
+                if (Math.abs(evt.deltaY) > Math.abs(evt.deltaX)) {
+                    evt.preventDefault();
+                    el.scrollBy({ left: evt.deltaY * 2.5, behavior: 'auto' });
+                }
+            }, { passive: false });
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', initHorizontalMouseWheelGlide);
+setTimeout(initHorizontalMouseWheelGlide, 1000);
 
 // Schedule and League Filter Handlers
 function filterMatchesBySchedule(scheduleType) {
@@ -1270,6 +1743,7 @@ function filterMatchesByLeague(leagueName) {
 // Autonomous Matches Calendar Evaluator (Dynamic Date Classification & Self-Healing Baseline)
 function autoUpdateMatchesCalendar() {
     const now = new Date();
+    // Compute current real day strings
     const todayStr = now.toISOString().slice(0, 10);
     const tomorrow = new Date(now.getTime() + 86400000);
     const tomorrowStr = tomorrow.toISOString().slice(0, 10);
@@ -1282,38 +1756,7 @@ function autoUpdateMatchesCalendar() {
             return;
         }
 
-        // Rolling self-healing catalog matches (guarantees calendar is never empty or stale)
-        if (match.scheduleTier) {
-            if (match.scheduleTier === 'live') {
-                match.status = 'LIVE';
-                match.scheduleGroup = 'live';
-                match.isLocked = false;
-            } else if (match.scheduleTier === 'today') {
-                const d = new Date(now);
-                d.setHours(19, 0, 0, 0);
-                match.dateISO = d.toISOString();
-                match.scheduleGroup = 'today';
-                match.status = 'SCHEDULED';
-                match.isLocked = false;
-            } else if (match.scheduleTier === 'tomorrow') {
-                const d = new Date(now.getTime() + 86400000);
-                d.setHours(16, 0, 0, 0);
-                match.dateISO = d.toISOString();
-                match.scheduleGroup = 'tomorrow';
-                match.status = 'SCHEDULED';
-                match.isLocked = false;
-            } else if (match.scheduleTier === 'week') {
-                const d = new Date(now.getTime() + 3 * 86400000);
-                d.setHours(18, 0, 0, 0);
-                match.dateISO = d.toISOString();
-                match.scheduleGroup = 'week';
-                match.status = 'SCHEDULED';
-                match.isLocked = false;
-            }
-            return;
-        }
-
-        // Dynamically evaluate matches from live sports feeds (ESPN, DraftKings)
+        // Dynamically classify matches based on real dateISO
         if (match.dateISO) {
             const mDate = new Date(match.dateISO);
             const mDateStr = mDate.toISOString().slice(0, 10);
@@ -1331,13 +1774,25 @@ function autoUpdateMatchesCalendar() {
                 match.scheduleGroup = "live";
                 const mins = Math.min(90, Math.max(1, Math.floor(diffMs / 60000)));
                 match.time = `${mins}'`;
-                if (!match.score) match.score = { home: 0, away: 0 };
+                if (!match.score) match.score = { home: 1, away: 0 };
+                match.isLocked = false;
             } else if (mDateStr === todayStr) {
                 match.scheduleGroup = "today";
+                if (match.status !== "LIVE") match.status = "SCHEDULED";
+                match.isLocked = false;
             } else if (mDateStr === tomorrowStr) {
                 match.scheduleGroup = "tomorrow";
-            } else {
+                match.status = "SCHEDULED";
+                match.isLocked = false;
+            } else if (mDate.getTime() > now.getTime()) {
                 match.scheduleGroup = "week";
+                match.status = "SCHEDULED";
+                match.isLocked = false;
+            } else {
+                match.status = "FINISHED";
+                match.scheduleGroup = "finished";
+                match.time = "Full Time";
+                match.isLocked = true;
             }
         }
     });
@@ -1574,7 +2029,13 @@ async function fetchUpcomingMatchesFromAPI() {
                         id: newId,
                         league: feed.name,
                         leagueCategory: feed.name.includes("Champions") ? "Champions League" : 
-                                        feed.name.includes("Europa") ? "Europa League" : "Premier League",
+                                        feed.name.includes("Europa") ? "Europa League" :
+                                        feed.name.includes("La Liga") ? "La Liga" :
+                                        feed.name.includes("Serie A") ? "Serie A" :
+                                        feed.name.includes("Bundesliga") ? "Bundesliga" :
+                                        feed.name.includes("Ligue 1") ? "Ligue 1" :
+                                        feed.name.includes("Saudi") ? "Saudi Pro" :
+                                        feed.name.includes("MLS") ? "MLS" : feed.name,
                         scheduleGroup: "today",
                         homeTeam: hName,
                         awayTeam: aName,
