@@ -877,6 +877,12 @@
                             </div>
                         </div>
 
+                        <!-- Mobile Match Search Bar (Visible only on mobile screens) -->
+                        <div class="sm:hidden block mb-3 relative">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface/40 text-[18px]">search</span>
+                            <input type="text" id="mobile-match-search" oninput="handleMatchSearch(this.value)" placeholder="Search teams, matches, leagues..." class="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-on-surface/40 outline-none focus:border-secondary focus:bg-white/[0.08] transition-all font-sans">
+                        </div>
+
                         <!-- Quick Market Matrix Sideways Scroll Controls Bar -->
                         <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/10 mb-3 shadow-lg">
                             <div class="flex items-center gap-2">

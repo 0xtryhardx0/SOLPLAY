@@ -5821,12 +5821,26 @@ function handleMatchSearch(query) {
     if (clearBtn) {
         clearBtn.style.display = matchSearchQuery ? "block" : "none";
     }
+    const headerInput = document.getElementById("header-match-search");
+    if (headerInput && headerInput.value !== (query || "")) headerInput.value = query || "";
+    const mobileInput = document.getElementById("mobile-match-search");
+    if (mobileInput && mobileInput.value !== (query || "")) mobileInput.value = query || "";
+
+    // Auto-switch to sports view if user searches from casino or another tab
+    if (matchSearchQuery && typeof switchTab === 'function') {
+        const liveTabBtn = document.getElementById("tab-live");
+        if (liveTabBtn && !liveTabBtn.classList.contains("border-secondary")) {
+            switchTab('live');
+        }
+    }
     renderLiveMatches();
 }
 
 function clearMatchSearch() {
     const input = document.getElementById("header-match-search");
     if (input) input.value = "";
+    const mobileInput = document.getElementById("mobile-match-search");
+    if (mobileInput) mobileInput.value = "";
     matchSearchQuery = "";
     const clearBtn = document.getElementById("clear-search-btn");
     if (clearBtn) clearBtn.style.display = "none";
@@ -5890,15 +5904,18 @@ function renderLiveMatches() {
     const filteredMatches = MATCHES_DATA.filter(match => {
         if (!leagueFilterPass(match)) return false;
         if (match.isArchived) return false;
+        
+        // When user searches, search globally across all matches regardless of schedule tab!
+        if (matchSearchQuery) {
+            const searchHaystack = `${match.homeTeam} ${match.awayTeam} ${match.league} ${match.leagueCategory || ''}`.toLowerCase();
+            return searchHaystack.includes(matchSearchQuery);
+        }
+
         if (activeScheduleFilter === 'live' && (match.status === 'FINISHED' || match.time === 'Full Time' || (match.scheduleGroup !== 'live' && match.status !== 'LIVE'))) return false;
         if (activeScheduleFilter === 'finished' && !isRecentFinished(match)) return false;
         if (activeScheduleFilter === 'today' && (match.scheduleGroup !== 'today' || match.status === 'FINISHED')) return false;
         if (activeScheduleFilter === 'tomorrow' && match.scheduleGroup !== 'tomorrow') return false;
         if (activeScheduleFilter === 'week' && match.scheduleGroup !== 'week') return false;
-        if (matchSearchQuery) {
-            const searchHaystack = `${match.homeTeam} ${match.awayTeam} ${match.league} ${match.leagueCategory || ''}`.toLowerCase();
-            if (!searchHaystack.includes(matchSearchQuery)) return false;
-        }
         return true;
     });
 
