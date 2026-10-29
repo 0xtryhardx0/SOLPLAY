@@ -1006,17 +1006,28 @@
 
                 <!-- Betslip Panel -->
                 <div class="flex flex-col gap-6 tab-panel" id="panel-slip" style="display: none;">
-                    <div class="glass-panel rounded-2xl p-6 flex flex-col gap-6">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-headline-md font-bold text-white flex items-center gap-2">
-                                <span class="material-symbols-outlined text-primary">shopping_bag</span>
-                                Betslip
-                            </h3>
-                            <div class="flex items-center gap-2">
-                                <span class="text-label-sm bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 font-bold" id="slip-count-badge">0 Selections</span>
-                                <button onclick="clearAllSelections()" class="text-[11px] text-error/80 hover:text-error hover:underline transition-colors">Clear All</button>
-                            </div>
+                    <div class="cyber-ticket-panel rounded-2xl flex flex-col">
+                        <!-- Top Branded Ticket Strip -->
+                        <div class="ticket-header-strip">
+                            <span class="ticket-brand-badge">
+                                <span class="animate-pulse">⚡</span> SOLPLAY // PARIMUTUEL TICKET
+                            </span>
+                            <span class="ticket-serial-badge">
+                                DEVNET #SLP-8492
+                            </span>
                         </div>
+
+                        <div class="p-6 flex flex-col gap-6">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-headline-md font-bold text-white flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">receipt_long</span>
+                                    Digital Betslip
+                                </h3>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-label-sm bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 font-bold" id="slip-count-badge">0 Selections</span>
+                                    <button onclick="clearAllSelections()" class="text-[11px] text-error/80 hover:text-error hover:underline transition-colors">Clear All</button>
+                                </div>
+                            </div>
 
                         <!-- Betslip Mode Switcher (Accumulator / Parlay vs Singles) -->
                         <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/10" id="betslip-mode-switch">
@@ -1180,6 +1191,19 @@
                                     <button onclick="quickFillSampleCode('B9-ACC-TOP', '@BigOddsNG')" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-emerald-300 font-mono border border-white/5 whitespace-nowrap">B9-ACC-TOP</button>
                                     <button onclick="quickFillSampleCode('SOL-LEGEND', '@SolPunter')" class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-purple-300 font-mono border border-white/5 whitespace-nowrap">SOL-LEGEND</button>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Perforated Ticket Divider & Authenticated Digital Barcode Strip -->
+                        <div class="ticket-perforation-divider">
+                            <div class="ticket-notch-left"></div>
+                            <div class="ticket-notch-right"></div>
+                        </div>
+
+                        <div style="padding: 0 24px 20px 24px;">
+                            <div class="ticket-barcode-strip">
+                                <div class="ticket-barcode-bars">|||| | ||| |||| | || |||| | |||</div>
+                                <div class="ticket-barcode-meta">MULTIHOPPER ROUTED &bull; 400MS SOLANA FINALITY</div>
                             </div>
                         </div>
                     </div>
