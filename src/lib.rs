@@ -130,6 +130,7 @@ pub fn process_instruction(
         8 => toggle_stream_status(program_id, accounts, &instruction_data[1..]),
         9 => deposit_lp(program_id, accounts, &instruction_data[1..]),
         10 => withdraw_lp(program_id, accounts, &instruction_data[1..]),
+        11 => cancel_market(program_id, accounts, &instruction_data[1..]),
         _ => {
             msg!("Error: Unknown instruction type");
             Err(ProgramError::InvalidInstructionData)
@@ -303,13 +304,25 @@ fn place_wager(
         return Err(ProgramError::InvalidArgument);
     }
     
+    // Enforce protocol minimum wager (0.001 SOL = 1,000,000 lamports) to prevent spam
+    if amount < 1_000_000 {
+        msg!("Security Error: Wager amount below protocol minimum of 0.001 SOL");
+        return Err(ProgramError::InvalidArgument);
+    }
+
     // Enforce 5 SOL soft-launch wager cap (5,000,000,000 lamports)
     if amount > 5_000_000_000 {
         msg!("Error: Wager amount exceeds the soft-launch cap of 5 SOL");
         return Err(ProgramError::InvalidArgument);
     }
     
-    let is_routed = data[17]; // 0=Pool, 1=Routed, 2=Fixed-Odds against LP
+    let is_routed = data[17]; // 0=Pool, 2=Fixed-Odds against LP
+    // Security Guard: Prevent unhandled routing limbo
+    if is_routed != 0 && is_routed != 2 {
+        msg!("Security Error: Unsupported routing mode {}. Must be 0 (Pool) or 2 (Fixed-Odds)", is_routed);
+        return Err(ProgramError::InvalidArgument);
+    }
+
     let mut copy_creator_bytes = [0u8; 32];
     copy_creator_bytes.copy_from_slice(&data[18..50]);
 
@@ -552,7 +565,7 @@ fn claim_winnings(
     let m_pool_draw = parse_u64(&market_data[57..65])?;
     let m_outcome = market_data[65];
 
-    if m_game_id != w_game_id || m_status != 1 {
+    if m_game_id != w_game_id || (m_status != 1 && m_status != 2) {
         return Err(ProgramError::InvalidAccountData);
     }
 
@@ -580,6 +593,17 @@ fn claim_winnings(
 
     // Checks-Effects-Interactions: Mark claimed BEFORE transferring any lamports!
     wager_data[82] = 1;
+
+    // Handle Market Refund / Cancellation (m_status == 2)
+    if m_status == 2 {
+        if market_account.lamports() < w_amount {
+            return Err(ProgramError::InsufficientFunds);
+        }
+        **market_account.lamports.borrow_mut() = market_account.lamports().saturating_sub(w_amount);
+        **bettor.lamports.borrow_mut() = bettor.lamports().saturating_add(w_amount);
+        msg!("Market was refunded. Returned {} lamports to bettor {}", w_amount, bettor.key);
+        return Ok(());
+    }
 
     let did_win = w_prediction == m_outcome;
 
@@ -671,14 +695,7 @@ fn claim_winnings(
         };
 
         if winning_pool_size == 0 {
-            msg!("Platform Sweep Triggered: No wagers on outcome.");
-            let total_escrow = market_account.lamports();
-            let sweep_amount = total_escrow.saturating_div(2);
-            
-            **market_account.lamports.borrow_mut() = market_account.lamports().saturating_sub(sweep_amount);
-            **treasury_account.lamports.borrow_mut() = treasury_account.lamports().saturating_add(sweep_amount);
-            
-            msg!("Swept {} lamports to treasury.", sweep_amount);
+            msg!("Settlement Note: No winning wagers on outcome.");
             return Ok(());
         }
 
@@ -945,6 +962,16 @@ fn deposit_lp(
     assert_owner(lp_pool_account, program_id)?;
     assert_owner(lp_user_account, program_id)?;
 
+    // Security Guard [P0 Mitigation]: Verify lp_user_account is the authorized PDA for depositor
+    let (expected_lp_pda, _bump) = Pubkey::find_program_address(
+        &[b"lp_user", lp_pool_account.key.as_ref(), depositor.key.as_ref()],
+        program_id,
+    );
+    if *lp_user_account.key != expected_lp_pda {
+        msg!("Security Error: lp_user_account {} does not match expected depositor PDA {}", lp_user_account.key, expected_lp_pda);
+        return Err(ProgramError::InvalidAccountData);
+    }
+
     if data.len() < 8 {
         return Err(ProgramError::InvalidInstructionData);
     }
@@ -1023,6 +1050,16 @@ fn withdraw_lp(
     assert_owner(lp_pool_account, program_id)?;
     assert_owner(lp_user_account, program_id)?;
 
+    // Security Guard [P0 Mitigation]: Verify lp_user_account is the authorized PDA for depositor
+    let (expected_lp_pda, _bump) = Pubkey::find_program_address(
+        &[b"lp_user", lp_pool_account.key.as_ref(), depositor.key.as_ref()],
+        program_id,
+    );
+    if *lp_user_account.key != expected_lp_pda {
+        msg!("Security Error: lp_user_account {} does not match expected depositor PDA {}", lp_user_account.key, expected_lp_pda);
+        return Err(ProgramError::InvalidAccountData);
+    }
+
     if data.len() < 8 {
         return Err(ProgramError::InvalidInstructionData);
     }
@@ -1085,5 +1122,60 @@ fn withdraw_lp(
     user_data[0..8].copy_from_slice(&user_lp_tokens.to_le_bytes());
 
     msg!("Withdrew {} lamports. Burned {} LP tokens.", sol_to_return, lp_tokens_to_burn);
+    Ok(())
+}
+
+// ==============================================================================
+// 11. CANCEL / REFUND MARKET
+// ==============================================================================
+
+fn cancel_market(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    data: &[u8],
+) -> ProgramResult {
+    msg!("Instruction: Cancel Market");
+    let accounts_iter = &mut accounts.iter();
+    let admin = next_account_info(accounts_iter)?;
+    let market_account = next_account_info(accounts_iter)?;
+    let platform_state_account = next_account_info(accounts_iter)?;
+
+    if !admin.is_signer {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+
+    assert_owner(platform_state_account, program_id)?;
+    assert_owner(market_account, program_id)?;
+
+    let state_data = platform_state_account.try_borrow_data()?;
+    if state_data.len() < 66 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    let mut admin_bytes = [0u8; 32];
+    admin_bytes.copy_from_slice(&state_data[0..32]);
+    let state_admin = Pubkey::new_from_array(admin_bytes);
+
+    if state_admin != *admin.key {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    if data.len() < 8 {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    let game_id = parse_u64(&data[0..8])?;
+
+    let mut market_data = market_account.try_borrow_mut_data()?;
+    if market_data.len() < 66 {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    let m_game_id = parse_u64(&market_data[0..8])?;
+    let m_status = market_data[40];
+
+    if m_game_id != game_id || m_status != 0 {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    market_data[40] = 2; // Set status = 2 (Refunded / Cancelled)
+    msg!("Market {} successfully cancelled and set to refunded state", game_id);
     Ok(())
 }

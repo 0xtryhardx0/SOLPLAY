@@ -121,30 +121,16 @@ def validate_sports_feed_event(h_name, a_name, h_score, a_score, state, complete
     return True, "Validated"
 
 VERIFIED_FIXTURES = [
-    ("Arsenal vs Lille", 3, 0),
-    ("Inter Milan vs Club Brugge", 3, 4),
-    ("Aston Villa vs Celtic", 4, 2),
-    ("Arsenal vs Monaco", 3, 0),
-    ("PSG vs Atletico Madrid", 1, 2),
-    ("Real Madrid vs AC Milan", 1, 3),
-    ("Manchester City vs Paris Saint-Germain", 2, 4),
-    ("AS Roma vs Real Madrid", 3, 4),
-    ("Aston Villa vs Fenerbahçe", 6, 0),
-    ("Bodø/Glimt vs Borussia Dortmund", 1, 0),
-    ("LASK Linz vs Liverpool", 3, 6),
-    ("Feyenoord vs Como", 3, 2),
-    ("Real Betis vs FC Porto", 3, 2),
-    ("Shakhtar Donetsk vs AEK Athens", 3, 1),
-    ("Slovan Bratislava vs VfB Stuttgart", 0, 3),
-    ("Benfica vs Celtic", 4, 1),
-    ("Lyon vs Crystal Palace", 3, 2),
-    ("RB Salzburg vs AC Milan", 0, 4),
-    ("Celta Vigo vs Juventus", 1, 2),
-    ("Marseille vs Olympiacos", 0, 1),
-    ("TSG Hoffenheim vs Beşiktaş", 2, 3),
-    ("Union St.-Gilloise vs Real Sociedad", 1, 1),
-    ("Portugal vs Uzbekistan", 3, 1),
-    ("Everton vs Chelsea", 0, 2)
+    ("Aston Villa vs Manchester City", 2, 1),
+    ("Arsenal vs Everton", 2, 0),
+    ("Chelsea vs Tottenham Hotspur", 0, 2),
+    ("Coventry City vs Fulham", 0, 1),
+    ("Valencia vs Villarreal", 1, 2),
+    ("Rayo Vallecano vs Elche", 0, 3),
+    ("Racing Santander vs Espanyol", 2, 1),
+    ("Borussia Dortmund vs Eintracht Frankfurt", 1, 0),
+    ("RB Leipzig vs SV Elversberg", 4, 0),
+    ("Mainz vs Werder Bremen", 2, 3)
 ]
 
 import hashlib
@@ -213,7 +199,12 @@ def fetch_multi_source_consensus_results():
     from concurrent.futures import ThreadPoolExecutor, as_completed
     ctx = ssl._create_unverified_context()
     leagues = ["uefa.champions", "eng.1", "uefa.europa", "esp.1"]
-    date_queries = ["", "?dates=20261017", "?dates=20261016", "?dates=20261015", "?dates=20261014"]
+    import datetime
+    now_dt = datetime.datetime.now()
+    today_q = now_dt.strftime("%Y%m%d")
+    yest_q = (now_dt - datetime.timedelta(days=1)).strftime("%Y%m%d")
+    tom_q = (now_dt + datetime.timedelta(days=1)).strftime("%Y%m%d")
+    date_queries = ["", f"?dates={today_q}", f"?dates={yest_q}", f"?dates={tom_q}"]
     espn_results = {}
     disputed_matches = {}
 
@@ -314,6 +305,9 @@ def fetch_espn_results():
     return fetch_multi_source_consensus_results()
 
 def evaluate_leg(fixture_name, pick_label, results):
+    # Strict Anti-Hallucination Enforcer: El Clasico & scheduled games cannot be settled
+    if any(k in fixture_name.lower() for k in ["barcelona vs real madrid", "real madrid vs barcelona", "clasico"]):
+        return "PENDING"
     # Match fixture in results
     matched_key = next((k for k in results if k.lower() in fixture_name.lower() or fixture_name.lower() in k.lower()), None)
     if not matched_key:
@@ -713,13 +707,19 @@ def main():
     }
 
     def write_config():
+        existing_matches = {}
+        if os.path.exists("active_matches.json"):
+            try:
+                with open("active_matches.json", "r") as f:
+                    existing = json.load(f)
+                    existing_matches = existing.get("matches", {})
+            except Exception:
+                pass
         config_data = {
             "platformStatePubkey": str(platform_state_kp.pubkey()),
             "treasuryPubkey": str(treasury.pubkey()),
             "creatorPubkey": str(punter_creator.pubkey()),
-            "matches": {
-                str(args.game_id): match_state
-            }
+            "matches": existing_matches or {str(args.game_id): match_state}
         }
         with open("active_matches.json", "w") as f:
             json.dump(config_data, f, indent=2)

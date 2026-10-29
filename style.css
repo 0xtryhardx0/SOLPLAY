@@ -16,6 +16,22 @@
     --glow-pink: 0 0 15px rgba(236, 72, 153, 0.4);
 }
 
+/* Live Degens Marquee Animation */
+@keyframes marquee-scroll {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: marquee-scroll 28s linear infinite;
+}
+
+.animate-marquee:hover {
+    animation-play-state: paused;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;

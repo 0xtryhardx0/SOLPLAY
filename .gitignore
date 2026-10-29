@@ -33,3 +33,6 @@ test_tabs.js
 # Environment variables & secrets
 .env
 *.env
+
+# Local backups
+backup_ui_v1/
