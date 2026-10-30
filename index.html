@@ -564,32 +564,40 @@
         <div class="flex flex-col gap-8" id="left-streaming-pane">
             <!-- Streaming Panel -->
             <section class="glass-panel rounded-2xl overflow-hidden flex flex-col glass-shine">
-                <div class="p-6 flex items-center justify-between border-b border-white/5">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-secondary/20 text-secondary text-[10px] font-bold px-2 py-0.5 rounded border border-secondary/30">UEFA CL</div>
-                        <h2 class="text-headline-md font-bold text-white" id="stream-title">Arsenal vs Lille - UEFA Champions League</h2>
+                <div class="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 border-b border-white/5 bg-white/[0.01]">
+                    <div class="flex items-center gap-3 min-w-[200px] flex-1">
+                        <span id="stream-league-tag" class="bg-teal-500/10 text-teal-300 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg border border-teal-500/20 whitespace-nowrap">PREMIER LEAGUE</span>
+                        <h2 class="text-base sm:text-lg font-bold text-white tracking-wide truncate" id="stream-title">Chelsea vs Manchester United — Match Command</h2>
                     </div>
-                    <div class="flex flex-col gap-2 items-end">
-                        <div class="flex items-center gap-2">
-                            <a id="player-external-stream-link" href="https://www.livesports808.li/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-teal-500/40 bg-teal-500/10 hover:bg-teal-500/25 text-label-sm text-teal-300 font-bold transition-all select-none cursor-pointer" title="Open full match livestream on LiveSports808 in new window">
-                                <span class="material-symbols-outlined text-[15px]">open_in_new</span>
-                                <span>LiveSports808 ↗</span>
-                            </a>
-                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5 cursor-pointer" id="stream-region-select" onchange="updateStreamProviders()">
-                                <option value="africa" selected>🌍 Africa & Global</option>
-                                <option value="uk_eu">🇪🇺 UK & Europe</option>
-                                <option value="us_am">🇺🇸 US & Americas</option>
-                                <option value="asia_in">🌏 Asia & International</option>
-                            </select>
-                            <select class="bg-transparent border-white/10 rounded-lg text-label-sm text-on-surface/70 focus:ring-primary focus:border-primary px-3 py-1.5 cursor-pointer" id="stream-provider-select" onchange="switchStreamProvider()">
-                                <option value="0">🏆 LiveSports808 (Ad-Shielded Match Feed)</option>
-                                <option value="1">⚡ Live Stream 1 (Africa24 Sports HD)</option>
-                                <option value="2">⚡ Live Stream 2 (Red Bull Sports TV - 1080p)</option>
-                                <option value="3">⚡ Live Stream 3 (ACI Sport HD - Live Relay)</option>
-                                <option value="4">⚡ Live Stream 4 (Al Iraqia Sports HD - Football)</option>
-                                <option value="5">⚡ Live Stream 5 (Astrahan Sport HD - Stadium Feed)</option>
-                                <option value="6">📡 Live 2D Match Radar (Real-Time Coordinates)</option>
-                            </select>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="inline-flex rounded-xl bg-white/[0.04] p-1 border border-white/10" id="hero-view-mode-group">
+                            <button id="btn-mode-radar" onclick="setHeroMode('radar')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-white bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center gap-1.5 shadow-[0_0_12px_rgba(20,184,166,0.25)]">
+                                <span class="material-symbols-outlined text-[14px]">radar</span>
+                                <span>Tactical Pitch</span>
+                            </button>
+                            <button id="btn-mode-stream" onclick="setHeroMode('stream')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-white/60 hover:text-white flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[14px]">play_circle</span>
+                                <span>Live Stream</span>
+                            </button>
+                        </div>
+                        <a id="player-external-stream-link" href="https://www.livesports808.li/" target="_blank" rel="noopener noreferrer" class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs text-white/80 font-medium transition-all" title="Open external stream mirror in new window">
+                            <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                            <span>Stream Mirror</span>
+                        </a>
+                        <select class="bg-black/40 border border-white/10 rounded-xl text-xs text-white/80 focus:ring-teal-500 focus:border-teal-500 px-2.5 py-1.5 cursor-pointer font-medium" id="stream-region-select" onchange="updateStreamProviders()">
+                            <option value="africa" selected>🌍 Africa & Global</option>
+                            <option value="uk_eu">🇪🇺 UK & Europe</option>
+                            <option value="us_am">🇺🇸 US & Americas</option>
+                            <option value="asia_in">🌏 Asia & International</option>
+                        </select>
+                        <select class="hidden bg-black/40 border border-white/10 rounded-xl text-xs text-white/80 focus:ring-teal-500 focus:border-teal-500 px-2.5 py-1.5 cursor-pointer font-medium" id="stream-provider-select" onchange="switchStreamProvider()">
+                            <option value="0">📡 Live 2D Tactical Pitch Radar (Telemetry)</option>
+                            <option value="1">⚡ Live Stream 1 (Africa24 Sports HD)</option>
+                            <option value="2">⚡ Live Stream 2 (Red Bull Sports TV - 1080p)</option>
+                            <option value="3">⚡ Live Stream 3 (ACI Sport HD - Live Relay)</option>
+                            <option value="4">⚡ Live Stream 4 (Al Iraqia Sports HD - Football)</option>
+                            <option value="5">🏆 LiveSports808 (Ad-Shielded Match Feed)</option>
+                        </select>
                             <div class="relative inline-block" id="cdn-dropdown-container">
                                 <button onclick="toggleCDNDropdown()" id="btn-cdn-dropdown" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-label-sm text-white transition-all font-bold select-none cursor-pointer">
                                     <span class="material-symbols-outlined text-secondary text-[16px] animate-pulse">speed</span>

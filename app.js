@@ -4220,6 +4220,36 @@ function switchStreamProvider() {
     }
 }
 
+function setHeroMode(mode) {
+    const btnRadar = document.getElementById("btn-mode-radar");
+    const btnStream = document.getElementById("btn-mode-stream");
+    const providerSelect = document.getElementById("stream-provider-select");
+    
+    if (mode === 'radar') {
+        if (btnRadar) {
+            btnRadar.className = "px-3 py-1 rounded-lg text-xs font-bold transition-all text-white bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center gap-1.5 shadow-[0_0_12px_rgba(20,184,166,0.25)]";
+        }
+        if (btnStream) {
+            btnStream.className = "px-3 py-1 rounded-lg text-xs font-bold transition-all text-white/60 hover:text-white flex items-center gap-1.5";
+        }
+        if (providerSelect) {
+            providerSelect.value = "0";
+            switchStreamProvider();
+        }
+    } else {
+        if (btnStream) {
+            btnStream.className = "px-3 py-1 rounded-lg text-xs font-bold transition-all text-white bg-teal-500/20 border border-teal-500/40 text-teal-300 flex items-center gap-1.5 shadow-[0_0_12px_rgba(20,184,166,0.25)]";
+        }
+        if (btnRadar) {
+            btnRadar.className = "px-3 py-1 rounded-lg text-xs font-bold transition-all text-white/60 hover:text-white flex items-center gap-1.5";
+        }
+        if (providerSelect) {
+            providerSelect.value = "1";
+            switchStreamProvider();
+        }
+    }
+}
+
 // =========================================================
 // CUSTOM STREAM PLAYER CONTROLS (PLAY/PAUSE, VOLUME, FULLSCREEN)
 // =========================================================
@@ -8729,6 +8759,11 @@ function updateRadarVisualizer(match) {
     if (homeName) homeName.textContent = match.homeTeam;
     if (awayName) awayName.textContent = match.awayTeam;
     if (leagueBadge) leagueBadge.textContent = match.league;
+
+    const streamLeagueTag = document.getElementById("stream-league-tag");
+    const streamTitle = document.getElementById("stream-title");
+    if (streamLeagueTag) streamLeagueTag.textContent = (match.league || "SOCCER").toUpperCase();
+    if (streamTitle) streamTitle.textContent = `${match.homeTeam} vs ${match.awayTeam} — Match Command`;
 
     // Odds
     const hOdd = match.odds?.home || 2.00;
