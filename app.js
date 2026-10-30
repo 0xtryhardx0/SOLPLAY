@@ -8478,7 +8478,15 @@ function switchExchangeTab(tabId) {
             loadBetslipFromStorage();
             if (typeof renderBetslip === 'function') renderBetslip();
             if (typeof calculatePayout === 'function') calculatePayout();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const slipEl = document.getElementById("panel-slip") || document.getElementById("exchange-sportsbook-pane");
+            if (slipEl && window.innerWidth < 1024) {
+                const headerOffset = 64;
+                const elementPosition = slipEl.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: Math.max(0, offsetPosition), behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         } else if (tabId === "wagers") {
             if (typeof renderActiveWagers === 'function') renderActiveWagers();
         }

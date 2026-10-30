@@ -1103,7 +1103,8 @@
                     <div id="content-tournaments" style="display: none;" class="space-y-4">
                         <!-- Renders dynamically from app.js -->
                     </div>
-                </div>
+                </div> <!-- end #content-live -->
+                </div> <!-- end #panel-sports -->
 
                 <!-- Betslip Panel -->
                 <div class="flex flex-col gap-6 tab-panel" id="panel-slip" style="display: none;">
@@ -1297,6 +1298,7 @@
                                 </div>
                             </div>
                         </div>
+                        </div> <!-- end p-6 flex flex-col -->
 
                         <!-- Perforated Ticket Divider & Authenticated Digital Barcode Strip -->
                         <div class="ticket-perforation-divider">
@@ -2285,7 +2287,15 @@
             if (chatEl) chatEl.scrollIntoView({ behavior: 'smooth' });
         } else if (target === 'slip') {
             switchTab('slip');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const slipEl = document.getElementById('panel-slip') || document.getElementById('exchange-sportsbook-pane');
+            if (slipEl && window.innerWidth < 1024) {
+                const headerOffset = 64;
+                const elementPosition = slipEl.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: Math.max(0, offsetPosition), behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     }
 
