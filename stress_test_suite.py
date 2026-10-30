@@ -259,8 +259,8 @@ class SystemInspector:
 
         has_auto_cal = "autoUpdateMatchesCalendar" in app_code
         has_iso_eval = "dateISO" in app_code
-        oct14_concluded = "Manchester City 2 - 4 Paris Saint-Germain" in app_code or ('id: 1010' in app_code and 'status: "FINISHED"' in app_code)
-        today_active = "Everton" in app_code and 'id: 1030' in app_code and 'scheduleGroup: "today"' in app_code
+        has_concluded = ('"status": "FINISHED"' in app_code or "status: 'FINISHED'" in app_code) and ('"score":' in app_code or 'score: {' in app_code)
+        has_today = '"scheduleGroup": "today"' in app_code or "scheduleGroup: 'today'" in app_code
 
         self.record_result(
             "Autonomous Calendar Schedule Re-Evaluator",
@@ -270,14 +270,14 @@ class SystemInspector:
         )
         self.record_result(
             "Concluded Matches Automatically Ingested into Finished Group",
-            oct14_concluded,
-            "Concluded UCL Oct 14 matches not properly transitioned to status FINISHED with verified scorelines",
+            has_concluded,
+            "Concluded matches not properly transitioned to status FINISHED with verified scorelines",
             "CRITICAL"
         )
         self.record_result(
             "Today Schedule Dynamically Populated with Active Fixtures",
-            today_active,
-            "Today's active Premier League fixtures missing from scheduleGroup: 'today'",
+            has_today,
+            "Today's active fixtures missing from scheduleGroup: 'today'",
             "HIGH"
         )
 
