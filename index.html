@@ -681,15 +681,111 @@
                     <!-- Native HLS Video Stream Element (Server 2) -->
                     <video class="w-full h-full object-cover" id="hls-video-player" playsinline autoplay muted style="display: none;"></video>
                     
-                    <!-- Live 2D Match Radar Fallback (Server 3) -->
-                    <div class="absolute inset-0 flex flex-col justify-center items-center bg-gradient-to-br from-indigo-950/90 to-slate-950/90 text-center" id="mock-video-player" style="display: none;">
-                        <div class="z-10 p-4">
-                            <span class="bg-pink-600 text-white text-[10px] font-bold px-2 py-0.5 rounded animate-pulse uppercase tracking-wider">LIVE 2D RADAR FEED</span>
-                            <div class="text-4xl lg:text-5xl font-black tracking-widest text-white my-4 drop-shadow-md" id="player-live-score">Arsenal <span id="player-score-home">0</span> - <span id="player-score-away">0</span> Chelsea</div>
-                            <div id="player-live-time" class="text-sm text-on-surface/60 font-medium">45:00</div>
+                    <!-- Cybernetic 2D Tactical Pitch Radar & Match Command Center (Server 3 / Pre-Match) -->
+                    <div class="absolute inset-0 flex flex-col justify-between p-3 lg:p-4 text-center overflow-hidden radar-pitch-visualizer" id="mock-video-player" style="display: flex;">
+                        <!-- Cybernetic Pitch Canvas Lines Background -->
+                        <div class="radar-pitch-lines">
+                            <div class="pitch-halfway-line"></div>
+                            <div class="pitch-center-circle">
+                                <div class="pitch-center-spot"></div>
+                            </div>
+                            <div class="pitch-penalty-box-left"></div>
+                            <div class="pitch-penalty-box-right"></div>
+                            <!-- Rotating Radar Sweep Beam -->
+                            <div class="radar-sweep-beam"></div>
                         </div>
-                        <div class="absolute inset-x-0 bottom-16 p-4 flex justify-between items-center pointer-events-auto">
-                            <span class="text-label-sm text-secondary font-bold">Stream Health: High Bitrate</span>
+
+                        <!-- Top Status & Telemetry Bar -->
+                        <div class="relative z-10 flex items-center justify-between w-full text-xs">
+                            <div class="flex items-center gap-2">
+                                <span id="radar-live-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center gap-1.5 shadow-[0_0_12px_rgba(20,184,166,0.3)]">
+                                    <span class="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
+                                    <span>2D TACTICAL RADAR</span>
+                                </span>
+                                <span id="radar-league-badge" class="px-2 py-0.5 rounded text-[10px] font-mono text-white/70 bg-white/5 border border-white/10 hidden sm:inline">
+                                    Premier League
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-mono font-bold text-amber-300/90 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1" id="radar-match-time">
+                                    <span class="material-symbols-outlined text-[13px]">schedule</span>
+                                    <span id="player-live-time">Tomorrow 13:30 WAT</span>
+                                </span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hidden md:inline">
+                                    Telemetric Sync: Live
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Center Face-Off & Versus Arena -->
+                        <div class="relative z-10 flex items-center justify-between w-full my-auto px-2 sm:px-6 md:px-10">
+                            <!-- Home Team Node -->
+                            <div class="flex flex-col items-center gap-1.5 group cursor-pointer" onclick="quickAdd1X2ToSlip('home')" title="Add Home Win to Slip">
+                                <div class="radar-crest-wrapper relative">
+                                    <div class="radar-crest-pulse"></div>
+                                    <div class="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-white/[0.04] border border-white/20 p-2 backdrop-blur-md flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.6)] group-hover:border-teal-400/60 transition-all group-hover:scale-105">
+                                        <img id="radar-home-crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/363.png" alt="Chelsea" class="w-full h-full object-contain filter drop-shadow">
+                                    </div>
+                                    <span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-teal-500/80 text-black">HOME</span>
+                                </div>
+                                <span id="radar-home-name" class="text-xs sm:text-sm font-black text-white tracking-wide max-w-[90px] sm:max-w-[130px] truncate">Chelsea</span>
+                                <button class="radar-odds-pill" id="radar-odds-home" onclick="event.stopPropagation(); quickAdd1X2ToSlip('home')">
+                                    <span class="text-[9px] text-white/50">1</span>
+                                    <span class="font-black text-xs text-teal-300" id="radar-odds-home-val">1.83</span>
+                                </button>
+                            </div>
+
+                            <!-- Center VS & Scoreboard Console -->
+                            <div class="flex flex-col items-center justify-center gap-1.5 px-2">
+                                <div id="radar-center-scoreline" class="flex items-center gap-2">
+                                    <span class="text-2xl sm:text-4xl font-black font-mono text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" id="player-score-home">0</span>
+                                    <span class="text-sm sm:text-base font-black text-white/40 uppercase tracking-widest px-1">VS</span>
+                                    <span class="text-2xl sm:text-4xl font-black font-mono text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" id="player-score-away">0</span>
+                                </div>
+                                <div id="player-live-score" style="display:none;"></div>
+                                
+                                <div id="radar-center-cta">
+                                    <button class="radar-odds-pill radar-draw-pill" id="radar-odds-draw" onclick="quickAdd1X2ToSlip('draw')" title="Add Draw to Slip">
+                                        <span class="text-[9px] text-white/50">X (DRAW)</span>
+                                        <span class="font-black text-xs text-amber-300" id="radar-odds-draw-val">3.95</span>
+                                    </button>
+                                </div>
+
+                                <span class="text-[10px] font-mono text-white/40 tracking-wider uppercase mt-1 hidden sm:inline" id="radar-feed-status">
+                                    Official Live Odds • Pre-Match
+                                </span>
+                            </div>
+
+                            <!-- Away Team Node -->
+                            <div class="flex flex-col items-center gap-1.5 group cursor-pointer" onclick="quickAdd1X2ToSlip('away')" title="Add Away Win to Slip">
+                                <div class="radar-crest-wrapper relative">
+                                    <div class="radar-crest-pulse" style="animation-delay: -1.5s;"></div>
+                                    <div class="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-white/[0.04] border border-white/20 p-2 backdrop-blur-md flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.6)] group-hover:border-purple-400/60 transition-all group-hover:scale-105">
+                                        <img id="radar-away-crest" src="https://a.espncdn.com/i/teamlogos/soccer/500/360.png" alt="Manchester United" class="w-full h-full object-contain filter drop-shadow">
+                                    </div>
+                                    <span class="absolute -top-1 -left-1 px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-purple-500/80 text-white">AWAY</span>
+                                </div>
+                                <span id="radar-away-name" class="text-xs sm:text-sm font-black text-white tracking-wide max-w-[90px] sm:max-w-[130px] truncate">Man United</span>
+                                <button class="radar-odds-pill" id="radar-odds-away" onclick="event.stopPropagation(); quickAdd1X2ToSlip('away')">
+                                    <span class="text-[9px] text-white/50">2</span>
+                                    <span class="font-black text-xs text-purple-300" id="radar-odds-away-val">4.00</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Telemetry Broadcast Info Bar -->
+                        <div class="relative z-10 flex items-center justify-between w-full pt-1.5 border-t border-white/10 text-[10px] sm:text-[11px] text-white/60">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-teal-400 font-bold">⚡ Zero-Delay Oracle</span>
+                                <span class="text-white/20">•</span>
+                                <span id="radar-odds-provider">DraftKings Official Line</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="selectStreamServer(1)" class="text-[10px] text-white/70 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10 transition-all cursor-pointer">
+                                    ▶ Try Webcast
+                                </button>
+                            </div>
                         </div>
                     </div>
 

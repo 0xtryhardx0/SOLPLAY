@@ -7518,6 +7518,9 @@ function selectActiveMatch(matchId, shouldScroll = true) {
     // Trigger async squad/lineups loading for the match
     loadMatchSquadsAsync(match);
     
+    // Update cybernetic 2D Tactical Pitch visualizer
+    updateRadarVisualizer(match);
+
     renderLiveMatches();
     
     // Update match center tabs (Stats & 2D Radar, Lineups, and Timeline)
@@ -8695,6 +8698,93 @@ function updateLiveDomElements() {
                 }
             }
         });
+    }
+}
+
+// ==========================================================================
+// CYBERNETIC 2D TACTICAL PITCH RADAR VISUALIZER & MATCH COMMAND CENTER
+// ==========================================================================
+function updateRadarVisualizer(match) {
+    if (!match) return;
+    const isLive = (match.status === 'LIVE' || (match.time && match.time.includes("'")));
+    const isConcluded = (match.status === 'FINISHED' || match.time === 'Full Time' || match.time === 'FT');
+
+    // Update crests & team names
+    const homeCrest = document.getElementById("radar-home-crest");
+    const awayCrest = document.getElementById("radar-away-crest");
+    const homeName = document.getElementById("radar-home-name");
+    const awayName = document.getElementById("radar-away-name");
+    const leagueBadge = document.getElementById("radar-league-badge");
+    const liveBadge = document.getElementById("radar-live-badge");
+    const timeBadge = document.getElementById("player-live-time");
+    const scoreHome = document.getElementById("player-score-home");
+    const scoreAway = document.getElementById("player-score-away");
+    const feedStatus = document.getElementById("radar-feed-status");
+    const oddsHomeVal = document.getElementById("radar-odds-home-val");
+    const oddsDrawVal = document.getElementById("radar-odds-draw-val");
+    const oddsAwayVal = document.getElementById("radar-odds-away-val");
+    const oddsProvider = document.getElementById("radar-odds-provider");
+
+    if (homeCrest) homeCrest.src = match.homeLogo || getTeamLogo(match.homeTeam);
+    if (awayCrest) awayCrest.src = match.awayLogo || getTeamLogo(match.awayTeam);
+    if (homeName) homeName.textContent = match.homeTeam;
+    if (awayName) awayName.textContent = match.awayTeam;
+    if (leagueBadge) leagueBadge.textContent = match.league;
+
+    // Odds
+    const hOdd = match.odds?.home || 2.00;
+    const dOdd = match.odds?.draw || 3.50;
+    const aOdd = match.odds?.away || 3.20;
+    if (oddsHomeVal) oddsHomeVal.textContent = (+hOdd).toFixed(2);
+    if (oddsDrawVal) oddsDrawVal.textContent = (+dOdd).toFixed(2);
+    if (oddsAwayVal) oddsAwayVal.textContent = (+aOdd).toFixed(2);
+    if (oddsProvider) oddsProvider.textContent = match.odds?.provider || "DraftKings Official Line";
+
+    // Match Status / Scores
+    if (isConcluded) {
+        if (liveBadge) {
+            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-sky-400"></span><span>FULL TIME</span>`;
+            liveBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/40 flex items-center gap-1.5";
+        }
+        if (timeBadge) timeBadge.textContent = "🏁 Full Time";
+        if (scoreHome) scoreHome.textContent = match.score?.home ?? 0;
+        if (scoreAway) scoreAway.textContent = match.score?.away ?? 0;
+        if (feedStatus) feedStatus.textContent = `Official Final Whistle • Verified Result`;
+    } else if (isLive) {
+        if (liveBadge) {
+            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span><span>LIVE IN-PLAY</span>`;
+            liveBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-500/20 text-red-300 border border-red-500/40 flex items-center gap-1.5 shadow-[0_0_12px_rgba(239,68,68,0.4)]";
+        }
+        if (timeBadge) timeBadge.textContent = `🔴 ${match.time || "LIVE"}`;
+        if (scoreHome) scoreHome.textContent = match.score?.home ?? 0;
+        if (scoreAway) scoreAway.textContent = match.score?.away ?? 0;
+        if (feedStatus) feedStatus.textContent = `Live Telemetric Pitch Feed • Instant Settlement Active`;
+    } else {
+        if (liveBadge) {
+            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span><span>2D TACTICAL RADAR</span>`;
+            liveBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center gap-1.5 shadow-[0_0_12px_rgba(20,184,166,0.3)]";
+        }
+        if (timeBadge) timeBadge.textContent = match.time || "Scheduled";
+        if (scoreHome) scoreHome.textContent = "0";
+        if (scoreAway) scoreAway.textContent = "0";
+        if (feedStatus) feedStatus.textContent = `Live Sharp Consensus Line • Pre-Match`;
+    }
+}
+
+function quickAdd1X2ToSlip(choice) {
+    const match = MATCHES_DATA.find(m => m.id === activeMatchId) || MATCHES_DATA[0];
+    if (!match) return;
+    if (match.status === "FINISHED" || match.time === "Full Time" || match.time === "FT") {
+        showToast("Market closed for concluded matches", "warning");
+        return;
+    }
+    const gameTitle = `${match.homeTeam} vs ${match.awayTeam}`;
+    if (choice === 'home') {
+        selectOdds(match.id, 0, match.odds?.home || 2.00, `${match.homeTeam} Win`, gameTitle, 'Winner (1X2)');
+    } else if (choice === 'draw') {
+        selectOdds(match.id, 2, match.odds?.draw || 3.50, `Draw (${match.homeTeam} vs ${match.awayTeam})`, gameTitle, 'Winner (1X2)');
+    } else if (choice === 'away') {
+        selectOdds(match.id, 1, match.odds?.away || 3.00, `${match.awayTeam} Win`, gameTitle, 'Winner (1X2)');
     }
 }
 
