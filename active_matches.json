@@ -279,7 +279,13 @@
     "time": "Today 20:30 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.91,
+      "draw": 3.62,
+      "away": 2.28,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401884760,
@@ -333,7 +339,13 @@
     "time": "Today 19:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 4.67,
+      "draw": 4.39,
+      "away": 1.62,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401876416,
@@ -349,7 +361,13 @@
     "time": "Today 19:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.2,
+      "draw": 3.68,
+      "away": 3.02,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401876420,
@@ -365,7 +383,13 @@
     "time": "Today 21:05 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.07,
+      "draw": 3.78,
+      "away": 3.23,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401876427,
@@ -514,7 +538,13 @@
     "time": "Tue 18:45 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.63,
+      "draw": 3.45,
+      "away": 2.58,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915310,
@@ -530,7 +560,13 @@
     "time": "Tue 18:45 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 3.2,
+      "draw": 3.77,
+      "away": 2.08,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915386,
@@ -546,7 +582,13 @@
     "time": "Tue 21:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.67,
+      "draw": 3.48,
+      "away": 2.53,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915387,
@@ -562,7 +604,13 @@
     "time": "Tue 21:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 1.72,
+      "draw": 4.21,
+      "away": 4.19,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915384,
@@ -578,7 +626,13 @@
     "time": "Tue 21:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 3.16,
+      "draw": 3.75,
+      "away": 2.1,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915307,
@@ -594,7 +648,13 @@
     "time": "Tue 21:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 3.47,
+      "draw": 3.9,
+      "away": 1.95,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915385,
@@ -610,7 +670,13 @@
     "time": "Tue 21:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.16,
+      "draw": 3.71,
+      "away": 3.07,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915308,
@@ -626,7 +692,13 @@
     "time": "Tue 21:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.24,
+      "draw": 3.65,
+      "away": 2.96,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915309,
@@ -642,7 +714,13 @@
     "time": "Tue 21:00 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 3.2,
+      "draw": 3.77,
+      "away": 2.08,
+      "provider": "SolPlay Sharp Consensus"
+    }
   },
   {
     "id": 401915551,
@@ -658,6 +736,12 @@
     "time": "Wed 16:30 WAT",
     "status": "SCHEDULED",
     "score": null,
-    "isLocked": false
+    "isLocked": false,
+    "odds": {
+      "home": 2.12,
+      "draw": 3.74,
+      "away": 3.13,
+      "provider": "SolPlay Sharp Consensus"
+    }
   }
 ]

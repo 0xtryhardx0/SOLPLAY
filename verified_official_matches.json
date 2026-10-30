@@ -14,10 +14,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 1.83,
-      "draw": 3.95,
-      "away": 4,
-      "provider": "DraftKings Official"
+      "home": 2.01,
+      "draw": 3.83,
+      "away": 3.33,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -44,10 +44,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.15,
-      "draw": 3.45,
-      "away": 3.5,
-      "provider": "DraftKings Official"
+      "home": 2.1,
+      "draw": 3.75,
+      "away": 3.16,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -74,10 +74,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.05,
-      "draw": 3.7,
-      "away": 3.45,
-      "provider": "DraftKings Official"
+      "home": 2.18,
+      "draw": 3.69,
+      "away": 3.05,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -104,10 +104,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 3.1,
-      "draw": 3.35,
-      "away": 2.35,
-      "provider": "DraftKings Official"
+      "home": 2.42,
+      "draw": 3.53,
+      "away": 2.76,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -134,10 +134,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.65,
-      "draw": 3.45,
-      "away": 2.65,
-      "provider": "DraftKings Official"
+      "home": 2.61,
+      "draw": 3.44,
+      "away": 2.61,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -164,10 +164,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 1.62,
-      "draw": 4.6,
-      "away": 4.7,
-      "provider": "DraftKings Official"
+      "home": 1.47,
+      "draw": 4.82,
+      "away": 5.91,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -194,10 +194,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 1.61,
-      "draw": 4.3,
-      "away": 5.25,
-      "provider": "DraftKings Official"
+      "home": 1.83,
+      "draw": 4.04,
+      "away": 3.78,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -224,10 +224,10 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 1.95,
-      "draw": 3.75,
-      "away": 3.8,
-      "provider": "DraftKings Official"
+      "home": 1.85,
+      "draw": 4.02,
+      "away": 3.74,
+      "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
@@ -284,9 +284,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 1.95,
-      "draw": 3.9,
-      "away": 3.47,
+      "home": 1.83,
+      "draw": 4.04,
+      "away": 3.78,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -314,9 +314,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.91,
-      "draw": 3.62,
-      "away": 2.28,
+      "home": 2.81,
+      "draw": 3.56,
+      "away": 2.38,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -344,9 +344,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.76,
-      "draw": 3.53,
-      "away": 2.42,
+      "home": 2.83,
+      "draw": 3.57,
+      "away": 2.35,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -374,9 +374,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 3.13,
-      "draw": 3.74,
-      "away": 2.12,
+      "home": 2.91,
+      "draw": 3.62,
+      "away": 2.28,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -404,9 +404,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.58,
-      "draw": 3.45,
-      "away": 2.63,
+      "home": 4.67,
+      "draw": 4.39,
+      "away": 1.62,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -434,9 +434,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.24,
-      "draw": 3.65,
-      "away": 2.96,
+      "home": 2.2,
+      "draw": 3.68,
+      "away": 3.02,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -464,9 +464,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.12,
-      "draw": 3.74,
-      "away": 3.13,
+      "home": 2.07,
+      "draw": 3.78,
+      "away": 3.23,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -494,9 +494,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.67,
-      "draw": 3.48,
-      "away": 2.53,
+      "home": 2.63,
+      "draw": 3.45,
+      "away": 2.58,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -524,9 +524,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.91,
-      "draw": 3.62,
-      "away": 2.28,
+      "home": 3.2,
+      "draw": 3.77,
+      "away": 2.08,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -554,9 +554,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 4.79,
-      "draw": 4.44,
-      "away": 1.6,
+      "home": 2.67,
+      "draw": 3.48,
+      "away": 2.53,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -614,9 +614,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.96,
-      "draw": 3.65,
-      "away": 2.24,
+      "home": 3.16,
+      "draw": 3.75,
+      "away": 2.1,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -644,9 +644,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 4.45,
-      "draw": 4.31,
-      "away": 1.66,
+      "home": 3.47,
+      "draw": 3.9,
+      "away": 1.95,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -674,9 +674,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 2.28,
-      "draw": 3.62,
-      "away": 2.91,
+      "home": 2.16,
+      "draw": 3.71,
+      "away": 3.07,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -734,9 +734,9 @@
     "status": "SCHEDULED",
     "score": null,
     "odds": {
-      "home": 1.81,
-      "draw": 4.07,
-      "away": 3.87,
+      "home": 3.2,
+      "draw": 3.77,
+      "away": 2.08,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
@@ -754,18 +754,15 @@
     "espnId": "401879254",
     "league": "Premier League",
     "leagueCategory": "Premier League",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Crystal Palace",
     "awayTeam": "Newcastle United",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/384.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/361.png",
     "dateISO": "2026-10-25T14:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 2
-    },
+    "time": "Sun 15:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
       "home": 2.96,
       "draw": 3.65,
@@ -774,31 +771,28 @@
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Crystal Palace 0 - 2 Newcastle United (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401878766,
     "espnId": "401878766",
     "league": "Premier League",
     "leagueCategory": "Premier League",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Hull City",
     "awayTeam": "Brentford",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/306.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/337.png",
     "dateISO": "2026-10-25T14:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 1,
-      "away": 1
-    },
+    "time": "Sun 15:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
       "home": 3.36,
       "draw": 3.85,
@@ -807,31 +801,28 @@
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Hull City 1 - 1 Brentford (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401878765,
     "espnId": "401878765",
     "league": "Premier League",
     "leagueCategory": "Premier League",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Liverpool",
     "awayTeam": "Brighton & Hove Albion",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/331.png",
     "dateISO": "2026-10-25T14:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 2,
-      "away": 0
-    },
+    "time": "Sun 15:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
       "home": 1.53,
       "draw": 4.62,
@@ -840,31 +831,28 @@
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Liverpool 2 - 0 Brighton & Hove Albion (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401879252,
     "espnId": "401879252",
     "league": "Premier League",
     "leagueCategory": "Premier League",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Manchester United",
     "awayTeam": "AFC Bournemouth",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/349.png",
     "dateISO": "2026-10-25T14:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 3
-    },
+    "time": "Sun 15:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
       "home": 1.9,
       "draw": 3.95,
@@ -873,130 +861,118 @@
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Manchester United 0 - 3 AFC Bournemouth (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401878764,
     "espnId": "401878764",
     "league": "Premier League",
     "leagueCategory": "Premier League",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Sunderland",
     "awayTeam": "Leeds United",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/366.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/357.png",
     "dateISO": "2026-10-25T16:30Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 0
-    },
+    "time": "Sun 17:30 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.58,
-      "draw": 3.45,
-      "away": 2.63,
+      "home": 2.42,
+      "draw": 3.53,
+      "away": 2.76,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Sunderland 0 - 0 Leeds United (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 17:30 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874958,
     "espnId": "401874958",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Cagliari",
     "awayTeam": "Bologna",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2925.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/107.png",
     "dateISO": "2026-10-24T13:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 2
-    },
+    "time": "Sat 14:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.81,
-      "draw": 3.56,
-      "away": 2.38,
+      "home": 2.91,
+      "draw": 3.62,
+      "away": 2.28,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Cagliari 0 - 2 Bologna (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sat 14:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874961,
     "espnId": "401874961",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Como",
     "awayTeam": "Sassuolo",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2572.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/3997.png",
     "dateISO": "2026-10-24T13:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 2,
-      "away": 0
-    },
+    "time": "Sat 14:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.28,
-      "draw": 3.62,
-      "away": 2.91,
+      "home": 2.38,
+      "draw": 3.56,
+      "away": 2.81,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Como 2 - 0 Sassuolo (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sat 14:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874948,
     "espnId": "401874948",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Napoli",
     "awayTeam": "AS Roma",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/114.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/104.png",
     "dateISO": "2026-10-24T16:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 3,
-      "away": 3
-    },
+    "time": "Sat 17:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
       "home": 2.08,
       "draw": 3.77,
@@ -1005,163 +981,148 @@
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Napoli 3 - 3 AS Roma (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sat 17:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874955,
     "espnId": "401874955",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Lazio",
     "awayTeam": "Parma",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/112.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/115.png",
     "dateISO": "2026-10-24T18:45Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 2,
-      "away": 1
-    },
+    "time": "Sat 19:45 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 1.78,
-      "draw": 4.11,
-      "away": 3.95,
+      "home": 1.81,
+      "draw": 4.07,
+      "away": 3.87,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Lazio 2 - 1 Parma (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sat 19:45 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401875036,
     "espnId": "401875036",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Internazionale",
     "awayTeam": "Fiorentina",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/109.png",
     "dateISO": "2026-10-25T11:30Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 2,
-      "away": 1
-    },
+    "time": "Sun 12:30 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 1.62,
-      "draw": 4.39,
-      "away": 4.67,
+      "home": 1.63,
+      "draw": 4.37,
+      "away": 4.62,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Internazionale 2 - 1 Fiorentina (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 12:30 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874972,
     "espnId": "401874972",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Atalanta",
     "awayTeam": "Frosinone",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/105.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/4057.png",
     "dateISO": "2026-10-25T14:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 4,
-      "away": 4
-    },
+    "time": "Sun 15:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 1.62,
-      "draw": 4.39,
-      "away": 4.67,
+      "home": 1.61,
+      "draw": 4.41,
+      "away": 4.73,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Atalanta 4 - 4 Frosinone (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874952,
     "espnId": "401874952",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Genoa",
     "awayTeam": "Venezia",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/3263.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/17530.png",
     "dateISO": "2026-10-25T14:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 1,
-      "away": 0
-    },
+    "time": "Sun 15:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.28,
-      "draw": 3.62,
-      "away": 2.91,
+      "home": 2.01,
+      "draw": 3.83,
+      "away": 3.33,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Genoa 1 - 0 Venezia (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874772,
     "espnId": "401874772",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Lecce",
     "awayTeam": "Juventus",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/113.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/111.png",
     "dateISO": "2026-10-25T17:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 2
-    },
+    "time": "Sun 18:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
       "home": 3.78,
       "draw": 4.04,
@@ -1170,64 +1131,58 @@
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Lecce 0 - 2 Juventus (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 18:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401874779,
     "espnId": "401874779",
     "league": "Serie A",
     "leagueCategory": "Serie A",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Udinese",
     "awayTeam": "AC Milan",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/118.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/103.png",
     "dateISO": "2026-10-25T19:45Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 2
-    },
+    "time": "Sun 20:45 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 3.33,
-      "draw": 3.83,
-      "away": 2.01,
+      "home": 3.16,
+      "draw": 3.75,
+      "away": 2.1,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Udinese 0 - 2 AC Milan (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 20:45 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401884760,
     "espnId": "401884760",
     "league": "Bundesliga",
     "leagueCategory": "Bundesliga",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "TSG Hoffenheim",
     "awayTeam": "Bayer Leverkusen",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7911.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/131.png",
     "dateISO": "2026-10-25T14:30Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 3,
-      "away": 0
-    },
+    "time": "Sun 15:30 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
       "home": 3.78,
       "draw": 4.04,
@@ -1236,276 +1191,252 @@
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: TSG Hoffenheim 3 - 0 Bayer Leverkusen (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:30 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401884759,
     "espnId": "401884759",
     "league": "Bundesliga",
     "leagueCategory": "Bundesliga",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "SC Freiburg",
     "awayTeam": "Bayern Munich",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/126.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/132.png",
     "dateISO": "2026-10-25T16:30Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 1,
-      "away": 3
-    },
+    "time": "Sun 17:30 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 4.05,
-      "draw": 4.15,
-      "away": 1.75,
+      "home": 3.87,
+      "draw": 4.07,
+      "away": 1.81,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: SC Freiburg 1 - 3 Bayern Munich (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 17:30 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401876427,
     "espnId": "401876427",
     "league": "Ligue 1",
     "leagueCategory": "Ligue 1",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Lens",
     "awayTeam": "Paris FC",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/175.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/6851.png",
     "dateISO": "2026-10-24T18:45Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 2,
-      "away": 1
-    },
+    "time": "Sat 19:45 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 1.92,
-      "draw": 3.93,
-      "away": 3.54,
+      "home": 1.83,
+      "draw": 4.04,
+      "away": 3.78,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Lens 2 - 1 Paris FC (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sat 19:45 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401876425,
     "espnId": "401876425",
     "league": "Ligue 1",
     "leagueCategory": "Ligue 1",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "AS Monaco",
     "awayTeam": "Lille",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/174.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/166.png",
     "dateISO": "2026-10-25T14:00Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 1,
-      "away": 1
-    },
+    "time": "Sun 15:00 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.2,
-      "draw": 3.68,
-      "away": 3.02,
+      "home": 2.22,
+      "draw": 3.66,
+      "away": 2.99,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: AS Monaco 1 - 1 Lille (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 15:00 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401876429,
     "espnId": "401876429",
     "league": "Ligue 1",
     "leagueCategory": "Ligue 1",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "AJ Auxerre",
     "awayTeam": "Le Mans",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/172.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2697.png",
     "dateISO": "2026-10-25T16:15Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 1,
-      "away": 1
-    },
+    "time": "Sun 17:15 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.28,
-      "draw": 3.62,
-      "away": 2.91,
+      "home": 1.86,
+      "draw": 4,
+      "away": 3.7,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: AJ Auxerre 1 - 1 Le Mans (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 17:15 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401876430,
     "espnId": "401876430",
     "league": "Ligue 1",
     "leagueCategory": "Ligue 1",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Angers",
     "awayTeam": "Lorient",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7868.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/273.png",
     "dateISO": "2026-10-25T16:15Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 0
-    },
+    "time": "Sun 17:15 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.28,
-      "draw": 3.62,
-      "away": 2.91,
+      "home": 2.55,
+      "draw": 3.46,
+      "away": 2.65,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Angers 0 - 0 Lorient (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 17:15 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401876426,
     "espnId": "401876426",
     "league": "Ligue 1",
     "leagueCategory": "Ligue 1",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Marseille",
     "awayTeam": "Le Havre AC",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/176.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/3236.png",
     "dateISO": "2026-10-25T16:15Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 4,
-      "away": 3
-    },
+    "time": "Sun 17:15 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 1.68,
-      "draw": 4.27,
-      "away": 4.34,
+      "home": 1.72,
+      "draw": 4.21,
+      "away": 4.19,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Marseille 4 - 3 Le Havre AC (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 17:15 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401876424,
     "espnId": "401876424",
     "league": "Ligue 1",
     "leagueCategory": "Ligue 1",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Stade Rennais",
     "awayTeam": "Strasbourg",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/169.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/180.png",
     "dateISO": "2026-10-25T16:15Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 3,
-      "away": 0
-    },
+    "time": "Sun 17:15 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 1.98,
-      "draw": 3.86,
-      "away": 3.39,
+      "home": 2.08,
+      "draw": 3.77,
+      "away": 3.2,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Stade Rennais 3 - 0 Strasbourg (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 17:15 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   },
   {
     "id": 401876423,
     "espnId": "401876423",
     "league": "Ligue 1",
     "leagueCategory": "Ligue 1",
-    "scheduleGroup": "finished",
+    "scheduleGroup": "week",
     "homeTeam": "Toulouse",
     "awayTeam": "Troyes",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/179.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/170.png",
     "dateISO": "2026-10-25T16:15Z",
-    "time": "Full Time",
-    "status": "FINISHED",
-    "score": {
-      "home": 0,
-      "away": 0
-    },
+    "time": "Sun 17:15 WAT",
+    "status": "SCHEDULED",
+    "score": null,
     "odds": {
-      "home": 2.28,
-      "draw": 3.62,
-      "away": 2.91,
+      "home": 1.86,
+      "draw": 4,
+      "away": 3.7,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "FT",
-        "type": "end",
-        "desc": "🏁 Final Whistle: Toulouse 0 - 0 Troyes (Full Time)",
-        "icon": "🏁"
+        "time": "Pre-Match",
+        "type": "start",
+        "desc": "Kickoff scheduled for Sun 17:15 WAT",
+        "icon": "🚩"
       }
     ],
-    "isLocked": true
+    "isLocked": false
   }
 ]

@@ -698,8 +698,6 @@
                             </div>
                             <div class="pitch-penalty-box-left"></div>
                             <div class="pitch-penalty-box-right"></div>
-                            <!-- Rotating Radar Sweep Beam -->
-                            <div class="radar-sweep-beam"></div>
                         </div>
 
                         <!-- Top Status & Telemetry Bar -->
@@ -1155,12 +1153,15 @@
                         </div>
 
                         <!-- Betslip Mode Switcher: Multi/Accumulator vs BetBuilder -->
-                        <div class="betslip-mode-toggle" id="betslip-mode-toggle">
+                        <div class="betslip-mode-toggle" id="betslip-mode-toggle" style="grid-template-columns: repeat(3, 1fr);">
                             <button id="btn-mode-acca" class="betslip-mode-btn active" onclick="setBetslipMode('acca')">
-                                <span>⚡ Multi / Accumulator</span>
+                                <span>⚡ Acca / Multi</span>
+                            </button>
+                            <button id="btn-mode-singles" class="betslip-mode-btn" onclick="setBetslipMode('singles')">
+                                <span>🎟️ Singles</span>
                             </button>
                             <button id="btn-mode-builder" class="betslip-mode-btn" onclick="setBetslipMode('builder')">
-                                <span>🎯 BetBuilder (Same Game Multi)</span>
+                                <span>🎯 BetBuilder</span>
                             </button>
                         </div>
 
@@ -1640,7 +1641,7 @@
 <!-- Floating Quick Betslip Pill (SportyBet Style) -->
 <div id="floating-betslip-pill" class="floating-betslip-pill" onclick="switchTab('slip')" style="display: none;">
     <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+        <span class="material-symbols-outlined text-[20px] text-yellow-300">confirmation_number</span>
         <span id="floating-slip-count">0 Bets</span>
     </div>
     <div class="h-4 w-[1px] bg-white/30"></div>
@@ -1700,7 +1701,7 @@
         <span>Fan Chat</span>
     </button>
     <button onclick="mobileNavAction('slip')" id="mnav-slip" class="flex flex-col items-center gap-0.5 text-on-surface/60 text-[11px] font-bold p-1 transition-all active:scale-95 relative cursor-pointer">
-        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+        <span class="material-symbols-outlined text-[20px]">confirmation_number</span>
         <span id="mnav-slip-badge" class="absolute -top-1 right-2 bg-yellow-400 text-black text-[9px] font-black rounded-full px-1.5 py-0 min-w-[14px]">0</span>
         <span>Betslip</span>
     </button>

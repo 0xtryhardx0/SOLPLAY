@@ -1,0 +1,1442 @@
+let MATCHES_DATA = [
+    {
+        "id": 401879248,
+        "espnId": "401879248",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Chelsea",
+        "awayTeam": "Manchester United",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+        "dateISO": "2026-10-31T12:30Z",
+        "time": "Tomorrow 13:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.01,
+            "draw": 3.83,
+            "away": 3.33,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 13:30 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401879251,
+        "espnId": "401879251",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "AFC Bournemouth",
+        "awayTeam": "Leeds United",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/349.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/357.png",
+        "dateISO": "2026-10-31T15:00Z",
+        "time": "Tomorrow 16:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.1,
+            "draw": 3.75,
+            "away": 3.16,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 16:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401879249,
+        "espnId": "401879249",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Brentford",
+        "awayTeam": "Nottingham Forest",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/337.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/393.png",
+        "dateISO": "2026-10-31T15:00Z",
+        "time": "Tomorrow 16:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.18,
+            "draw": 3.69,
+            "away": 3.05,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 16:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401879247,
+        "espnId": "401879247",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Coventry City",
+        "awayTeam": "Sunderland",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/388.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/366.png",
+        "dateISO": "2026-10-31T15:00Z",
+        "time": "Tomorrow 16:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.42,
+            "draw": 3.53,
+            "away": 2.76,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 16:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401878763,
+        "espnId": "401878763",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Hull City",
+        "awayTeam": "Ipswich Town",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/306.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/373.png",
+        "dateISO": "2026-10-31T15:00Z",
+        "time": "Tomorrow 16:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.61,
+            "draw": 3.44,
+            "away": 2.61,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 16:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401879245,
+        "espnId": "401879245",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Manchester City",
+        "awayTeam": "Brighton & Hove Albion",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/331.png",
+        "dateISO": "2026-10-31T15:00Z",
+        "time": "Tomorrow 16:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.47,
+            "draw": 4.82,
+            "away": 5.91,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 16:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401878761,
+        "espnId": "401878761",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Tottenham Hotspur",
+        "awayTeam": "Crystal Palace",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/367.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/384.png",
+        "dateISO": "2026-10-31T17:30Z",
+        "time": "Tomorrow 18:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.83,
+            "draw": 4.04,
+            "away": 3.78,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 18:30 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401879250,
+        "espnId": "401879250",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Aston Villa",
+        "awayTeam": "Fulham",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/362.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/370.png",
+        "dateISO": "2026-10-31T20:00Z",
+        "time": "Tomorrow 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.85,
+            "draw": 4.02,
+            "away": 3.74,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401882817,
+        "espnId": "401882817",
+        "league": "La Liga",
+        "leagueCategory": "La Liga",
+        "scheduleGroup": "today",
+        "homeTeam": "Villarreal",
+        "awayTeam": "Espanyol",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/102.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/88.png",
+        "dateISO": "2026-10-30T20:00Z",
+        "time": "Today 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.78,
+            "draw": 4.11,
+            "away": 3.95,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Today 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874798,
+        "espnId": "401874798",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Bologna",
+        "awayTeam": "Monza",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/107.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/4007.png",
+        "dateISO": "2026-10-31T14:00Z",
+        "time": "Tomorrow 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.83,
+            "draw": 4.04,
+            "away": 3.78,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874990,
+        "espnId": "401874990",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Udinese",
+        "awayTeam": "AS Roma",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/118.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/104.png",
+        "dateISO": "2026-10-31T17:00Z",
+        "time": "Tomorrow 18:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.81,
+            "draw": 3.56,
+            "away": 2.38,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 18:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874795,
+        "espnId": "401874795",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "AC Milan",
+        "awayTeam": "Internazionale",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/103.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
+        "dateISO": "2026-10-31T19:45Z",
+        "time": "Tomorrow 20:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.83,
+            "draw": 3.57,
+            "away": 2.35,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tomorrow 20:45 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401884746,
+        "espnId": "401884746",
+        "league": "Bundesliga",
+        "leagueCategory": "Bundesliga",
+        "scheduleGroup": "today",
+        "homeTeam": "SV Elversberg",
+        "awayTeam": "Mainz",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/10388.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2950.png",
+        "dateISO": "2026-10-30T19:30Z",
+        "time": "Today 20:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.91,
+            "draw": 3.62,
+            "away": 2.28,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Today 20:30 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876421,
+        "espnId": "401876421",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "today",
+        "homeTeam": "Le Havre AC",
+        "awayTeam": "Paris Saint-Germain",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/3236.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/160.png",
+        "dateISO": "2026-10-30T18:00Z",
+        "time": "Today 19:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 4.67,
+            "draw": 4.39,
+            "away": 1.62,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Today 19:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876416,
+        "espnId": "401876416",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "today",
+        "homeTeam": "Nice",
+        "awayTeam": "Stade Rennais",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2502.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/169.png",
+        "dateISO": "2026-10-30T18:00Z",
+        "time": "Today 19:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.2,
+            "draw": 3.68,
+            "away": 3.02,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Today 19:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876420,
+        "espnId": "401876420",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "today",
+        "homeTeam": "Lille",
+        "awayTeam": "Lens",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/166.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/175.png",
+        "dateISO": "2026-10-30T20:05Z",
+        "time": "Today 21:05 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.07,
+            "draw": 3.78,
+            "away": 3.23,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Today 21:05 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915311,
+        "espnId": "401915311",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Galatasaray",
+        "awayTeam": "VfB Stuttgart",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/432.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/134.png",
+        "dateISO": "2026-11-03T17:45Z",
+        "time": "Tue 18:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.63,
+            "draw": 3.45,
+            "away": 2.58,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 18:45 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915310,
+        "espnId": "401915310",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Shakhtar Donetsk",
+        "awayTeam": "Sporting CP",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/493.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2250.png",
+        "dateISO": "2026-11-03T17:45Z",
+        "time": "Tue 18:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.2,
+            "draw": 3.77,
+            "away": 2.08,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 18:45 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915386,
+        "espnId": "401915386",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Atlético Madrid",
+        "awayTeam": "Bayern Munich",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/1068.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/132.png",
+        "dateISO": "2026-11-03T20:00Z",
+        "time": "Tue 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.67,
+            "draw": 3.48,
+            "away": 2.53,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915387,
+        "espnId": "401915387",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Barcelona",
+        "awayTeam": "Aston Villa",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/83.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/362.png",
+        "dateISO": "2026-11-03T20:00Z",
+        "time": "Tue 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.72,
+            "draw": 4.21,
+            "away": 4.19,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915384,
+        "espnId": "401915384",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Bodo/Glimt",
+        "awayTeam": "Lille",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2980.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/166.png",
+        "dateISO": "2026-11-03T20:00Z",
+        "time": "Tue 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.16,
+            "draw": 3.75,
+            "away": 2.1,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915307,
+        "espnId": "401915307",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Feyenoord Rotterdam",
+        "awayTeam": "Internazionale",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/142.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
+        "dateISO": "2026-11-03T20:00Z",
+        "time": "Tue 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.47,
+            "draw": 3.9,
+            "away": 1.95,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915385,
+        "espnId": "401915385",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "LASK Linz",
+        "awayTeam": "Slovan Bratislava",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/4411.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/521.png",
+        "dateISO": "2026-11-03T20:00Z",
+        "time": "Tue 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.16,
+            "draw": 3.71,
+            "away": 3.07,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915308,
+        "espnId": "401915308",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Manchester United",
+        "awayTeam": "AS Roma",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/104.png",
+        "dateISO": "2026-11-03T20:00Z",
+        "time": "Tue 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.24,
+            "draw": 3.65,
+            "away": 2.96,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401915309,
+        "espnId": "401915309",
+        "league": "UEFA Champions League",
+        "leagueCategory": "Champions League",
+        "scheduleGroup": "week",
+        "homeTeam": "Villarreal",
+        "awayTeam": "Paris Saint-Germain",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/102.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/160.png",
+        "dateISO": "2026-11-03T20:00Z",
+        "time": "Tue 21:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.2,
+            "draw": 3.77,
+            "away": 2.08,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Tue 21:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401879254,
+        "espnId": "401879254",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "week",
+        "homeTeam": "Crystal Palace",
+        "awayTeam": "Newcastle United",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/384.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/361.png",
+        "dateISO": "2026-10-25T14:00Z",
+        "time": "Sun 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.96,
+            "draw": 3.65,
+            "away": 2.24,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401878766,
+        "espnId": "401878766",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "week",
+        "homeTeam": "Hull City",
+        "awayTeam": "Brentford",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/306.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/337.png",
+        "dateISO": "2026-10-25T14:00Z",
+        "time": "Sun 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.36,
+            "draw": 3.85,
+            "away": 2,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401878765,
+        "espnId": "401878765",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "week",
+        "homeTeam": "Liverpool",
+        "awayTeam": "Brighton & Hove Albion",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/331.png",
+        "dateISO": "2026-10-25T14:00Z",
+        "time": "Sun 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.53,
+            "draw": 4.62,
+            "away": 5.31,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401879252,
+        "espnId": "401879252",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "week",
+        "homeTeam": "Manchester United",
+        "awayTeam": "AFC Bournemouth",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/349.png",
+        "dateISO": "2026-10-25T14:00Z",
+        "time": "Sun 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.9,
+            "draw": 3.95,
+            "away": 3.58,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401878764,
+        "espnId": "401878764",
+        "league": "Premier League",
+        "leagueCategory": "Premier League",
+        "scheduleGroup": "week",
+        "homeTeam": "Sunderland",
+        "awayTeam": "Leeds United",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/366.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/357.png",
+        "dateISO": "2026-10-25T16:30Z",
+        "time": "Sun 17:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.42,
+            "draw": 3.53,
+            "away": 2.76,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 17:30 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874958,
+        "espnId": "401874958",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Cagliari",
+        "awayTeam": "Bologna",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2925.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/107.png",
+        "dateISO": "2026-10-24T13:00Z",
+        "time": "Sat 14:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.91,
+            "draw": 3.62,
+            "away": 2.28,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sat 14:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874961,
+        "espnId": "401874961",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Como",
+        "awayTeam": "Sassuolo",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2572.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/3997.png",
+        "dateISO": "2026-10-24T13:00Z",
+        "time": "Sat 14:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.38,
+            "draw": 3.56,
+            "away": 2.81,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sat 14:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874948,
+        "espnId": "401874948",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Napoli",
+        "awayTeam": "AS Roma",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/114.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/104.png",
+        "dateISO": "2026-10-24T16:00Z",
+        "time": "Sat 17:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.08,
+            "draw": 3.77,
+            "away": 3.2,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sat 17:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874955,
+        "espnId": "401874955",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Lazio",
+        "awayTeam": "Parma",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/112.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/115.png",
+        "dateISO": "2026-10-24T18:45Z",
+        "time": "Sat 19:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.81,
+            "draw": 4.07,
+            "away": 3.87,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sat 19:45 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401875036,
+        "espnId": "401875036",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Internazionale",
+        "awayTeam": "Fiorentina",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/109.png",
+        "dateISO": "2026-10-25T11:30Z",
+        "time": "Sun 12:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.63,
+            "draw": 4.37,
+            "away": 4.62,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 12:30 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874972,
+        "espnId": "401874972",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Atalanta",
+        "awayTeam": "Frosinone",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/105.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/4057.png",
+        "dateISO": "2026-10-25T14:00Z",
+        "time": "Sun 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.61,
+            "draw": 4.41,
+            "away": 4.73,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874952,
+        "espnId": "401874952",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Genoa",
+        "awayTeam": "Venezia",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/3263.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/17530.png",
+        "dateISO": "2026-10-25T14:00Z",
+        "time": "Sun 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.01,
+            "draw": 3.83,
+            "away": 3.33,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874772,
+        "espnId": "401874772",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Lecce",
+        "awayTeam": "Juventus",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/113.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/111.png",
+        "dateISO": "2026-10-25T17:00Z",
+        "time": "Sun 18:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.78,
+            "draw": 4.04,
+            "away": 1.83,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 18:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401874779,
+        "espnId": "401874779",
+        "league": "Serie A",
+        "leagueCategory": "Serie A",
+        "scheduleGroup": "week",
+        "homeTeam": "Udinese",
+        "awayTeam": "AC Milan",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/118.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/103.png",
+        "dateISO": "2026-10-25T19:45Z",
+        "time": "Sun 20:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.16,
+            "draw": 3.75,
+            "away": 2.1,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 20:45 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401884760,
+        "espnId": "401884760",
+        "league": "Bundesliga",
+        "leagueCategory": "Bundesliga",
+        "scheduleGroup": "week",
+        "homeTeam": "TSG Hoffenheim",
+        "awayTeam": "Bayer Leverkusen",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7911.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/131.png",
+        "dateISO": "2026-10-25T14:30Z",
+        "time": "Sun 15:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.78,
+            "draw": 4.04,
+            "away": 1.83,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:30 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401884759,
+        "espnId": "401884759",
+        "league": "Bundesliga",
+        "leagueCategory": "Bundesliga",
+        "scheduleGroup": "week",
+        "homeTeam": "SC Freiburg",
+        "awayTeam": "Bayern Munich",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/126.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/132.png",
+        "dateISO": "2026-10-25T16:30Z",
+        "time": "Sun 17:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 3.87,
+            "draw": 4.07,
+            "away": 1.81,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 17:30 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876427,
+        "espnId": "401876427",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "week",
+        "homeTeam": "Lens",
+        "awayTeam": "Paris FC",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/175.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/6851.png",
+        "dateISO": "2026-10-24T18:45Z",
+        "time": "Sat 19:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.83,
+            "draw": 4.04,
+            "away": 3.78,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sat 19:45 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876425,
+        "espnId": "401876425",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "week",
+        "homeTeam": "AS Monaco",
+        "awayTeam": "Lille",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/174.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/166.png",
+        "dateISO": "2026-10-25T14:00Z",
+        "time": "Sun 15:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.22,
+            "draw": 3.66,
+            "away": 2.99,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 15:00 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876429,
+        "espnId": "401876429",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "week",
+        "homeTeam": "AJ Auxerre",
+        "awayTeam": "Le Mans",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/172.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2697.png",
+        "dateISO": "2026-10-25T16:15Z",
+        "time": "Sun 17:15 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.86,
+            "draw": 4,
+            "away": 3.7,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 17:15 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876430,
+        "espnId": "401876430",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "week",
+        "homeTeam": "Angers",
+        "awayTeam": "Lorient",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7868.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/273.png",
+        "dateISO": "2026-10-25T16:15Z",
+        "time": "Sun 17:15 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.55,
+            "draw": 3.46,
+            "away": 2.65,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 17:15 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876426,
+        "espnId": "401876426",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "week",
+        "homeTeam": "Marseille",
+        "awayTeam": "Le Havre AC",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/176.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/3236.png",
+        "dateISO": "2026-10-25T16:15Z",
+        "time": "Sun 17:15 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.72,
+            "draw": 4.21,
+            "away": 4.19,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 17:15 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876424,
+        "espnId": "401876424",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "week",
+        "homeTeam": "Stade Rennais",
+        "awayTeam": "Strasbourg",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/169.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/180.png",
+        "dateISO": "2026-10-25T16:15Z",
+        "time": "Sun 17:15 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.08,
+            "draw": 3.77,
+            "away": 3.2,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 17:15 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 401876423,
+        "espnId": "401876423",
+        "league": "Ligue 1",
+        "leagueCategory": "Ligue 1",
+        "scheduleGroup": "week",
+        "homeTeam": "Toulouse",
+        "awayTeam": "Troyes",
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/179.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/170.png",
+        "dateISO": "2026-10-25T16:15Z",
+        "time": "Sun 17:15 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.86,
+            "draw": 4,
+            "away": 3.7,
+            "provider": "SolPlay Sharp Consensus"
+        },
+        "timeline": [
+            {
+                "time": "Pre-Match",
+                "type": "start",
+                "desc": "Kickoff scheduled for Sun 17:15 WAT",
+                "icon": "🚩"
+            }
+        ],
+        "isLocked": false
+    }
+];
