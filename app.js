@@ -3957,13 +3957,13 @@ function getStreamsForMatchAndRegion(match, region) {
     else if (region === "asia_in") suffix = " (Asia Feed)";
     else suffix = " (Global HD)";
 
-    // High-performance verified live sports feeds (NO YouTube)
+    // High-performance verified feeds with 2D Tactical Radar as primary default
     const verifiedSportsFeeds = [
         { 
-            name: `🏆 LiveSports808 (Ad-Shielded Match Stream)${suffix}`, 
-            url: getActiveSports808UrlForMatch(match), 
-            description: "LiveSports808 match feed with auto-healing mirror routing and popup suppression.", 
-            type: "embed" 
+            name: `📡 Live 2D Tactical Pitch Radar (Telemetry)`, 
+            url: "", 
+            description: "Real-time tactical pitch radar, live team lineups, and 1-click odds betting.", 
+            type: "mock" 
         },
         { 
             name: `⚡ Live Stream 1 (Africa24 Sports HD)${suffix}`, 
@@ -3990,16 +3990,10 @@ function getStreamsForMatchAndRegion(match, region) {
             type: "hls" 
         },
         { 
-            name: `⚡ Live Stream 5 (Astrahan Sport HD - Stadium Feed)${suffix}`, 
-            url: "https://streaming.astrakhan.ru/astrakhanrusporthd/playlist.m3u8", 
-            description: "Continuous stadium match broadcast feed.", 
-            type: "hls" 
-        },
-        { 
-            name: `📡 Live 2D Match Radar (Real-Time Coordinates)`, 
-            url: "", 
-            description: "Real-time tactical pitch radar, live ball physics and in-game events.", 
-            type: "mock" 
+            name: `🏆 LiveSports808 (Ad-Shielded Match Stream)${suffix}`, 
+            url: getActiveSports808UrlForMatch(match), 
+            description: "LiveSports808 match feed with auto-healing mirror routing and popup suppression.", 
+            type: "embed" 
         }
     ];
 
@@ -4212,12 +4206,17 @@ function switchStreamProvider() {
         }
     } else {
         // Live 2D Match Radar Simulator
-        if (playerFrame) playerFrame.style.display = "none";
+        if (playerFrame) {
+            playerFrame.style.display = "none";
+            playerFrame.src = "";
+        }
         if (video) {
             video.style.display = "none";
             destroyHlsPlayer();
         }
         if (mockPlayer) mockPlayer.style.display = "flex";
+        const titleEl = document.getElementById("stream-title");
+        if (titleEl) titleEl.textContent = "2D Tactical Pitch Radar & Command Center";
     }
 }
 
