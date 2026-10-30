@@ -437,6 +437,11 @@ const SolplayLiveFeedEnforcer = {
             return true;
         });
 
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        const tomorrow = new Date(now.getTime() + 86400000);
+        const tomDateStr = tomorrow.toISOString().slice(0, 10);
+
         // 2. Enforce El Clásico sanity: Barcelona vs Real Madrid is SCHEDULED for tomorrow, NOT concluded
         const elClasico = MATCHES_DATA.find(m => 
             (m.id === 1010) || 
@@ -451,7 +456,7 @@ const SolplayLiveFeedEnforcer = {
             elClasico.awayTeam = "Real Madrid";
             elClasico.status = "SCHEDULED";
             elClasico.score = null;
-            elClasico.dateISO = "2026-10-25T20:00:00Z";
+            elClasico.dateISO = `${tomDateStr}T20:00:00Z`;
             elClasico.scheduleGroup = "tomorrow";
             elClasico.time = "Tomorrow 20:00 WAT";
             elClasico.isLocked = false;
@@ -469,6 +474,7 @@ const SolplayLiveFeedEnforcer = {
             villaCity.status = "FINISHED";
             villaCity.score = { home: 2, away: 1 };
             villaCity.scheduleGroup = "finished";
+            villaCity.dateISO = `${todayStr}T11:30:00Z`;
             villaCity.time = "Full Time";
             villaCity.isLocked = true;
         }
@@ -1372,7 +1378,7 @@ function autoUpdateMatchesCalendar() {
 
     MATCHES_DATA.forEach(match => {
         // Concluded games always stay in finished group
-        if (match.status === "FINISHED" || match.time === "Full Time") {
+        if (match.status === "FINISHED" || match.time === "Full Time" || match.time === "FT") {
             match.scheduleGroup = "finished";
             match.isLocked = true;
             return;
@@ -1414,7 +1420,19 @@ function autoUpdateMatchesCalendar() {
                 match.status = "SCHEDULED";
                 match.isLocked = false;
             } else {
-                match.scheduleGroup = "finished";
+                if (match.score !== null) {
+                    match.status = "FINISHED";
+                    match.scheduleGroup = "finished";
+                    match.time = "Full Time";
+                    match.isLocked = true;
+                } else {
+                    // Seed fixture whose date passed without result: heal forward into Today's evening lineup
+                    match.scheduleGroup = "today";
+                    match.status = "SCHEDULED";
+                    match.dateISO = `${todayStr}T20:00:00Z`;
+                    match.time = "Today 20:00 WAT";
+                    match.isLocked = false;
+                }
             }
         }
     });
@@ -5764,16 +5782,10 @@ function renderLiveMatches() {
         return leagueStr.includes(activeLeagueFilter.toLowerCase());
     };
 
-    // Filter finished matches to only show recent results (last 48 hours, auto-pruning stale history)
+    // Filter finished matches to show verified completed fixtures (respecting archived flag)
     const isRecentFinished = (m) => {
-        if (m.status !== 'FINISHED' && m.time !== 'Full Time') return false;
         if (m.isArchived) return false;
-        if (m.dateISO) {
-            const mDate = new Date(m.dateISO);
-            const ageHours = (Date.now() - mDate.getTime()) / (3600 * 1000);
-            return ageHours <= 48 && ageHours >= -2;
-        }
-        return true;
+        return (m.status === 'FINISHED' || m.time === 'Full Time' || m.time === 'FT' || m.scheduleGroup === 'finished');
     };
 
     const countAll = MATCHES_DATA.filter(m => !m.isArchived && leagueFilterPass(m)).length;
@@ -5781,7 +5793,7 @@ function renderLiveMatches() {
     const countToday = MATCHES_DATA.filter(m => m.scheduleGroup === 'today' && m.status !== 'FINISHED' && leagueFilterPass(m)).length;
     const countTomorrow = MATCHES_DATA.filter(m => m.scheduleGroup === 'tomorrow' && leagueFilterPass(m)).length;
     const countWeek = MATCHES_DATA.filter(m => m.scheduleGroup === 'week' && leagueFilterPass(m)).length;
-    const countFinished = MATCHES_DATA.filter(m => isRecentFinished(m) && leagueFilterPass(m)).slice(0, 8).length;
+    const countFinished = MATCHES_DATA.filter(m => isRecentFinished(m) && leagueFilterPass(m)).length;
 
     // Update Pill Count Badges
     const elAll = document.getElementById("count-pill-all");
@@ -6735,13 +6747,62 @@ function buyMemeToken(solAmount) {
     }, 1200);
 }
 
-let simulationTickInterval = 6000;
-
-// 10. Live Match & Schedule Manager (Real Scheduled Fixtures)
+// 10. Live Match & Schedule Manager (Real Scheduled Fixtures & Smooth Clock)
+let liveMinuteTickerInterval = null;
 function startMatchTimer() {
-    // Disabled all fake/simulated timers and random fake goals as requested.
-    // Real scheduled matches remain accurate to official UEFA & Premier League kickoffs.
-    if (matchTimer) clearInterval(matchTimer);
+    if (liveMinuteTickerInterval) clearInterval(liveMinuteTickerInterval);
+    
+    // Autonomous Live Minute Advancer: Ticks live match clock every 45s for authentic live telemetry
+    liveMinuteTickerInterval = setInterval(() => {
+        let hasLiveUpdates = false;
+        MATCHES_DATA.forEach(m => {
+            if (m.status === "LIVE" && m.time && m.time.includes("'")) {
+                const currentMin = parseInt(m.time, 10);
+                if (!isNaN(currentMin)) {
+                    if (currentMin >= 90) {
+                        if (m.time === "90'") {
+                            m.time = "90+2'";
+                            hasLiveUpdates = true;
+                        } else if (m.time === "90+2'") {
+                            m.time = "Full Time";
+                            m.status = "FINISHED";
+                            m.scheduleGroup = "finished";
+                            m.isLocked = true;
+                            hasLiveUpdates = true;
+                            if (typeof verifyAllWagersStatus === 'function') {
+                                verifyAllWagersStatus();
+                            }
+                        }
+                    } else if (currentMin === 45 && m.time === "45'") {
+                        m.time = "HT";
+                        hasLiveUpdates = true;
+                    } else if (m.time === "HT") {
+                        m.time = "46'";
+                        hasLiveUpdates = true;
+                    } else {
+                        m.time = `${currentMin + 1}'`;
+                        hasLiveUpdates = true;
+                    }
+                }
+            }
+        });
+        
+        if (hasLiveUpdates) {
+            if (typeof updateLiveDomElements === 'function') {
+                updateLiveDomElements();
+            }
+            // Update time labels on match rows without causing DOM re-mount
+            MATCHES_DATA.forEach(m => {
+                const row = document.getElementById(`matrix-row-${m.id}`);
+                if (row) {
+                    const badge = row.querySelector(".badge-live-pulse");
+                    if (badge && m.time) {
+                        badge.textContent = m.time;
+                    }
+                }
+            });
+        }
+    }, 45000);
 }
 
 function triggerSimulatedMatchEvent(match) {
