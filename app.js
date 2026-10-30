@@ -87,10 +87,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 2.01,
-            "draw": 3.83,
-            "away": 3.33,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 1.83,
+            "draw": 3.95,
+            "away": 4,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -117,10 +117,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 2.1,
-            "draw": 3.75,
-            "away": 3.16,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 2.15,
+            "draw": 3.45,
+            "away": 3.5,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -147,10 +147,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 2.18,
-            "draw": 3.69,
-            "away": 3.05,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 2.05,
+            "draw": 3.7,
+            "away": 3.45,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -177,10 +177,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 2.58,
-            "draw": 3.45,
-            "away": 2.63,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 3.1,
+            "draw": 3.35,
+            "away": 2.35,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -207,10 +207,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 2.61,
-            "draw": 3.44,
-            "away": 2.61,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 2.65,
+            "draw": 3.45,
+            "away": 2.65,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -237,10 +237,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.47,
-            "draw": 4.82,
-            "away": 5.91,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 1.62,
+            "draw": 4.6,
+            "away": 4.7,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -267,10 +267,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.83,
-            "draw": 4.04,
-            "away": 3.78,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 1.61,
+            "draw": 4.3,
+            "away": 5.25,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -297,10 +297,10 @@ let MATCHES_DATA = [
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.85,
-            "draw": 4.02,
-            "away": 3.74,
-            "provider": "SolPlay Sharp Consensus"
+            "home": 1.95,
+            "draw": 3.75,
+            "away": 3.8,
+            "provider": "DraftKings Official"
         },
         "timeline": [
             {
@@ -1583,7 +1583,7 @@ let MATCHES_DATA = [
     }
 ];
 
-NAMENTS_DATA = [
+const TOURNAMENTS_DATA = [
     {
         id: 3001,
         title: "EA FC 26 Pro Cup • Grand Finals",
