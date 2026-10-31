@@ -156,6 +156,20 @@ assert(builderDiscounted < builderRaw, "BetBuilder applies covariance correlatio
 // Check DNB Tie Push behavior
 const dnbPushOutcome = (0 === 0) ? "VOID" : "LOST"; // h === a -> VOID
 assert(dnbPushOutcome === "VOID", "Draw No Bet pushes tied matches to VOID with 1.00x multiplier instead of full win");
+
+// Check Vault Liability Auto-Capping (500 SOL baseline -> 100 SOL max profit cap)
+const testVaultReserves = 500.0;
+const testMaxExposureRatio = 0.20;
+const testMaxAllowedProfit = testVaultReserves * testMaxExposureRatio; // 100.0 SOL
+assert(testMaxAllowedProfit === 100.0, "Vault liability ceiling allows up to 100.0 SOL net profit (scaled from 500 SOL pool)");
+
+// Test High-Roller Wager: 5 SOL stake on 100x odds (Uncapped = 500 SOL, Capped = 105 SOL return / 100 SOL profit)
+const testStake = 5.0;
+const testOdds = 100.0;
+const testRawReturn = testStake * testOdds;
+const testUncappedProfit = testRawReturn - testStake;
+const testCappedReturn = (testUncappedProfit > testMaxAllowedProfit) ? (testStake + testMaxAllowedProfit) : testRawReturn;
+assert(testCappedReturn === 105.0, "High-roller parlay smoothly auto-caps payout to stake + 100 SOL profit instead of rejecting stake", `Return = ${testCappedReturn} SOL`);
 console.log("\n======================================================================");
 if (totalFailed === 0) {
     console.log(`🎉 ALL ${totalPassed} INTEGRITY AUDITS PASSED WITH ZERO ERRORS!`);

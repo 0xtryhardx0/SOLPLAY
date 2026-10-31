@@ -5559,6 +5559,26 @@ function calculatePayout() {
     const bonusAmount = baseReturn * (bonusPercent / 100);
     const totalPotentialReturn = baseReturn + bonusAmount;
 
+    // Enterprise Risk Management: Maximum Liability Cap against LP Vault (100 SOL Max Profit)
+    const vaultReserves = (typeof localLPDeposited !== 'undefined' && localLPDeposited > 0) ? localLPDeposited : 500.0;
+    const MAX_EXPOSURE_RATIO = 0.20; // 20% max pool exposure per ticket
+    const maxAllowedProfit = vaultReserves * MAX_EXPOSURE_RATIO; // 500 * 0.20 = 100 SOL
+    const uncappedProfit = Math.max(0, totalPotentialReturn - stake);
+
+    let finalPotentialReturn = totalPotentialReturn;
+    const vaultCapBadge = document.getElementById("slip-vault-cap-badge");
+    const vaultCapAmountEl = document.getElementById("slip-vault-cap-amount");
+
+    if (uncappedProfit > maxAllowedProfit && stake > 0) {
+        finalPotentialReturn = stake + maxAllowedProfit;
+        if (vaultCapBadge) {
+            vaultCapBadge.style.display = "flex";
+            if (vaultCapAmountEl) vaultCapAmountEl.textContent = `${finalPotentialReturn.toFixed(2)} SOL (Capped)`;
+        }
+    } else {
+        if (vaultCapBadge) vaultCapBadge.style.display = "none";
+    }
+
     // Update UI elements
     const oddsEl = document.getElementById("slip-odds-multiplier");
     if (oddsEl) oddsEl.textContent = totalMultiplier.toFixed(2) + "x";
@@ -5570,8 +5590,8 @@ function calculatePayout() {
 
     const payoutEl = document.getElementById("slip-potential-payout");
     if (payoutEl) {
-        const payoutNgn = Math.round(totalPotentialReturn * 155 * 1650);
-        payoutEl.innerHTML = `${totalPotentialReturn.toFixed(4)} SOL <span style="font-size:0.75rem; color:#14b8a6; font-weight:normal;">(≈ ₦${payoutNgn.toLocaleString()})</span>`;
+        const payoutNgn = Math.round(finalPotentialReturn * 155 * 1650);
+        payoutEl.innerHTML = `${finalPotentialReturn.toFixed(4)} SOL <span style="font-size:0.75rem; color:#14b8a6; font-weight:normal;">(≈ ₦${payoutNgn.toLocaleString()})</span>`;
     }
 
     // Tipster Win-Share Punter Reward Calculation (3% of net profit to Originator)
@@ -5983,17 +6003,17 @@ async function placeBet() {
     const bonusAmount = baseReturn * (bonusPercent / 100);
     const totalPotentialReturn = baseReturn + bonusAmount;
 
-    // Enterprise Risk Management: Maximum Liability Cap against LP Vault
-    // Prevents any single wager from risking more than 20% of total LP vault capital
-    const vaultReserves = (typeof localLPDeposited !== 'undefined' && localLPDeposited > 0) ? localLPDeposited : 50.0;
+    // Enterprise Risk Management: Maximum Liability Cap against LP Vault (100 SOL Cap)
+    // Smoothly caps payout at maximum pool exposure rather than blocking the punter's stake
+    const vaultReserves = (typeof localLPDeposited !== 'undefined' && localLPDeposited > 0) ? localLPDeposited : 500.0;
     const MAX_EXPOSURE_RATIO = 0.20; // 20% max pool exposure per ticket
-    const maxAllowedProfit = vaultReserves * MAX_EXPOSURE_RATIO;
+    const maxAllowedProfit = vaultReserves * MAX_EXPOSURE_RATIO; // 500 * 0.20 = 100 SOL default
     const wagerPotentialProfit = totalPotentialReturn - stakeSol;
 
+    let finalPotentialReturn = totalPotentialReturn;
     if (wagerPotentialProfit > maxAllowedProfit) {
-        const recommendedStake = Math.max(0.05, (maxAllowedProfit / (totalMultiplier * (1 + bonusPercent / 100) - 1))).toFixed(2);
-        showToast(`⚠️ Risk Limit: Max profit capped at ${maxAllowedProfit.toFixed(2)} SOL to protect LP Vault. Lower stake to ~${recommendedStake} SOL.`, "warning");
-        return;
+        finalPotentialReturn = stakeSol + maxAllowedProfit;
+        showToast(`⚡ High-Roller Wager: Payout capped at ${finalPotentialReturn.toFixed(2)} SOL (Vault Max Liability Limit). Good luck! 🎯`, "info");
     }
 
     // Check if any fixture in the slip is currently in-play (LIVE)
@@ -6032,13 +6052,13 @@ async function placeBet() {
                     }
                 }
                 
-                await executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, totalPotentialReturn);
+                await executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, finalPotentialReturn);
             }
         }, 1000);
         return;
     }
 
-    await executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, totalPotentialReturn);
+    await executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, finalPotentialReturn);
 }
 
 async function executeWagerTransaction(stakeSol, legs, totalMultiplier, bonusPercent, totalPotentialReturn) {
