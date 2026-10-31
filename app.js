@@ -5274,11 +5274,19 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marke
                 betslipSelections = [];
             }
 
-            // Check if user selected another option in the exact same market category (e.g. Home vs Away)
-            const sameMarketIdx = betslipSelections.findIndex(s => s.gameId === gameId && s.marketName === marketName);
-            if (sameMarketIdx >= 0) {
-                const prev = betslipSelections[sameMarketIdx];
-                betslipSelections[sameMarketIdx] = {
+            // Prevent stacking redundant or conflicting markets from the same Match Winner family (1X2, Double Chance, Draw No Bet)
+            const WINNER_FAMILY = ['Winner (1X2)', 'Double Chance', 'Draw No Bet'];
+            const isWinnerFamily = WINNER_FAMILY.includes(marketName);
+            const conflictIdx = betslipSelections.findIndex(s => {
+                if (s.gameId !== gameId) return false;
+                if (s.marketName === marketName) return true;
+                if (isWinnerFamily && WINNER_FAMILY.includes(s.marketName)) return true;
+                return false;
+            });
+
+            if (conflictIdx >= 0) {
+                const prev = betslipSelections[conflictIdx];
+                betslipSelections[conflictIdx] = {
                     id: `${gameId}-${outcomeId}`,
                     gameId,
                     outcomeId,
@@ -5287,7 +5295,7 @@ function selectOdds(gameId, outcomeId, oddsValue, outcomeLabel, gameTitle, marke
                     gameTitle,
                     marketName
                 };
-                showToast(`Updated BetBuilder pick for ${marketName}: ${outcomeLabel} (${oddsValue.toFixed(2)}x)`, "info");
+                showToast(`Updated BetBuilder pick: replaced "${prev.outcomeLabel}" with "${outcomeLabel}" (${oddsValue.toFixed(2)}x)`, "info");
             } else {
                 betslipSelections.push({
                     id: `${gameId}-${outcomeId}`,
@@ -5514,6 +5522,9 @@ function calculatePayout() {
         const sum = betslipSelections.reduce((acc, s) => acc + s.oddsValue, 0);
         totalMultiplier = sum / betslipSelections.length;
     }
+
+    // Enterprise Multiplier Ceiling Cap (10,000x)
+    totalMultiplier = Math.min(10000.0, totalMultiplier);
 
     // Acca Boost Bonus calculation (SportyBet style)
     let bonusPercent = 0;
@@ -5939,7 +5950,13 @@ async function placeBet() {
 
     const legs = betslipSelections.length;
     let totalMultiplier = 1.0;
-    if (betslipMode === 'accumulator') {
+    if (activeSlipMode === 'builder') {
+        // BetBuilder compounding with correlation covariance adjustment
+        let rawProduct = 1.0;
+        betslipSelections.forEach(s => { rawProduct *= s.oddsValue; });
+        const discount = legs > 1 ? Math.pow(0.88, legs - 1) : 1.0;
+        totalMultiplier = Math.max(1.10, parseFloat((rawProduct * discount).toFixed(2)));
+    } else if (betslipMode === 'accumulator') {
         betslipSelections.forEach(s => {
             totalMultiplier *= s.oddsValue;
         });
@@ -5948,8 +5965,11 @@ async function placeBet() {
         totalMultiplier = sum / legs;
     }
 
+    // Enterprise Multiplier Ceiling Cap (10,000x)
+    totalMultiplier = Math.min(10000.0, totalMultiplier);
+
     let bonusPercent = 0;
-    if (betslipMode === 'accumulator') {
+    if (activeSlipMode === 'acca' && betslipMode === 'accumulator') {
         if (legs >= 10) bonusPercent = 50;
         else if (legs >= 8) bonusPercent = 35;
         else if (legs >= 6) bonusPercent = 25;
@@ -6164,7 +6184,8 @@ function evaluateTicketOutcome(w) {
                 } else if (legOutcome === "PENDING") {
                     anyPending = true;
                     allWon = false;
-                } else if (legOutcome === "VOID" || legOutcome === "void") {
+                } else if (legOutcome === "VOID" || legOutcome === "void" || legOutcome === "REFUNDED") {
+                    leg.status = "VOID";
                     voidCount++;
                     recalculatedOdds *= 1.0;
                 } else if (legOutcome === "WON") {
@@ -6235,6 +6256,13 @@ function renderActiveWagers() {
             }
         } else if (w.status === "LOST") {
             statusBadge = `<span style="background:rgba(239,68,68,0.15); color:var(--neon-pink); border:1px solid rgba(239,68,68,0.3); border-radius:4px; padding:0.15rem 0.4rem; font-size:0.7rem; font-weight:600;">❌ LOST</span>`;
+        } else if (w.status === "VOID" || w.status === "REFUNDED") {
+            statusBadge = `<span style="background:rgba(148,163,184,0.15); color:#94a3b8; border:1px solid rgba(148,163,184,0.3); border-radius:4px; padding:0.15rem 0.4rem; font-size:0.7rem; font-weight:700;">🔄 VOID / REFUND</span>`;
+            if (!w.claimed) {
+                claimBtn = `<button class="btn-primary" onclick="claimWagerOnchain(${idx})" style="padding:0.45rem 0.8rem; font-size:0.75rem; width:100%; margin-top:0.6rem; font-weight:700; background:linear-gradient(135deg, #64748b, #475569); box-shadow:0 0 12px rgba(148,163,184,0.3);">🔄 Claim ${parseFloat(w.amount).toFixed(4)} SOL Stake Refund</button>`;
+            } else {
+                claimBtn = `<div style="text-align:center; font-size:0.75rem; color:#94a3b8; margin-top:0.5rem; font-weight:600; padding:0.3rem; background:rgba(148,163,184,0.05); border-radius:4px;">Stake Refunded to Balance ✅</div>`;
+            }
         } else if (w.status === "CASHED_OUT") {
             statusBadge = `<span class="badge-cashed-out">💰 CASHED OUT (${(w.potentialPayout || w.amount).toFixed(4)} SOL)</span>`;
             claimBtn = `<div style="text-align:center; font-size:0.72rem; color:#34d399; margin-top:0.4rem; font-weight:600; padding:0.25rem; background:rgba(16,185,129,0.06); border-radius:4px; border:1px solid rgba(16,185,129,0.2);">Funds Cashed Out to Balance ⚡</div>`;
@@ -6782,9 +6810,9 @@ function evaluateMatchOutcome(match, outcomeId, outcomeLabel) {
     if (outcomeId === 20) return (h > 0 && a > 0) ? "WON" : "LOST";
     if (outcomeId === 21) return (h === 0 || a === 0) ? "WON" : "LOST";
     
-    // Draw No Bet
-    if (outcomeId === 30) return h > a ? "WON" : (h === a ? "REFUNDED" : "LOST");
-    if (outcomeId === 31) return a > h ? "WON" : (a === h ? "REFUNDED" : "LOST");
+    // Draw No Bet (Pushed match results in VOID / 1.00x multiplier)
+    if (outcomeId === 30) return h > a ? "WON" : (h === a ? "VOID" : "LOST");
+    if (outcomeId === 31) return a > h ? "WON" : (a === h ? "VOID" : "LOST");
     
     // Correct Score
     if (outcomeId >= 50 && outcomeId < 100) {
@@ -7025,9 +7053,10 @@ async function claimWagerOnchain(idx) {
         await updateWalletBalance();
     } catch (e) {
         console.warn("On-chain claim fallback to Cloud Engine:", e);
-        const totalWin = parseFloat(w.potentialPayout || (w.amount * w.odds));
         const stakeVal = parseFloat(w.amount || 0);
-        const hasTipster = Boolean((w.tipsterHandle || w.copyCreatorWallet) && (w.tipsterRoyaltyPercent > 0));
+        const isVoidTicket = (w.status === "VOID" || w.status === "REFUNDED");
+        const totalWin = isVoidTicket ? stakeVal : parseFloat(w.potentialPayout || (w.amount * w.odds));
+        const hasTipster = !isVoidTicket && Boolean((w.tipsterHandle || w.copyCreatorWallet) && (w.tipsterRoyaltyPercent > 0));
         
         let winnerNetPayout = totalWin;
         let tipsterRoyalty = 0;
