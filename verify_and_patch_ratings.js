@@ -64,23 +64,38 @@ const MASTER_RATINGS = {
     // German Bundesliga & 2. Bundesliga
     "bayern munich": 2010, "bayern": 2010,
     "bayer leverkusen": 1970, "leverkusen": 1970,
-    "borussia dortmund": 1880, "dortmund": 1880,
-    "rb leipzig": 1840, "leipzig": 1840,
-    "vfb stuttgart": 1810, "stuttgart": 1810,
-    "eintracht frankfurt": 1800, "frankfurt": 1800,
-    "sc freiburg": 1740, "freiburg": 1740,
-    "borussia monchengladbach": 1710, "monchengladbach": 1710,
-    "vfl wolfsburg": 1710, "wolfsburg": 1710,
-    "tsg hoffenheim": 1710, "hoffenheim": 1710,
-    "union berlin": 1700,
-    "werder bremen": 1690, "bremen": 1690,
-    "fsv mainz 05": 1680, "mainz": 1680, "mainz 05": 1680,
-    "fc augsburg": 1680, "augsburg": 1680,
-    "fc heidenheim": 1680, "heidenheim": 1680,
-    "st pauli": 1610,
-    "holstein kiel": 1590,
-    "vfl bochum": 1580, "bochum": 1580,
-    "sv elversberg": 1550, "elversberg": 1550,
+    "borussia dortmund": 1895, "dortmund": 1895,
+    "rb leipzig": 1865, "leipzig": 1865,
+    "vfb stuttgart": 1840, "stuttgart": 1840,
+    "eintracht frankfurt": 1815, "frankfurt": 1815,
+    "sc freiburg": 1765, "freiburg": 1765,
+    "vfl wolfsburg": 1745, "wolfsburg": 1745,
+    "borussia monchengladbach": 1740, "monchengladbach": 1740,
+    "tsg hoffenheim": 1740, "hoffenheim": 1740,
+    "union berlin": 1740,
+    "fsv mainz 05": 1740, "mainz": 1740, "mainz 05": 1740,
+    "werder bremen": 1730, "bremen": 1730,
+    "fc augsburg": 1720, "augsburg": 1720,
+    "fc heidenheim": 1720, "heidenheim": 1720,
+    "vfl bochum": 1640, "bochum": 1640,
+    "st pauli": 1630,
+    "holstein kiel": 1610,
+    "fc koln": 1580, "koln": 1580, "cologne": 1580,
+    "hamburger sv": 1570, "hamburg": 1570,
+    "fortuna dusseldorf": 1560, "dusseldorf": 1560,
+    "hertha bsc": 1540, "hertha": 1540,
+    "hannover 96": 1540, "hannover": 1540,
+    "schalke 04": 1530, "schalke": 1530,
+    "karlsruher sc": 1520, "karlsruhe": 1520,
+    "sc paderborn": 1510, "paderborn": 1510,
+    "fc nurnberg": 1500, "nurnberg": 1500,
+    "kaiserslautern": 1490,
+    "greuther furth": 1450,
+    "eintracht braunschweig": 1440, "braunschweig": 1440,
+    "sv elversberg": 1430, "elversberg": 1430,
+    "preussen munster": 1410,
+    "ssv ulm": 1400,
+    "jahn regensburg": 1390,
 
     // Italian Serie A & Serie B
     "inter milan": 1990, "internazionale": 1990, "inter": 1990,
@@ -194,16 +209,17 @@ function resolveRating(teamName, leagueName) {
 function calculateOdds(homeTeam, awayTeam, leagueName) {
     const hElo = resolveRating(homeTeam, leagueName);
     const aElo = resolveRating(awayTeam, leagueName);
-    const diff = (hElo + 65) - aElo;
-    const pHomeRaw = 1.0 / (1.0 + Math.pow(10.0, -diff / 620.0));
-    const pDraw = Math.max(0.19, Math.min(0.29, 0.275 - Math.abs(diff) * 0.00021));
+    const diff = (hElo + 50) - aElo;
+    const pHomeRaw = 1.0 / (1.0 + Math.pow(10.0, -diff / 430.0));
+    const pDraw = Math.max(0.15, Math.min(0.28, 0.275 - Math.abs(diff) * 0.00030));
     const pHome = pHomeRaw * (1.0 - pDraw);
     const pAway = (1.0 - pHomeRaw) * (1.0 - pDraw);
-    const margin = 1.058;
+    // 107.5% overround bookmaker margin
+    const margin = 1.075;
     return {
-        home: Math.max(1.08, Math.min(35.0, +(1.0 / (pHome * margin)).toFixed(2))),
+        home: Math.max(1.05, Math.min(35.0, +(1.0 / (pHome * margin)).toFixed(2))),
         draw: Math.max(2.60, Math.min(18.0, +(1.0 / (pDraw * margin)).toFixed(2))),
-        away: Math.max(1.08, Math.min(35.0, +(1.0 / (pAway * margin)).toFixed(2))),
+        away: Math.max(1.05, Math.min(35.0, +(1.0 / (pAway * margin)).toFixed(2))),
         provider: "SolPlay Sharp Consensus"
     };
 }

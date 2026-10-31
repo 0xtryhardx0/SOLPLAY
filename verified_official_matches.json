@@ -364,30 +364,33 @@
     "espnId": "401884746",
     "league": "Bundesliga",
     "leagueCategory": "Bundesliga",
-    "scheduleGroup": "today",
+    "scheduleGroup": "finished",
     "homeTeam": "SV Elversberg",
     "awayTeam": "Mainz",
     "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/10388.png",
     "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2950.png",
     "dateISO": "2026-10-30T19:30Z",
-    "time": "Today 20:30 WAT",
-    "status": "SCHEDULED",
-    "score": null,
+    "time": "Full Time",
+    "status": "FINISHED",
+    "score": {
+      "home": 4,
+      "away": 1
+    },
     "odds": {
-      "home": 2.91,
-      "draw": 3.62,
-      "away": 2.28,
+      "home": 5.82,
+      "draw": 4.72,
+      "away": 1.45,
       "provider": "SolPlay Sharp Consensus"
     },
     "timeline": [
       {
-        "time": "Pre-Match",
-        "type": "start",
-        "desc": "Kickoff scheduled for Today 20:30 WAT",
-        "icon": "🚩"
+        "time": "FT",
+        "type": "end",
+        "desc": "🏁 Final Whistle: SV Elversberg 4 - 1 Mainz (Full Time)",
+        "icon": "🏁"
       }
     ],
-    "isLocked": false
+    "isLocked": true
   },
   {
     "id": 401876421,

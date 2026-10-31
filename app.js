@@ -437,30 +437,33 @@ let MATCHES_DATA = [
         "espnId": "401884746",
         "league": "Bundesliga",
         "leagueCategory": "Bundesliga",
-        "scheduleGroup": "today",
+        "scheduleGroup": "finished",
         "homeTeam": "SV Elversberg",
         "awayTeam": "Mainz",
         "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/10388.png",
         "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/2950.png",
         "dateISO": "2026-10-30T19:30Z",
-        "time": "Today 20:30 WAT",
-        "status": "SCHEDULED",
-        "score": null,
+        "time": "Full Time",
+        "status": "FINISHED",
+        "score": {
+            "home": 4,
+            "away": 1
+        },
         "odds": {
-            "home": 2.91,
-            "draw": 3.62,
-            "away": 2.28,
+            "home": 5.82,
+            "draw": 4.72,
+            "away": 1.45,
             "provider": "SolPlay Sharp Consensus"
         },
         "timeline": [
             {
-                "time": "Pre-Match",
-                "type": "start",
-                "desc": "Kickoff scheduled for Today 20:30 WAT",
-                "icon": "🚩"
+                "time": "FT",
+                "type": "end",
+                "desc": "🏁 Final Whistle: SV Elversberg 4 - 1 Mainz (Full Time)",
+                "icon": "🏁"
             }
         ],
-        "isLocked": false
+        "isLocked": true
     },
     {
         "id": 401876421,
@@ -2155,15 +2158,15 @@ function getMatchMarkets(match) {
         ];
     }
 
-    // 2. Double Chance (1X, 12, X2)
+    // 2. Double Chance (1X, 12, X2) with strict 106.5% bookmaker overround
     if (!markets['dc']) {
-        const dc1X = parseFloat((1 / (1/homeOdds + 1/drawOdds) * 0.93).toFixed(2));
-        const dc12 = parseFloat((1 / (1/homeOdds + 1/awayOdds) * 0.93).toFixed(2));
-        const dcX2 = parseFloat((1 / (1/drawOdds + 1/awayOdds) * 0.93).toFixed(2));
+        const dc1X = parseFloat((1 / ((1/homeOdds + 1/drawOdds) * 1.065)).toFixed(2));
+        const dc12 = parseFloat((1 / ((1/homeOdds + 1/awayOdds) * 1.065)).toFixed(2));
+        const dcX2 = parseFloat((1 / ((1/drawOdds + 1/awayOdds) * 1.065)).toFixed(2));
         markets['dc'] = [
-            { label: "1X (Home/Draw)", value: Math.max(1.15, dc1X), outcomeId: 5, desc: `${match.homeTeam} or Draw`, marketName: 'Double Chance' },
-            { label: "12 (Home/Away)", value: Math.max(1.18, dc12), outcomeId: 6, desc: `${match.homeTeam} or ${match.awayTeam}`, marketName: 'Double Chance' },
-            { label: "X2 (Draw/Away)", value: Math.max(1.20, dcX2), outcomeId: 7, desc: `Draw or ${match.awayTeam}`, marketName: 'Double Chance' }
+            { label: "1X (Home/Draw)", value: Math.max(1.02, dc1X), outcomeId: 5, desc: `${match.homeTeam} or Draw`, marketName: 'Double Chance' },
+            { label: "12 (Home/Away)", value: Math.max(1.03, dc12), outcomeId: 6, desc: `${match.homeTeam} or ${match.awayTeam}`, marketName: 'Double Chance' },
+            { label: "X2 (Draw/Away)", value: Math.max(1.02, dcX2), outcomeId: 7, desc: `Draw or ${match.awayTeam}`, marketName: 'Double Chance' }
         ];
     }
 
@@ -2214,13 +2217,13 @@ function getMatchMarkets(match) {
         ];
     }
 
-    // 5. Draw No Bet (DNB)
+    // 5. Draw No Bet (DNB) with 107.5% bookmaker overround
     if (!markets['dnb']) {
-        const dnbHome = parseFloat((homeOdds * (1 - 1/drawOdds) * 0.94).toFixed(2));
-        const dnbAway = parseFloat((awayOdds * (1 - 1/drawOdds) * 0.94).toFixed(2));
+        const dnbHome = parseFloat(( (homeOdds * (1 - 1/drawOdds)) / 1.075 ).toFixed(2));
+        const dnbAway = parseFloat(( (awayOdds * (1 - 1/drawOdds)) / 1.075 ).toFixed(2));
         markets['dnb'] = [
-            { label: `${match.homeTeam} DNB`, value: Math.max(1.10, dnbHome), outcomeId: 30, desc: `${match.homeTeam} Draw No Bet`, marketName: 'Draw No Bet' },
-            { label: `${match.awayTeam} DNB`, value: Math.max(1.10, dnbAway), outcomeId: 31, desc: `${match.awayTeam} Draw No Bet`, marketName: 'Draw No Bet' }
+            { label: `${match.homeTeam} DNB`, value: Math.max(1.03, dnbHome), outcomeId: 30, desc: `${match.homeTeam} Draw No Bet`, marketName: 'Draw No Bet' },
+            { label: `${match.awayTeam} DNB`, value: Math.max(1.03, dnbAway), outcomeId: 31, desc: `${match.awayTeam} Draw No Bet`, marketName: 'Draw No Bet' }
         ];
     }
 
@@ -2612,23 +2615,38 @@ const SOCCER_TEAM_POWER_RATINGS = {
     // German Bundesliga & 2. Bundesliga
     "bayern munich": 2010, "bayern": 2010,
     "bayer leverkusen": 1970, "leverkusen": 1970,
-    "borussia dortmund": 1880, "dortmund": 1880,
-    "rb leipzig": 1840, "leipzig": 1840,
-    "vfb stuttgart": 1810, "stuttgart": 1810,
-    "eintracht frankfurt": 1800, "frankfurt": 1800,
-    "sc freiburg": 1740, "freiburg": 1740,
-    "borussia monchengladbach": 1710, "monchengladbach": 1710,
-    "vfl wolfsburg": 1710, "wolfsburg": 1710,
-    "tsg hoffenheim": 1710, "hoffenheim": 1710,
-    "union berlin": 1700,
-    "werder bremen": 1690, "bremen": 1690,
-    "fsv mainz 05": 1680, "mainz": 1680, "mainz 05": 1680,
-    "fc augsburg": 1680, "augsburg": 1680,
-    "fc heidenheim": 1680, "heidenheim": 1680,
-    "st pauli": 1610,
-    "holstein kiel": 1590,
-    "vfl bochum": 1580, "bochum": 1580,
-    "sv elversberg": 1550, "elversberg": 1550,
+    "borussia dortmund": 1895, "dortmund": 1895,
+    "rb leipzig": 1865, "leipzig": 1865,
+    "vfb stuttgart": 1840, "stuttgart": 1840,
+    "eintracht frankfurt": 1815, "frankfurt": 1815,
+    "sc freiburg": 1765, "freiburg": 1765,
+    "vfl wolfsburg": 1745, "wolfsburg": 1745,
+    "borussia monchengladbach": 1740, "monchengladbach": 1740,
+    "tsg hoffenheim": 1740, "hoffenheim": 1740,
+    "union berlin": 1740,
+    "fsv mainz 05": 1740, "mainz": 1740, "mainz 05": 1740,
+    "werder bremen": 1730, "bremen": 1730,
+    "fc augsburg": 1720, "augsburg": 1720,
+    "fc heidenheim": 1720, "heidenheim": 1720,
+    "vfl bochum": 1640, "bochum": 1640,
+    "st pauli": 1630,
+    "holstein kiel": 1610,
+    "fc koln": 1580, "koln": 1580, "cologne": 1580,
+    "hamburger sv": 1570, "hamburg": 1570,
+    "fortuna dusseldorf": 1560, "dusseldorf": 1560,
+    "hertha bsc": 1540, "hertha": 1540,
+    "hannover 96": 1540, "hannover": 1540,
+    "schalke 04": 1530, "schalke": 1530,
+    "karlsruher sc": 1520, "karlsruhe": 1520,
+    "sc paderborn": 1510, "paderborn": 1510,
+    "fc nurnberg": 1500, "nurnberg": 1500,
+    "kaiserslautern": 1490,
+    "greuther furth": 1450,
+    "eintracht braunschweig": 1440, "braunschweig": 1440,
+    "sv elversberg": 1430, "elversberg": 1430,
+    "preussen munster": 1410,
+    "ssv ulm": 1400,
+    "jahn regensburg": 1390,
 
     // Italian Serie A & Serie B
     "inter milan": 1990, "internazionale": 1990, "inter": 1990,
@@ -3008,23 +3026,23 @@ function parseEspnDraftKingsOdds(comp) {
     return result;
 }
 
-// Top-tier Sharp Elo & Poisson Bookmaker Engine (Pinnacle & Bet365 ~105.8% Overround)
+// Top-tier Sharp Elo & Poisson Bookmaker Engine (Pinnacle & Bet365 ~107.5% Overround)
 function calculateSharpMatchOdds(homeTeam, awayTeam, leagueName) {
     const hElo = getClubPowerRating(homeTeam, leagueName);
     const aElo = getClubPowerRating(awayTeam, leagueName);
     
-    // +65 Elo home field advantage (~0.35 goal statistical boost in European leagues)
-    const diff = (hElo + 65) - aElo;
-    const pHomeRaw = 1.0 / (1.0 + Math.pow(10.0, -diff / 620.0));
-    const pDraw = Math.max(0.19, Math.min(0.29, 0.275 - Math.abs(diff) * 0.00021));
+    // +50 Elo home field advantage (~0.30 goal statistical boost in European leagues)
+    const diff = (hElo + 50) - aElo;
+    const pHomeRaw = 1.0 / (1.0 + Math.pow(10.0, -diff / 430.0));
+    const pDraw = Math.max(0.15, Math.min(0.28, 0.275 - Math.abs(diff) * 0.00030));
     const pHome = pHomeRaw * (1.0 - pDraw);
     const pAway = (1.0 - pHomeRaw) * (1.0 - pDraw);
 
-    // Standard competitive retail margin: 105.8% overround (Pinnacle/Bet365 tier)
-    const margin = 1.058;
-    const homeOdds = Math.max(1.08, Math.min(35.0, +(1.0 / (pHome * margin)).toFixed(2)));
+    // Standard competitive retail margin: 107.5% overround (Pinnacle/Bet365 tier)
+    const margin = 1.075;
+    const homeOdds = Math.max(1.05, Math.min(35.0, +(1.0 / (pHome * margin)).toFixed(2)));
     const drawOdds = Math.max(2.60, Math.min(18.0, +(1.0 / (pDraw * margin)).toFixed(2)));
-    const awayOdds = Math.max(1.08, Math.min(35.0, +(1.0 / (pAway * margin)).toFixed(2)));
+    const awayOdds = Math.max(1.05, Math.min(35.0, +(1.0 / (pAway * margin)).toFixed(2)));
 
     return {
         home: homeOdds,
@@ -8970,33 +8988,55 @@ function tickLiveMatches() {
     updateLiveDomElements();
 }
 
-// Authentic In-Play Odds Re-calculator & Defense against Latency Arbitrage
+// Authentic In-Play Odds Re-calculator & Sharp House Edge Protection Engine
 function recalculateMatchOddsAfterGoal(match, isHomeGoal) {
     if (!match || !match.score) return;
     delete MATCH_MARKETS[match.id];
     const goalDiff = match.score.home - match.score.away;
-    const timeMin = parseInt(match.time) || 60;
-    const timeDecay = Math.max(0.1, (90 - timeMin) / 90);
+    const timeMin = Math.min(88, Math.max(1, parseInt(match.time) || 60));
+    const timeDecay = Math.max(0.05, (90 - timeMin) / 90);
+
+    // In-play bookmaker margin: 108.5% overround (Pinnacle / Bet365 in-play risk cushion)
+    const inPlayMargin = 1.085;
+
+    // Resolve pre-match relative strength
+    const hElo = getClubPowerRating(match.homeTeam, match.league);
+    const aElo = getClubPowerRating(match.awayTeam, match.league);
+    const diff = (hElo + 35) - aElo; // In-play adjusted home advantage
+    const pHomeRaw = 1.0 / (1.0 + Math.pow(10.0, -diff / 430.0));
 
     if (goalDiff > 0) {
-        // Home leading (e.g. 1-0 or 2-0): home odds shorten drastically, away lengthens
+        // Home leading (e.g. 1-0, 2-0, 2-1)
         const absDiff = Math.abs(goalDiff);
-        const baseProb = absDiff >= 2 ? 0.94 : (0.72 + (1 - timeDecay) * 0.18);
-        match.odds.home = parseFloat((Math.max(1.02, (1 / baseProb) * 0.96)).toFixed(2));
-        match.odds.draw = parseFloat((Math.max(3.20, 3.80 + absDiff * 2.2 + (1 - timeDecay) * 4.0)).toFixed(2));
-        match.odds.away = parseFloat((Math.max(4.50, 5.00 * absDiff + (1 - timeDecay) * 8.0)).toFixed(2));
+        const leadProbBase = absDiff >= 2 ? 0.94 : (0.68 + (1 - timeDecay) * 0.22);
+        const homeProb = Math.min(0.98, leadProbBase + (pHomeRaw - 0.5) * 0.12);
+        const drawProb = Math.max(0.015, Math.min(0.24, (1 - homeProb) * (0.65 - (1 - timeDecay) * 0.25)));
+        const awayProb = Math.max(0.005, 1 - homeProb - drawProb);
+
+        match.odds.home = Math.max(1.02, parseFloat((1.0 / (homeProb * inPlayMargin)).toFixed(2)));
+        match.odds.draw = Math.max(3.20, parseFloat((1.0 / (drawProb * inPlayMargin)).toFixed(2)));
+        match.odds.away = Math.max(4.50, parseFloat((1.0 / (awayProb * inPlayMargin)).toFixed(2)));
     } else if (goalDiff < 0) {
-        // Away leading (e.g. Chelsea leading 0-1 or 0-2 at Everton): away odds collapse
+        // Away leading (e.g. 0-1, 0-2, 1-2)
         const absDiff = Math.abs(goalDiff);
-        const baseProb = absDiff >= 2 ? 0.94 : (0.72 + (1 - timeDecay) * 0.18);
-        match.odds.away = parseFloat((Math.max(1.02, (1 / baseProb) * 0.96)).toFixed(2));
-        match.odds.draw = parseFloat((Math.max(3.20, 3.80 + absDiff * 2.2 + (1 - timeDecay) * 4.0)).toFixed(2));
-        match.odds.home = parseFloat((Math.max(4.50, 5.00 * absDiff + (1 - timeDecay) * 8.0)).toFixed(2));
+        const leadProbBase = absDiff >= 2 ? 0.94 : (0.68 + (1 - timeDecay) * 0.22);
+        const awayProb = Math.min(0.98, leadProbBase + ((1 - pHomeRaw) - 0.5) * 0.12);
+        const drawProb = Math.max(0.015, Math.min(0.24, (1 - awayProb) * (0.65 - (1 - timeDecay) * 0.25)));
+        const homeProb = Math.max(0.005, 1 - awayProb - drawProb);
+
+        match.odds.away = Math.max(1.02, parseFloat((1.0 / (awayProb * inPlayMargin)).toFixed(2)));
+        match.odds.draw = Math.max(3.20, parseFloat((1.0 / (drawProb * inPlayMargin)).toFixed(2)));
+        match.odds.home = Math.max(4.50, parseFloat((1.0 / (homeProb * inPlayMargin)).toFixed(2)));
     } else {
-        // Tied
-        match.odds.draw = parseFloat((2.05 + timeDecay * 0.6).toFixed(2));
-        match.odds.home = parseFloat((2.65 + (1 - timeDecay) * 0.4).toFixed(2));
-        match.odds.away = parseFloat((2.75 + (1 - timeDecay) * 0.4).toFixed(2));
+        // Tied (0-0, 1-1, 2-2): Draw probability increases smoothly as time expires
+        const pDrawLive = Math.min(0.82, Math.max(0.26, 0.27 + (1 - timeDecay) * 0.50));
+        const pRemainder = 1.0 - pDrawLive;
+        const pHomeLive = pHomeRaw * pRemainder;
+        const pAwayLive = (1.0 - pHomeRaw) * pRemainder;
+
+        match.odds.draw = Math.max(1.15, parseFloat((1.0 / (pDrawLive * inPlayMargin)).toFixed(2)));
+        match.odds.home = Math.max(1.04, parseFloat((1.0 / (pHomeLive * inPlayMargin)).toFixed(2)));
+        match.odds.away = Math.max(1.04, parseFloat((1.0 / (pAwayLive * inPlayMargin)).toFixed(2)));
     }
 
     syncMatchOddsToDOM(match);

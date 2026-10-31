@@ -37,11 +37,14 @@ const criticalTeams = [
     { query: "Stade Rennais", expectedMin: 1720 },
     { query: "Le Havre AC", expectedMax: 1640 },
     { query: "Manchester City", expectedMin: 2050 },
-    { query: "Real Madrid", expectedMin: 2050 }
+    { query: "Real Madrid", expectedMin: 2050 },
+    { query: "Mainz", expectedMin: 1730 },
+    { query: "FSV Mainz 05", expectedMin: 1730 },
+    { query: "SV Elversberg", expectedMax: 1450 }
 ];
 
 for (const t of criticalTeams) {
-    const rating = resolveRating(t.query, "Champions League");
+    const rating = resolveRating(t.query, "Bundesliga");
     if (t.expectedMin) {
         assert(rating >= t.expectedMin, `Rating for "${t.query}"`, `Expected >= ${t.expectedMin}, Got ${rating}`);
     }
@@ -51,16 +54,31 @@ for (const t of criticalTeams) {
 }
 
 // ----------------------------------------------------------------------
-// TEST SUITE 2: Fixture Odds Sanity (PSG vs Le Havre & Match Ups)
+// TEST SUITE 2: Fixture Odds Sanity (PSG vs Le Havre & Mainz vs Elversberg)
 // ----------------------------------------------------------------------
-console.log("\n[2/4] Verifying Mathematical Sharp Odds Output...");
+console.log("\n[2/4] Verifying Mathematical Sharp Odds Output & Exploitation Resistance...");
 const psgVsLeHavre = calculateOdds("Le Havre AC", "Paris Saint-Germain", "Ligue 1");
 assert(psgVsLeHavre.away < 1.75, "PSG away odds must reflect heavy favorite status (< 1.75)", `Got ${psgVsLeHavre.away}`);
 assert(psgVsLeHavre.home > 4.00, "Le Havre home odds must reflect underdog status (> 4.00)", `Got ${psgVsLeHavre.home}`);
 assert(psgVsLeHavre.away < psgVsLeHavre.home, "PSG odds must be strictly lower than Le Havre odds");
 
-const villarrealVsPsg = calculateOdds("Villarreal", "Paris Saint-Germain", "UEFA Champions League");
-assert(villarrealVsPsg.away < villarrealVsPsg.home, "PSG odds must be lower than Villarreal at neutral/away fixture in UCL");
+const elversbergVsMainz = calculateOdds("SV Elversberg", "Mainz", "Bundesliga");
+assert(elversbergVsMainz.away < 1.75, "Mainz away odds against 2. Bundesliga Elversberg must reflect favorite status (< 1.75)", `Got ${elversbergVsMainz.away}`);
+assert(elversbergVsMainz.home > 4.50, "SV Elversberg home odds must reflect underdog status (> 4.50)", `Got ${elversbergVsMainz.home}`);
+assert(!(elversbergVsMainz.home > 2.10 && elversbergVsMainz.away > 2.10), "Both teams must NEVER simultaneously have > 2.10 odds in an unbalanced fixture");
+
+// Verify strict house edge / overround across samples
+const testFixtures = [
+    ["Real Madrid", "Barcelona", "La Liga"],
+    ["Arsenal", "Chelsea", "Premier League"],
+    ["SV Elversberg", "Mainz", "Bundesliga"],
+    ["Le Havre AC", "Paris Saint-Germain", "Ligue 1"]
+];
+for (const [h, a, l] of testFixtures) {
+    const o = calculateOdds(h, a, l);
+    const sumInv = (1/o.home) + (1/o.draw) + (1/o.away);
+    assert(sumInv >= 1.065, `Overround for ${h} vs ${a} must protect house (>= 106.5%)`, `Got ${(sumInv*100).toFixed(2)}%`);
+}
 
 // ----------------------------------------------------------------------
 // TEST SUITE 3: Comprehensive Database Fixtures Verification
