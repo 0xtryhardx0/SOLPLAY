@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SolPlay X Brand Assets Exporter</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; display: flex; flex-direction: column; gap: 40px; padding: 20px; font-family: sans-serif; color: #fff; }
+        .asset-card { display: flex; flex-direction: column; gap: 10px; }
+        .avatar-box {
+            width: 400px;
+            height: 400px;
+            background: #060913;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.2);
+        }
+        .banner-box {
+            width: 1500px;
+            height: 500px;
+            background: radial-gradient(circle at 70% 50%, #0d1a33 0%, #070c18 60%, #03060c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 100px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .banner-decor {
+            position: absolute;
+            right: 120px;
+            width: 320px;
+            height: 320px;
+            opacity: 0.85;
+            filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.4));
+        }
+    </style>
+</head>
+<body>
+    <div class="asset-card">
+        <h2>X Profile Avatar (400x400)</h2>
+        <div id="x-avatar" class="avatar-box">
+            <img src="/solplay_icon.svg" style="width: 320px; height: 320px;" alt="SolPlay Icon">
+        </div>
+    </div>
+
+    <div class="asset-card">
+        <h2>X Header Banner (1500x500)</h2>
+        <div id="x-banner" class="banner-box">
+            <div style="display: flex; flex-direction: column; gap: 16px; z-index: 10;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <img src="/solplay_logo.svg" style="height: 90px;" alt="SolPlay Logo">
+                </div>
+                <div style="font-family: monospace; font-size: 20px; font-weight: 700; color: #38bdf8; letter-spacing: 2px; text-transform: uppercase;">
+                    ⚡ Non-Custodial Prediction Arcade & Sportsbook on Solana
+                </div>
+                <div style="display: flex; gap: 20px; margin-top: 10px;">
+                    <span style="background: rgba(20, 241, 149, 0.12); border: 1px solid rgba(20, 241, 149, 0.3); color: #14f195; padding: 6px 16px; border-radius: 9999px; font-family: monospace; font-weight: bold; font-size: 14px;">
+                        ✓ Sub-Second Execution
+                    </span>
+                    <span style="background: rgba(0, 240, 255, 0.12); border: 1px solid rgba(0, 240, 255, 0.3); color: #00f0ff; padding: 6px 16px; border-radius: 9999px; font-family: monospace; font-weight: bold; font-size: 14px;">
+                        ✓ Sharp Consensus Odds
+                    </span>
+                    <span style="background: rgba(153, 69, 255, 0.12); border: 1px solid rgba(153, 69, 255, 0.3); color: #c084fc; padding: 6px 16px; border-radius: 9999px; font-family: monospace; font-weight: bold; font-size: 14px;">
+                        ✓ Solana Blinks Enabled
+                    </span>
+                </div>
+            </div>
+            <img class="banner-decor" src="/solplay_icon.svg" alt="SolPlay Decal">
+        </div>
+    </div>
+</body>
+</html>

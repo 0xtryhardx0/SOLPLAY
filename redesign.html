@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+    <title>SolPlay | Next-Gen Solana Prediction Arcade & Sportsbook (Redesign Trial)</title>
+    <meta name="description" content="Instant sports betting and sharp prediction market on Solana. Sub-second devnet/mainnet payouts directly to your Phantom wallet."/>
+    
+    <link rel="manifest" href="/manifest.json"/>
+    <meta name="theme-color" content="#070a12"/>
+    <link rel="apple-touch-icon" href="/logo.png"/>
+
+    <!-- Google Fonts & Tailwind CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <link rel="stylesheet" href="/style.css?v=3.6"/>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            base: '#070a12',
+                            card: '#0d1322',
+                            subtle: '#121a2f',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        },
+                        neon: {
+                            cyan: '#00f0ff',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            purple: '#a855f7',
+                            pink: '#ec4899'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-obsidian: #070a12;
+            --card-obsidian: rgba(13, 19, 34, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --neon-cyan: #00f0ff;
+            --neon-emerald: #10b981;
+            --neon-amber: #f59e0b;
+            --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.25);
+            --glow-emerald: 0 0 20px rgba(16, 185, 129, 0.25);
+        }
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: #f1f5f9;
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(0, 240, 255, 0.03) 0px, transparent 50%),
+                radial-gradient(at 90% 10%, rgba(168, 85, 247, 0.03) 0px, transparent 50%),
+                radial-gradient(at 50% 80%, rgba(16, 185, 129, 0.02) 0px, transparent 50%);
+        }
+
+        /* Glassmorphism Classes */
+        .glass-card {
+            background: var(--card-obsidian);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-glass);
+            border-radius: 1rem;
+        }
+
+        .glass-glow-cyan {
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
+        }
+
+        .glass-glow-emerald {
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+        }
+
+        /* Live Odds Flash Animation (Green for up, Red for down) */
+        @keyframes oddsPulseGreen {
+            0% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: transparent; }
+        }
+        @keyframes oddsPulseRed {
+            0% { background-color: rgba(239, 68, 68, 0.4); }
+            100% { background-color: transparent; }
+        }
+        .odds-up { animation: oddsPulseGreen 1.2s ease-out; }
+        .odds-down { animation: oddsPulseRed 1.2s ease-out; }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 240, 255, 0.4);
+        }
+
+        /* Drawer Tab Active Indicator */
+        .drawer-tab-btn.active {
+            background: rgba(0, 240, 255, 0.15);
+            color: #00f0ff;
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        /* Nav Tab Active */
+        .main-nav-tab.active {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-300">
+
+    <!-- Top Live Ticker (Customer-Facing & Sleek) -->
+    <div class="w-full bg-[#04060b] border-b border-white/[0.05] py-1.5 px-4 text-[11px] font-mono text-slate-400 select-none">
+        <div class="max-w-[1720px] mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3 overflow-x-auto no-scrollbar whitespace-nowrap">
+                <span class="inline-flex items-center gap-1.5 text-emerald-400 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Instant Winnings Settlement (400ms Solana Consensus)
+                </span>
+                <span class="text-slate-600 hidden sm:inline">•</span>
+                <span class="text-slate-300 hidden sm:inline">100% Non-Custodial Smart Escrow</span>
+                <span class="text-slate-600 hidden md:inline">•</span>
+                <span class="text-cyan-400/90 hidden md:inline">25+ Global Leagues • Zero Slippage</span>
+            </div>
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <span class="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">LIVE SPORTSBOOK</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Header (Clean, Focused, Horizontally Scrollable) -->
+    <header class="sticky top-0 z-40 w-full backdrop-blur-2xl bg-[#070a12]/95 border-b border-white/[0.08] px-4 lg:px-8 py-2.5">
+        <div class="max-w-[1720px] mx-auto flex items-center justify-between gap-4">
+            <!-- Brand & Horizontally Scrollable Tabs -->
+            <div class="flex items-center gap-3 lg:gap-5 flex-shrink-0">
+                <!-- Logo without subtext -->
+                <a href="/redesign.html" class="flex items-center gap-2 group cursor-pointer select-none flex-shrink-0">
+                    <img src="/solplay_icon.svg" alt="SolPlay Logo" class="w-8 h-8 drop-shadow-[0_0_12px_rgba(0,240,255,0.4)] group-hover:scale-105 transition-transform" />
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xl font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">SOL<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">PLAY</span></span>
+                    </div>
+                </a>
+
+                <!-- Horizontal Sideways Scrollable Primary Navigation -->
+                <div class="flex items-center overflow-x-auto no-scrollbar py-0.5" id="header-nav-scroll-wrapper" style="scroll-behavior: smooth;">
+                    <nav class="flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
+                        <button id="btn-tab-sports" onclick="switchExchangeTab('sports')" class="main-nav-tab active px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px] text-cyan-400">sports_soccer</span>
+                            <span>Sportsbook</span>
+                        </button>
+                        <button id="btn-tab-wagers" onclick="switchExchangeTab('wagers'); renderRedesignWagers(currentWagersFilter, currentWagersSearch);" class="main-nav-tab px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5 relative flex-shrink-0 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px] text-teal-400">receipt_long</span>
+                            <span>My Wagers</span>
+                            <span id="header-wagers-count-badge" class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold">0</span>
+                        </button>
+                        <button id="btn-tab-leaderboard" onclick="switchExchangeTab('leaderboard')" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px] text-amber-400">military_tech</span>
+                            <span>Leaderboard</span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="hidden xl:flex items-center relative flex-1 max-w-xs mx-2">
+                <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-[18px]">search</span>
+                <input type="text" id="header-match-search" oninput="handleMatchSearch(this.value)" onkeydown="onMatchSearchKeyDown(event)" placeholder="Search matches, clubs..." class="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-10 pr-8 py-2 text-xs text-white placeholder-slate-400 outline-none focus:border-cyan-500 focus:bg-white/[0.08] transition-all">
+                <button onclick="clearMatchSearch()" id="clear-search-btn" class="absolute right-3 text-slate-400 hover:text-white text-xs font-bold" style="display: none;">✕</button>
+            </div>
+
+            <!-- Right Controls: Balance, Betslip Toggle, Connect -->
+            <div class="flex items-center gap-3">
+                <!-- Balance & Faucet -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.03]" id="sol-balance-container">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase">Bal:</span>
+                        <span class="text-xs font-mono font-black text-emerald-400"><span id="wallet-balance">0.0000</span> SOL</span>
+                    </div>
+                    <button class="text-[10px] bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded font-bold border border-cyan-500/30 transition-colors" id="btn-airdrop" onclick="requestAirdrop()">+ Faucet</button>
+                </div>
+
+                <!-- Betslip Trigger (Mobile & Desktop quick toggle) -->
+                <button onclick="toggleBetslipDrawer()" class="relative flex items-center gap-2 px-3.5 py-2 rounded-xl border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 text-white font-bold text-xs transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] select-none cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px] text-cyan-400">receipt_long</span>
+                    <span class="hidden sm:inline">Slip</span>
+                    <span id="header-slip-counter" class="bg-cyan-400 text-black font-black text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">0</span>
+                </button>
+
+                <!-- SolPlay Network Switcher (Devnet vs Option 2 Mainnet Real Stakes) -->
+                <div class="flex items-center bg-black/60 border border-white/10 rounded-xl p-0.5 text-[11px] font-mono shadow-inner">
+                    <button id="net-toggle-devnet" onclick="switchNetworkMode('devnet')" class="px-2.5 py-1.5 rounded-lg text-emerald-400 bg-emerald-500/20 border border-emerald-500/40 font-bold transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="hidden sm:inline">Devnet</span>
+                    </button>
+                    <button id="net-toggle-mainnet" onclick="switchNetworkMode('mainnet')" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-amber-300 font-bold transition-all flex items-center gap-1.5 border border-transparent">
+                        <span class="w-2 h-2 rounded-full bg-amber-400/60"></span>
+                        <span class="hidden sm:inline">Mainnet</span> <span class="text-[9px] px-1 rounded bg-amber-500/20 text-amber-300 font-black">OPT 2</span>
+                    </button>
+                </div>
+
+                <!-- Connect Wallet Button -->
+                <button class="px-4 py-2 rounded-xl text-xs font-black text-black bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:brightness-110 shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all flex items-center gap-1.5 cursor-pointer" id="btn-connect-wallet" onclick="toggleWallet()">
+                    <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
+                    <span id="btn-connect-label">Connect</span>
+                </button>
+
+                <!-- Hidden inputs preserved for app.js JS compatibility -->
+                <select id="wallet-type-select" style="display: none;"><option value="phantom">Phantom</option></select>
+                <select id="network-rpc-select" style="display: none;"><option value="devnet">Devnet</option></select>
+                <button id="btn-tab-slip" onclick="switchExchangeTab('slip')" style="display:none;"></button>
+                <button id="btn-tab-memes" onclick="switchExchangeTab('memes')" style="display:none;"></button>
+                <button id="btn-tab-staking" onclick="switchExchangeTab('staking')" style="display:none;"></button>
+                <span id="tab-slip-badge" style="display:none;">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="max-w-[1720px] mx-auto p-4 lg:p-6 flex-1 w-full flex flex-col gap-6">
+
+        <!-- Dual-Column Workspace: Left Main Content / Right Sticky Betslip Drawer -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT COLUMN: Main Views (Sportsbook, History, Leaderboard, etc.) -->
+            <div class="lg:col-span-8 xl:col-span-8 flex flex-col gap-6 w-full">
+
+                <!-- TAB PANEL 1: SPORTSBOOK -->
+                <div id="panel-sports" class="tab-panel flex flex-col gap-6">
+                    <!-- 1. Vino Costa Spotlight: Marquee Match of the Day -->
+                    <div id="match-of-the-day-spotlight" class="w-full">
+                        <!-- Dynamically populated by renderMatchOfTheDaySpotlight() in app.js -->
+                        <div class="glass-card p-6 md:p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border-cyan-500/20 bg-gradient-to-r from-[#0d1322] via-[#09101d] to-[#0d1322]">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-2xl animate-pulse">🔥</div>
+                                <div>
+                                    <span class="text-xs font-mono font-bold uppercase text-cyan-400 flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                                        Featured Match of the Day
+                                    </span>
+                                    <h2 class="text-xl md:text-2xl font-black text-white">Loading Marquee Fixture...</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Global Multi-Sport Selector Bar -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-white/5 pb-2.5" id="sport-selector-bar">
+                        <button onclick="filterMatchesBySport('all')" class="sport-pill active px-3.5 py-2 rounded-xl text-xs font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-2 shadow-[0_0_12px_rgba(0,240,255,0.2)] cursor-pointer" id="sport-pill-all">
+                            <span>🔥 All Sports</span>
+                        </button>
+                        <button onclick="filterMatchesBySport('soccer')" class="sport-pill px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-white/5 transition-all flex items-center gap-2 cursor-pointer" id="sport-pill-soccer">
+                            <span>⚽ Football (Soccer)</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10 text-slate-300" id="sport-count-soccer">21</span>
+                        </button>
+                        <button onclick="filterMatchesBySport('basketball')" class="sport-pill px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-white/5 transition-all flex items-center gap-2 cursor-pointer" id="sport-pill-basketball">
+                            <span>🏀 Basketball (NBA)</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300" id="sport-count-basketball">7</span>
+                        </button>
+                        <button onclick="filterMatchesBySport('football')" class="sport-pill px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-white/5 transition-all flex items-center gap-2 cursor-pointer" id="sport-pill-football">
+                            <span>🏈 NFL</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300" id="sport-count-football">14</span>
+                        </button>
+                    </div>
+
+                    <!-- 2. League & Schedule Navigation Bar -->
+                    <div class="flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        <!-- Schedule Filter Pills -->
+                        <div class="flex items-center gap-2" id="schedule-filter-bar">
+                            <button class="schedule-pill active px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/10 text-white border border-white/15 flex items-center gap-1.5" id="filter-pill-all" onclick="filterMatchesBySchedule('all')">
+                                <span>🌐 All Fixtures</span>
+                                <span class="pill-count px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]" id="count-pill-all">0</span>
+                            </button>
+                            <button class="schedule-pill px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all flex items-center gap-1.5" id="filter-pill-live" onclick="filterMatchesBySchedule('live')">
+                                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                <span>Live Now</span>
+                                <span class="pill-count px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 text-[10px]" id="count-pill-live">0</span>
+                            </button>
+                            <button class="schedule-pill px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all flex items-center gap-1.5" id="filter-pill-today" onclick="filterMatchesBySchedule('today')">
+                                <span>📅 Today</span>
+                                <span class="pill-count px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]" id="count-pill-today">0</span>
+                            </button>
+                            <button class="schedule-pill px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all flex items-center gap-1.5" id="filter-pill-tomorrow" onclick="filterMatchesBySchedule('tomorrow')">
+                                <span>Tomorrow</span>
+                                <span class="pill-count px-1.5 py-0.2 rounded-full bg-white/10 text-[10px]" id="count-pill-tomorrow">0</span>
+                            </button>
+                        </div>
+
+                        <!-- Secondary League Shortcuts -->
+                        <div class="hidden sm:flex items-center gap-1.5 ml-auto text-xs font-bold text-slate-400" id="league-filter-bar">
+                            <button onclick="filterMatchesByLeague('all')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white">All Leagues</button>
+                            <button onclick="filterMatchesByLeague('ucl')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">Champions League</button>
+                            <button onclick="filterMatchesByLeague('epl')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">Premier League</button>
+                            <button onclick="filterMatchesByLeague('laliga')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">La Liga</button>
+                            <button onclick="filterMatchesByLeague('bundesliga')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">Bundesliga</button>
+                        </div>
+                    </div>
+                    <!-- Featured Horizontal Matches Scroll -->
+                    <div id="featured-matches-scroll" class="w-full overflow-x-auto no-scrollbar flex items-center gap-3">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+
+                    <!-- Verified Official Lineups & Bench Accordion Card -->
+                    <div id="lineups-scroll-container" class="w-full flex flex-col gap-3 transition-all duration-300" style="display: none;">
+                        <!-- Populated dynamically with verified official rosters by app.js -->
+                    </div>
+
+                    <!-- Filter Bar for Custom Pools / Fixtures -->
+                    <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                                <span class="material-symbols-outlined text-cyan-400 text-[18px]">sports_soccer</span>
+                                Markets
+                            </h3>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <button id="tab-live" onclick="switchBettingTab('live')" class="text-white font-bold active">Fixtures</button>
+                            <button id="tab-custom" onclick="switchBettingTab('custom')" style="display:none;"></button>
+                            <button id="tab-tournaments" onclick="switchBettingTab('tournaments')" style="display:none;"></button>
+                        </div>
+                    </div>
+
+                    <!-- Core Preserved Games & Odds Matrix Grid -->
+                    <div id="content-live">
+                        <div class="space-y-4" id="content-live-list">
+                            <!-- Populated dynamically by app.js with verified odds & match cards -->
+                            <div class="glass-card p-8 text-center text-slate-400 font-mono text-xs">Loading live sportsbook odds...</div>
+                        </div>
+                    </div>
+                    <div id="matches-container" style="display: none;"></div>
+
+                    <!-- Stream player elements kept for selectActiveMatch compatibility -->
+                    <div id="stream-compat-block" style="display: none;">
+                        <span id="stream-title"></span>
+                        <div id="player-live-score"></div>
+                        <div id="player-live-time"></div>
+                        <a id="player-external-stream-link" href="#"></a>
+                        <iframe id="video-iframe-player"></iframe>
+                        <div id="mock-video-player"></div>
+                        <video id="hls-video-player"></video>
+                        <div id="left-streaming-pane"></div>
+                        <div id="video-player-container"></div>
+                    </div>
+                </div>
+
+                <!-- TAB PANEL 2: MY WAGERS & BETSLIP HISTORY (World-Class Redesign) -->
+                <div id="panel-wagers" class="tab-panel flex flex-col gap-6" style="display: none;">
+                    
+                    <!-- 1. Header Banner with Ledger Status -->
+                    <div class="glass-card p-6 border-white/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-[#0d1322] via-[#0b101c] to-[#070b14]">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-300 font-black shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+                                <span class="material-symbols-outlined text-[26px]">account_balance_wallet</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-lg md:text-xl font-black text-white tracking-wide">My Wagers & Betting History</h2>
+                                    <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">SOLANA LEDGER</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-0.5">Real-time on-chain ticket verification, instant cashouts, and non-custodial escrow claim proofs.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="renderRedesignWagers(currentWagersFilter)" class="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">refresh</span>
+                                <span>Refresh Tickets</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Performance Analytics Metric Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                        <div class="glass-card p-4 flex flex-col gap-1 border-white/10 hover:border-cyan-500/30 transition-all">
+                            <span class="text-[10px] font-mono uppercase text-slate-400 font-bold">Total Wagered</span>
+                            <span class="text-xl font-black text-white font-mono" id="stats-total-wagered">0.00 SOL</span>
+                            <span class="text-[10px] text-slate-500">Lifetime volume staked</span>
+                        </div>
+                        <div class="glass-card p-4 flex flex-col gap-1 border-emerald-500/20 bg-emerald-500/[0.02] hover:border-emerald-500/40 transition-all">
+                            <span class="text-[10px] font-mono uppercase text-emerald-400 font-bold">Total Won</span>
+                            <span class="text-xl font-black text-emerald-400 font-mono" id="stats-total-won">0.00 SOL</span>
+                            <span class="text-[10px] text-emerald-500/80">Disbursed via Escrow</span>
+                        </div>
+                        <div class="glass-card p-4 flex flex-col gap-1 border-cyan-500/20 bg-cyan-500/[0.02] hover:border-cyan-500/40 transition-all">
+                            <span class="text-[10px] font-mono uppercase text-cyan-400 font-bold">Net PnL</span>
+                            <span class="text-xl font-black font-mono text-cyan-300" id="stats-net-pnl">+0.00 SOL</span>
+                            <span class="text-[10px] text-cyan-400/80">Realized Return</span>
+                        </div>
+                        <div class="glass-card p-4 flex flex-col gap-1 border-amber-500/20 bg-amber-500/[0.02] hover:border-amber-500/40 transition-all">
+                            <span class="text-[10px] font-mono uppercase text-amber-400 font-bold">Win Rate</span>
+                            <span class="text-xl font-black text-amber-300 font-mono" id="stats-win-rate">0.0%</span>
+                            <span class="text-[10px] text-amber-400/80" id="stats-active-count">0 Open Tickets</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Filter Pills & Ticket Search -->
+                    <div class="glass-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-white/10">
+                        <!-- Status Filter Pills -->
+                        <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto no-scrollbar" id="wagers-filter-bar">
+                            <button onclick="setWagersFilter('all')" id="wager-filter-all" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/10 text-white border border-white/15 transition-all flex items-center gap-1.5">
+                                <span>All Tickets</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-white/10 text-[10px] font-mono" id="wagers-badge-all">0</span>
+                            </button>
+                            <button onclick="setWagersFilter('pending')" id="wager-filter-pending" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                <span>Open / In-Play</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono" id="wagers-badge-pending">0</span>
+                            </button>
+                            <button onclick="setWagersFilter('won')" id="wager-filter-won" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all flex items-center gap-1.5">
+                                <span>🏆 Won</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono" id="wagers-badge-won">0</span>
+                            </button>
+                            <button onclick="setWagersFilter('settled')" id="wager-filter-settled" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all flex items-center gap-1.5">
+                                <span>Settled / Void</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-slate-500/20 text-slate-300 text-[10px] font-mono" id="wagers-badge-settled">0</span>
+                            </button>
+                        </div>
+
+                        <!-- Ticket Search -->
+                        <div class="relative w-full sm:w-64">
+                            <span class="material-symbols-outlined absolute left-3 top-2 text-slate-500 text-[16px]">search</span>
+                            <input type="text" id="wager-ticket-search" oninput="handleWagerSearch(this.value)" placeholder="Search ticket or match..." class="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-500 transition-all font-mono">
+                        </div>
+                    </div>
+
+                    <!-- 4. Dynamic Wagers Ticket Ledger Container -->
+                    <div id="active-wagers-container" class="space-y-3.5">
+                        <!-- Populated dynamically by renderRedesignWagers() -->
+                    </div>
+
+                    <!-- Preserved compatibility empty text element -->
+                    <div id="active-wagers-empty-text" style="display: none;"></div>
+
+                    <!-- Preserved DOM IDs for JS compatibility -->
+                    <div style="display: none;">
+                        <span id="lp-deposited-sol">0.00</span>
+                        <input id="lp-deposit-amount" type="number" />
+                    </div>
+                </div>
+
+                <!-- TAB PANEL 3: LEADERBOARD -->
+                <div id="panel-leaderboard" class="tab-panel flex flex-col gap-6" style="display: none;">
+                    <div class="glass-card p-6">
+                        <h3 class="text-lg font-black text-white mb-2 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400">military_tech</span>
+                            Top Solana Punters & Tipsters
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-6">Highest net ROI and winning accumulator streaks on SolPlay.</p>
+                        <div class="space-y-3 font-mono text-xs">
+                            <div class="p-3 rounded-xl bg-white/[0.02] border border-white/10 flex items-center justify-between">
+                                <span class="text-amber-400 font-black">#1 0x7f...3c</span>
+                                <span class="text-white">+142.8 SOL Net Profit</span>
+                                <span class="text-emerald-400 font-bold">78.4% Win Rate</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/[0.02] border border-white/10 flex items-center justify-between">
+                                <span class="text-slate-300 font-bold">#2 @ayodeji</span>
+                                <span class="text-white">+88.5 SOL Net Profit</span>
+                                <span class="text-emerald-400 font-bold">64.2% Win Rate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fallback / Coming Soon Panels preserved for switchExchangeTab() -->
+                <div id="panel-memes" class="tab-panel" style="display: none;"></div>
+                <div id="panel-staking" class="tab-panel" style="display: none;"></div>
+                <div id="panel-slip" class="tab-panel" style="display: none;"></div>
+            </div>
+
+            <!-- RIGHT COLUMN: Interactive 2-in-1 Betslip & Quick "My Bets" Drawer -->
+            <div class="lg:col-span-4 xl:col-span-4 sticky top-24 flex flex-col gap-4">
+                <div class="glass-card border-white/10 overflow-hidden shadow-2xl bg-[#0b101e]/95 backdrop-blur-3xl">
+                    <!-- Drawer Header Switcher: Betslip vs My Bets -->
+                    <div class="p-2 border-b border-white/[0.08] bg-black/30 flex items-center gap-1.5">
+                        <button id="drawer-tab-betslip" onclick="switchDrawerMode('slip')" class="drawer-tab-btn active flex-1 py-2 rounded-xl text-xs font-bold text-center border border-transparent transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+                            <span>Betslip</span>
+                            <span id="slip-count-badge" class="bg-cyan-400 text-black font-black text-[10px] px-1.5 py-0.2 rounded-full min-w-[16px]">0</span>
+                        </button>
+                        <button id="drawer-tab-mybets" onclick="switchDrawerMode('mybets')" class="drawer-tab-btn flex-1 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white border border-transparent transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">history</span>
+                            <span>My Bets</span>
+                            <span id="drawer-mybets-count" class="bg-white/10 text-slate-300 font-mono text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+                        </button>
+                    </div>
+
+                    <!-- VIEW A: BETSLIP ENGINE -->
+                    <div id="drawer-content-slip" class="p-4 flex flex-col gap-4">
+                        <!-- Clear All & Mode Toggles -->
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10" id="betslip-mode-toggle">
+                                <button id="btn-mode-acca" onclick="setBetslipMode('acca')" class="px-2.5 py-1 rounded-lg font-bold text-white bg-white/15 text-[11px] transition-all">⚡ Multi</button>
+                                <button id="btn-mode-singles" onclick="setBetslipMode('singles')" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white text-[11px] transition-all">🎟️ Singles</button>
+                                <button id="btn-mode-builder" onclick="setBetslipMode('builder')" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white text-[11px] transition-all">🎯 Builder</button>
+                            </div>
+                            <button onclick="clearAllSelections()" class="text-[11px] text-rose-400 hover:text-rose-300 font-bold transition-colors">Clear All</button>
+                        </div>
+
+                        <!-- Acca Boost Banner -->
+                        <div id="acca-boost-banner" class="p-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/10 border border-orange-500/30 flex items-center justify-between" style="display: none;">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">🔥</span>
+                                <div>
+                                    <div class="text-[11px] font-bold text-orange-300" id="acca-boost-text">Combo Boost Active!</div>
+                                    <div class="text-[9px] text-orange-200/60">Bonus payout compounding</div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-black font-mono text-orange-300" id="acca-boost-badge">+0%</span>
+                        </div>
+
+                        <!-- BetBuilder Info Banner -->
+                        <div id="builder-info-banner" class="hidden p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] flex items-center justify-between">
+                            <span class="font-bold flex items-center gap-1">🎯 Same Game Multi</span>
+                            <span class="text-[9px] font-mono text-amber-400/80">Covariance Discount Applied</span>
+                        </div>
+
+                        <!-- Selections List -->
+                        <div id="betslip-items-container" class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+                            <div class="text-center py-8 text-slate-400 text-xs font-mono" id="betslip-empty-text">
+                                Click odds on any fixture to begin building your slip
+                            </div>
+                        </div>
+
+                        <!-- Stake & Payout Controls -->
+                        <div id="betslip-calc" class="space-y-3 pt-3 border-t border-white/[0.08]" style="display: none;">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-300">Wager Stake:</span>
+                                <div class="flex items-center gap-1.5">
+                                    <input class="w-24 bg-black/50 border border-white/10 rounded-lg text-right text-xs font-bold text-emerald-400 font-mono py-1 px-2 focus:border-cyan-500 outline-none" id="stake-amount" type="number" step="0.005" min="0.0005" value="0.05" oninput="calculatePayout()"/>
+                                    <span class="text-xs font-bold text-slate-400 font-mono">SOL</span>
+                                </div>
+                            </div>
+
+                            <!-- Quick Stake Chips -->
+                            <div class="grid grid-cols-5 gap-1.5 text-[10px] font-bold font-mono">
+                                <button type="button" onclick="setQuickStake(0.0005)" class="py-1 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 transition-all text-center">₦100</button>
+                                <button type="button" onclick="setQuickStake(0.002)" class="py-1 rounded bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 transition-all text-center">₦500</button>
+                                <button type="button" onclick="setQuickStake(0.05)" class="py-1 rounded bg-white/5 hover:bg-white/10 text-cyan-300 border border-white/5 transition-all text-center">0.05</button>
+                                <button type="button" onclick="setQuickStake(0.2)" class="py-1 rounded bg-white/5 hover:bg-white/10 text-cyan-300 border border-white/5 transition-all text-center">0.20</button>
+                                <button type="button" onclick="setQuickStake('MAX')" class="py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all text-center">MAX</button>
+                            </div>
+
+                            <!-- Odds Multiplier & Fees Breakdown -->
+                            <div class="space-y-1.5 text-xs text-slate-400 pt-1 font-mono">
+                                <div class="flex justify-between">
+                                    <span>Total Odds:</span>
+                                    <span class="font-bold text-white text-sm" id="slip-odds-multiplier">1.00x</span>
+                                </div>
+                                <div class="flex justify-between" id="slip-bonus-row" style="display:none;">
+                                    <span class="text-orange-400">Acca Bonus:</span>
+                                    <span class="font-bold text-orange-400" id="slip-bonus-amount">+0.0000 SOL</span>
+                                </div>
+                                <div class="flex justify-between text-[11px]">
+                                    <span>Routing Fee (1.0%):</span>
+                                    <span class="text-slate-300" id="slip-routing-fee">0.0000 SOL</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm pt-2 border-t border-white/[0.08]">
+                                    <span class="font-bold text-white">Potential Return:</span>
+                                    <span class="font-black text-emerald-400 text-base" id="slip-potential-payout">0.0000 SOL</span>
+                                </div>
+                            </div>
+
+                            <!-- 100 SOL Vault Liability Auto-Cap Badge -->
+                            <div id="slip-vault-cap-badge" class="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-[11px] text-cyan-300 flex items-center justify-between" style="display: none;">
+                                <span class="flex items-center gap-1 font-bold">
+                                    <span>⚡ High-Roller Cap:</span>
+                                    <span class="text-[10px] text-cyan-200/70 font-normal">Vault Solvency Limit</span>
+                                </span>
+                                <span class="font-mono font-bold text-white" id="slip-vault-cap-amount">100.00 SOL</span>
+                            </div>
+
+                            <!-- Stake-Me Blink Share Button -->
+                            <button type="button" onclick="openStakeBlinkModal()" class="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-cyan-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                <span>⚡ Share "Stake-Me" Blink on X</span>
+                            </button>
+
+                            <!-- Place Bet Button -->
+                            <button id="btn-place-bet" onclick="placeBet()" class="w-full py-3.5 rounded-xl text-black font-black text-xs uppercase tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 hover:brightness-110 shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">verified</span>
+                                <span>Lock In Bet on Solana</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- VIEW B: QUICK "MY BETS" DRAWER VIEW -->
+                    <div id="drawer-content-mybets" class="p-4 flex flex-col gap-3" style="display: none;">
+                        <div class="flex items-center justify-between border-b border-white/[0.08] pb-2">
+                            <span class="text-xs font-bold text-slate-300 uppercase font-mono">Recent Live Tickets</span>
+                            <button onclick="switchExchangeTab('wagers')" class="text-[11px] text-cyan-400 hover:underline font-bold">View Full History →</button>
+                        </div>
+                        <div id="drawer-quick-wagers-container" class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
+                            <!-- Populated dynamically by syncDrawerMyBets() -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer with Sovereign Signature Watermark -->
+    <footer class="w-full border-t border-white/[0.06] bg-[#04060b] py-6 px-4 lg:px-8 mt-auto select-none">
+        <div class="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <img src="/solplay_icon.svg" alt="SolPlay" class="w-6 h-6 opacity-60" />
+                <span class="text-xs font-mono text-slate-500">© 2026 SolPlay Protocol • Non-Custodial MultiHopper Architecture</span>
+            </div>
+            
+            <!-- Sovereign Signature Watermark Seal -->
+            <div class="flex flex-col items-center sm:items-end justify-center opacity-40 hover:opacity-100 transition-all duration-500 cursor-pointer" title="Sovereign Protocol Architect Signature">
+                <canvas id="seal-canvas" class="w-28 h-10" style="object-fit: contain; filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.4));"></canvas>
+                <span class="text-[9px] font-mono tracking-widest text-teal-400/80 uppercase mt-0.5">Sovereign Signature</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Render Sovereign Signature Watermark on Canvas
+        (function renderSovereignSeal() {
+            const img = new Image();
+            img.src = '/sovereign_signature.jpg';
+            img.onload = () => {
+                const canvas = document.getElementById('seal-canvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                const w = canvas.width;
+                const h = canvas.height;
+                
+                // First pass: Thresholding
+                const threshold = 130;
+                const inkMask = new Uint8Array(w * h);
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        const idx = (y * w + x) * 4;
+                        const r = data[idx], g = data[idx+1], b = data[idx+2];
+                        if ((r + g + b) / 3 < threshold) {
+                            inkMask[y * w + x] = 1;
+                        }
+                    }
+                }
+                
+                // Second pass: Denoising & SolPlay neon teal (#2dd4bf) recolor
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        const idx = (y * w + x) * 4;
+                        if (inkMask[y * w + x] === 1) {
+                            let neighbors = 0;
+                            for (let dy = -1; dy <= 1; dy++) {
+                                for (let dx = -1; dx <= 1; dx++) {
+                                    if (dx === 0 && dy === 0) continue;
+                                    const nx = x + dx;
+                                    const ny = y + dy;
+                                    if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                                        if (inkMask[ny * w + nx] === 1) neighbors++;
+                                    }
+                                }
+                            }
+                            if (neighbors >= 2) {
+                                data[idx] = 45;      // R
+                                data[idx+1] = 212;   // G (#2dd4bf teal)
+                                data[idx+2] = 191;   // B
+                                data[idx+3] = 255;   // A
+                            } else {
+                                data[idx+3] = 0;     // Discard isolated speckle
+                            }
+                        } else {
+                            data[idx+3] = 0;         // Transparent background
+                        }
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            };
+        })();
+    </script>
+
+    <!-- Medium Player Stats Modal (Dark Glassmorphic, 2025/26 Season Verified Metrics) -->
+    <div id="player-stats-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/75 backdrop-blur-md transition-all duration-300 hidden" style="display: none;" onclick="if(event.target===this)closePlayerStatsModal()">
+        <div class="relative w-full max-w-md rounded-2xl bg-gradient-to-b from-[#0f172a] via-[#090d16] to-[#04060a] border border-cyan-500/30 shadow-[0_0_35px_rgba(0,240,255,0.15)] overflow-hidden font-sans text-xs">
+            <!-- Modal Accent Top Glow -->
+            <div class="h-1 w-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400"></div>
+
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-white/10 flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div id="modal-player-num-badge" class="w-11 h-11 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center font-mono font-black text-cyan-300 text-base shadow-inner">#9</div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="modal-player-name" class="text-base font-black text-white tracking-tight">Player Name</h3>
+                            <span id="modal-player-pos-badge" class="px-2 py-0.5 rounded text-[10px] font-bold border bg-rose-500/10 text-rose-400 border-rose-500/30">ST</span>
+                        </div>
+                        <p id="modal-player-team" class="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span id="modal-player-team-label">Official Club Roster &bull; 2025/26 Campaign</span>
+                        </p>
+                    </div>
+                </div>
+                <button onclick="closePlayerStatsModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer font-bold text-sm">✕</button>
+            </div>
+
+            <!-- Modal Body: 6-Metric Verified Stats Grid -->
+            <div class="p-5 flex flex-col gap-4">
+                <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 border-b border-white/5 pb-2">
+                    <span class="flex items-center gap-1.5 text-cyan-300 font-bold uppercase tracking-wider text-[10px]">
+                        <span class="material-symbols-outlined text-[14px]">query_stats</span>
+                        Season Performance Index
+                    </span>
+                    <span id="modal-player-rating" class="text-emerald-400 font-bold">★ 7.85 / 10 Form</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5" id="modal-stats-grid">
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                        <span class="text-[10px] font-mono text-slate-400 uppercase">Goals (xG)</span>
+                        <span id="modal-stat-goals" class="text-base font-black text-white font-mono">0 <span class="text-[11px] text-cyan-400 font-normal">(0.0)</span></span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                        <span class="text-[10px] font-mono text-slate-400 uppercase">Assists (xA)</span>
+                        <span id="modal-stat-assists" class="text-base font-black text-white font-mono">0 <span class="text-[11px] text-teal-400 font-normal">(0.0)</span></span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                        <span class="text-[10px] font-mono text-slate-400 uppercase">Matches / Min</span>
+                        <span id="modal-stat-apps" class="text-base font-black text-white font-mono">12 <span class="text-[11px] text-slate-400 font-normal">(1040')</span></span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                        <span class="text-[10px] font-mono text-slate-400 uppercase">Pass Acc.</span>
+                        <span id="modal-stat-passes" class="text-base font-black text-white font-mono">86.2%</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                        <span class="text-[10px] font-mono text-slate-400 uppercase">Shots / 90</span>
+                        <span id="modal-stat-shots" class="text-base font-black text-white font-mono">2.4</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                        <span class="text-[10px] font-mono text-slate-400 uppercase" id="modal-stat-def-label">Def. Actions</span>
+                        <span id="modal-stat-def" class="text-base font-black text-white font-mono">1.8 / 90</span>
+                    </div>
+                </div>
+
+                <!-- Prop Wager Quick Staking Shortcut -->
+                <div class="p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-mono text-cyan-300 font-bold block uppercase" id="modal-prop-title">Back Player Prop</span>
+                        <span class="text-[11px] text-slate-300" id="modal-prop-desc">Anytime Goalscorer @ 2.10</span>
+                    </div>
+                    <button id="modal-prop-btn" onclick="addPlayerPropToSlip()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-black font-black text-xs transition-all shadow-md flex items-center gap-1 cursor-pointer">
+                        <span>+ Add to Slip</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/solplay_db.js?v=3.6"></script>
+    <script src="/verified_squads_database.js?v=4.0"></script>
+    <script src="/live_roster_service.js?v=4.0"></script>
+    <script src="/multihopper_client.js?v=1.0"></script>
+    <script src="/app.js?v=4.2"></script>
+
+    <!-- Redesign Interactive Helpers -->
+    <script>
+        // Drawer toggle between Betslip and Quick My Bets
+        // ------------------------------------------------------------------
+        // Redesign Wagers & History Ledger Engine
+        // ------------------------------------------------------------------
+        let currentWagersFilter = 'all';
+        let currentWagersSearch = '';
+
+        function setWagersFilter(filter) {
+            currentWagersFilter = filter;
+            const buttons = ['all', 'pending', 'won', 'settled'];
+            buttons.forEach(b => {
+                const btn = document.getElementById(`wager-filter-${b}`);
+                if (btn) {
+                    if (b === filter) {
+                        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/10 text-white border border-white/15 transition-all flex items-center gap-1.5 shadow-sm";
+                    } else {
+                        btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 border border-transparent transition-all flex items-center gap-1.5";
+                    }
+                }
+            });
+            renderRedesignWagers(currentWagersFilter, currentWagersSearch);
+        }
+
+        function handleWagerSearch(val) {
+            currentWagersSearch = (val || '').trim().toLowerCase();
+            renderRedesignWagers(currentWagersFilter, currentWagersSearch);
+        }
+
+        function renderRedesignWagers(filter = 'all', search = '') {
+            const container = document.getElementById("active-wagers-container");
+            if (!container) return;
+
+            const wagers = (typeof localWagers !== 'undefined' && Array.isArray(localWagers)) ? localWagers : [];
+
+            // 1. Calculate Ledger Metrics
+            const totalWagered = wagers.reduce((sum, w) => sum + (parseFloat(w.amount) || 0), 0);
+            const wonWagers = wagers.filter(w => w.status === 'WON');
+            const totalWon = wonWagers.reduce((sum, w) => sum + (parseFloat(w.potentialPayout) || ((parseFloat(w.amount) || 0) * (parseFloat(w.odds) || 1))), 0);
+            const netPnl = totalWon - totalWagered;
+
+            const openWagers = wagers.filter(w => w.status === 'PENDING' || w.status === 'Pending');
+            const settledCount = wagers.filter(w => w.status === 'WON' || w.status === 'LOST' || w.status === 'VOID' || w.status === 'REFUNDED' || w.status === 'CASHED_OUT').length;
+            const winRate = settledCount > 0 ? ((wonWagers.length / settledCount) * 100).toFixed(1) : '0.0';
+
+            // Update KPI elements
+            const elWagered = document.getElementById('stats-total-wagered');
+            const elWon = document.getElementById('stats-total-won');
+            const elPnl = document.getElementById('stats-net-pnl');
+            const elWinRate = document.getElementById('stats-win-rate');
+            const elActive = document.getElementById('stats-active-count');
+            const headerBadge = document.getElementById('header-wagers-count-badge');
+            const drawerBadge = document.getElementById('drawer-mybets-count');
+
+            if (elWagered) elWagered.textContent = `${totalWagered.toFixed(2)} SOL`;
+            if (elWon) elWon.textContent = `${totalWon.toFixed(2)} SOL`;
+            if (elPnl) {
+                elPnl.textContent = `${netPnl >= 0 ? '+' : ''}${netPnl.toFixed(2)} SOL`;
+                elPnl.className = `text-xl font-black font-mono ${netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            }
+            if (elWinRate) elWinRate.textContent = `${winRate}%`;
+            if (elActive) elActive.textContent = `${openWagers.length} Open Tickets`;
+            if (headerBadge) headerBadge.textContent = wagers.length;
+            if (drawerBadge) drawerBadge.textContent = wagers.length;
+
+            // Badges
+            const bAll = document.getElementById('wagers-badge-all');
+            const bPending = document.getElementById('wagers-badge-pending');
+            const bWon = document.getElementById('wagers-badge-won');
+            const bSettled = document.getElementById('wagers-badge-settled');
+            if (bAll) bAll.textContent = wagers.length;
+            if (bPending) bPending.textContent = openWagers.length;
+            if (bWon) bWon.textContent = wonWagers.length;
+            if (bSettled) bSettled.textContent = settledCount;
+
+            // 2. Filter Wagers
+            let filtered = wagers.map((w, originalIdx) => ({ ...w, _origIdx: originalIdx }));
+
+            if (filter === 'pending') {
+                filtered = filtered.filter(w => w.status === 'PENDING' || w.status === 'Pending');
+            } else if (filter === 'won') {
+                filtered = filtered.filter(w => w.status === 'WON');
+            } else if (filter === 'settled') {
+                filtered = filtered.filter(w => w.status === 'LOST' || w.status === 'VOID' || w.status === 'REFUNDED' || w.status === 'CASHED_OUT');
+            }
+
+            if (search) {
+                filtered = filtered.filter(w => {
+                    const ticket = (w.ticketId || '').toLowerCase();
+                    const pick = (w.selection || w.pick || '').toLowerCase();
+                    const market = (w.market || '').toLowerCase();
+                    const home = (w.homeTeam || '').toLowerCase();
+                    const away = (w.awayTeam || '').toLowerCase();
+                    return ticket.includes(search) || pick.includes(search) || market.includes(search) || home.includes(search) || away.includes(search);
+                });
+            }
+
+            container.innerHTML = '';
+
+            // 3. Render Empty State
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card p-10 text-center flex flex-col items-center justify-center gap-3 border-white/5 bg-[#090d18]/50">
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-2xl">
+                            <span class="material-symbols-outlined text-[28px]">receipt_long</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">No Tickets Found</h4>
+                        <p class="text-xs text-slate-400 max-w-sm">
+                            ${search ? `No tickets match "${search}". Try clearing your search.` : (filter === 'all' ? 'You haven't placed any wagers yet. Back your favorite fixtures with Solana!' : `No ${filter} tickets currently recorded.`)}
+                        </p>
+                        <button onclick="switchExchangeTab('sports')" class="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-black font-bold text-xs shadow-md hover:brightness-110 transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span>Explore Sportsbook Odds</span>
+                            <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // 4. Render Ticket Cards
+            filtered.forEach(w => {
+                const idx = w._origIdx;
+                const ticketId = w.ticketId || `#SP-${String(w.id || idx).replace(/\D/g, '').slice(-6) || '849201'}`;
+                const timePlaced = w.timestamp || 'Today';
+                const isAccumulator = !!(w.isAccumulator && w.legs && w.legs.length > 1);
+                const stake = parseFloat(w.amount || 0).toFixed(4);
+                const odds = parseFloat(w.odds || 1).toFixed(2);
+                const potentialPayout = (parseFloat(w.potentialPayout) || (parseFloat(w.amount || 0) * parseFloat(w.odds || 1))).toFixed(4);
+                const profit = (parseFloat(potentialPayout) - parseFloat(stake)).toFixed(4);
+
+                let statusBadge = '';
+                let borderHighlight = 'border-white/10';
+
+                if (w.status === 'WON') {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">🏆 WON</span>`;
+                    borderHighlight = 'border-emerald-500/30 bg-emerald-500/[0.02]';
+                } else if (w.status === 'LOST') {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">❌ SETTLED</span>`;
+                    borderHighlight = 'border-white/5 opacity-85';
+                } else if (w.status === 'CASHED_OUT') {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30">💰 CASHED OUT</span>`;
+                    borderHighlight = 'border-teal-500/20';
+                } else if (w.status === 'VOID' || w.status === 'REFUNDED') {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-500/15 text-slate-300 border border-slate-500/30">🔄 REFUNDED</span>`;
+                } else {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        IN-PLAY / PENDING
+                    </span>`;
+                    borderHighlight = 'border-amber-500/20 hover:border-cyan-500/40';
+                }
+
+                const card = document.createElement('div');
+                card.className = `glass-card p-4 md:p-5 flex flex-col gap-3.5 transition-all ${borderHighlight}`;
+
+                // Header
+                let html = `
+                    <div class="flex items-center justify-between border-b border-white/[0.06] pb-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-bold text-white text-xs">${ticketId}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 text-slate-400 border border-white/10">
+                                ${isAccumulator ? `${w.legs.length}-Leg Parlay` : 'Single Pick'}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-[11px] text-slate-500 hidden sm:inline font-mono">${timePlaced}</span>
+                            ${statusBadge}
+                        </div>
+                    </div>
+                `;
+
+                // Content (Single or Accumulator)
+                if (isAccumulator) {
+                    html += `<div class="space-y-2 py-1">`;
+                    w.legs.forEach(leg => {
+                        html += `
+                            <div class="flex items-center justify-between text-xs p-2 rounded-lg bg-black/20 border border-white/5">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-cyan-400 font-bold">🎯</span>
+                                    <span class="text-white font-medium">${leg.matchTitle || 'Match Leg'}</span>
+                                    <span class="text-slate-400">(${leg.selectionName || leg.pick || 'Pick'})</span>
+                                </div>
+                                <span class="font-mono font-bold text-cyan-300">${parseFloat(leg.odds || 1).toFixed(2)}x</span>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                } else {
+                    const matchName = w.matchTitle || (w.homeTeam && w.awayTeam ? `${w.homeTeam} vs ${w.awayTeam}` : 'Football Match');
+                    const pickName = w.selection || w.pick || 'Outcome';
+                    const marketType = w.market || 'Match Winner (1X2)';
+
+                    html += `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-1">
+                            <div>
+                                <div class="text-sm font-black text-white flex items-center gap-2">
+                                    <span>${matchName}</span>
+                                </div>
+                                <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                                    <span class="text-cyan-400 font-semibold">${marketType}:</span>
+                                    <span class="px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 font-mono font-bold text-[11px]">${pickName}</span>
+                                </div>
+                            </div>
+                            <div class="flex sm:flex-col items-center sm:items-end justify-between">
+                                <span class="text-[10px] text-slate-400 font-mono uppercase">Ticket Odds</span>
+                                <span class="text-sm font-mono font-black text-cyan-300 px-2 py-0.5 rounded bg-white/5 border border-white/10">${odds}x</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Financial Summary Bar
+                html += `
+                    <div class="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-black/30 border border-white/5 text-xs font-mono">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Stake</span>
+                            <span class="font-bold text-white">${stake} SOL</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block">Est. Return</span>
+                            <span class="font-bold text-emerald-400">${potentialPayout} SOL</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-500 block">Net Profit</span>
+                            <span class="font-bold text-cyan-300">+${profit} SOL</span>
+                        </div>
+                    </div>
+                `;
+
+                // Actions (Cash Out, Claim Payout, Settle & Verify)
+                let actionHtml = '';
+
+                if (w.status === 'WON') {
+                    if (!w.claimed) {
+                        actionHtml = `
+                            <button onclick="claimWagerOnchain(${idx})" class="w-full py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-black font-black text-xs hover:brightness-110 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all cursor-pointer">
+                                💰 Claim ${potentialPayout} SOL Payout to Wallet
+                            </button>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <div class="text-center text-xs font-mono text-emerald-400 py-1.5 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                ✅ Disbursed to Phantom Wallet via Anchor Escrow
+                            </div>
+                        `;
+                    }
+                } else if (w.status === 'PENDING' || w.status === 'Pending') {
+                    // Check if cashout is possible
+                    let cashVal = 0;
+                    if (typeof calculateCashoutValue === 'function') {
+                        cashVal = calculateCashoutValue(w);
+                    } else {
+                        cashVal = parseFloat(stake) * 0.92;
+                    }
+
+                    actionHtml = `
+                        <div class="flex items-center gap-2">
+                            <button onclick="executeCashOut(${idx}, 100)" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-400/20 to-orange-400/20 hover:from-amber-400/30 hover:to-orange-400/30 text-amber-300 border border-amber-400/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span>⚡ Instant Cash Out</span>
+                                <span class="font-mono">(${cashVal.toFixed(4)} SOL)</span>
+                            </button>
+                            <button onclick="verifyWagerStatus(${idx}, this)" class="px-3.5 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Verify final match score">
+                                <span class="material-symbols-outlined text-[15px]">verified</span>
+                                <span class="hidden sm:inline">Verify</span>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                if (actionHtml) {
+                    html += `<div class="pt-1">${actionHtml}</div>`;
+                }
+
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+
+        // Override default renderActiveWagers to power redesign ledger
+        window.renderActiveWagers = function() {
+            renderRedesignWagers(currentWagersFilter, currentWagersSearch);
+            syncDrawerMyBets();
+        };
+
+        // Drawer toggle between Betslip and Quick My Bets
+        function switchDrawerMode(mode) {
+            const btnSlip = document.getElementById('drawer-tab-betslip');
+            const btnMyBets = document.getElementById('drawer-tab-mybets');
+            const contentSlip = document.getElementById('drawer-content-slip');
+            const contentMyBets = document.getElementById('drawer-content-mybets');
+
+            if (mode === 'slip') {
+                if (btnSlip) btnSlip.classList.add('active');
+                if (btnMyBets) btnMyBets.classList.remove('active');
+                if (contentSlip) contentSlip.style.display = 'flex';
+                if (contentMyBets) contentMyBets.style.display = 'none';
+            } else {
+                if (btnSlip) btnSlip.classList.remove('active');
+                if (btnMyBets) btnMyBets.classList.add('active');
+                if (contentSlip) contentSlip.style.display = 'none';
+                if (contentMyBets) contentMyBets.style.display = 'flex';
+                syncDrawerMyBets();
+            }
+        }
+
+        // Quick Drawer Wagers Sync
+        function syncDrawerMyBets() {
+            const container = document.getElementById('drawer-quick-wagers-container');
+            const badge = document.getElementById('drawer-mybets-count');
+            const headerBadge = document.getElementById('header-wagers-count-badge');
+            
+            if (typeof localWagers === 'undefined' || localWagers.length === 0) {
+                if (container) container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs font-mono">No active bets found.<br>Pick odds in the Sportsbook!</div>`;
+                if (badge) badge.textContent = '0';
+                if (headerBadge) headerBadge.textContent = '0';
+                return;
+            }
+
+            if (badge) badge.textContent = localWagers.length;
+            if (headerBadge) headerBadge.textContent = localWagers.length;
+
+            if (!container) return;
+            container.innerHTML = '';
+            localWagers.forEach((w, idx) => {
+                const card = document.createElement('div');
+                card.className = 'p-3 rounded-xl bg-black/40 border border-white/10 flex flex-col gap-2 text-xs font-mono';
+                
+                let statusColor = 'text-amber-400 bg-amber-400/10 border-amber-400/30';
+                if (w.status === 'WON') statusColor = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30';
+                if (w.status === 'LOST') statusColor = 'text-rose-400 bg-rose-400/10 border-rose-400/30';
+                if (w.status === 'VOID' || w.status === 'REFUNDED') statusColor = 'text-slate-300 bg-slate-400/10 border-slate-400/30';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-white text-[11px]">${w.ticketId || '#SP-SLIP'}</span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-bold border ${statusColor}">${w.status}</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400 text-[11px]">
+                        <span>Stake: <b class="text-white">${parseFloat(w.amount).toFixed(4)} SOL</b></span>
+                        <span>Odds: <b class="text-cyan-400">${parseFloat(w.odds).toFixed(2)}x</b></span>
+                    </div>
+                    <div class="flex justify-between text-slate-300 text-[11px] border-t border-white/5 pt-1.5">
+                        <span>Potential:</span>
+                        <span class="font-bold text-emerald-400">${(w.potentialPayout || (w.amount * w.odds)).toFixed(4)} SOL</span>
+                    </div>
+                `;
+
+                if (w.status === 'WON' && !w.claimed) {
+                    card.innerHTML += `<button onclick="claimWagerOnchain(${idx})" class="w-full py-1.5 rounded-lg bg-emerald-500 text-black font-black text-[11px]">Claim Payout</button>`;
+                }
+                container.appendChild(card);
+            });
+        }
+
+        // Toggle betslip drawer view
+        function toggleBetslipDrawer() {
+            switchDrawerMode('slip');
+            const drawer = document.getElementById('drawer-content-slip');
+            if (drawer) {
+                drawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Hook switchExchangeTab to seamlessly invoke renderRedesignWagers
+        const _baseSwitchTab = window.switchExchangeTab;
+        window.switchExchangeTab = function(tabId) {
+            if (typeof _baseSwitchTab === 'function') {
+                _baseSwitchTab(tabId);
+            }
+            if (tabId === 'wagers') {
+                renderRedesignWagers(currentWagersFilter, currentWagersSearch);
+            }
+        };
+
+        // Enable smooth horizontal sideways scrolling on trackpads / mouse wheels
+        function enableHorizontalScrolling() {
+            const scrollers = [
+                document.getElementById('header-nav-scroll-wrapper'),
+                document.getElementById('sport-selector-bar'),
+                document.getElementById('schedule-filter-bar'),
+                document.getElementById('featured-matches-scroll')
+            ];
+            scrollers.forEach(el => {
+                if (!el) return;
+                el.addEventListener('wheel', (evt) => {
+                    if (evt.deltaY !== 0 && Math.abs(evt.deltaY) > Math.abs(evt.deltaX)) {
+                        evt.preventDefault();
+                        el.scrollLeft += evt.deltaY * 1.2;
+                    }
+                }, { passive: false });
+            });
+        }
+
+        // Initialize ledger and stats on load
+        window.addEventListener('load', () => {
+            enableHorizontalScrolling();
+            setTimeout(() => {
+                renderRedesignWagers(currentWagersFilter, currentWagersSearch);
+            }, 600);
+        });
+    </script>
+</body>
+</html>

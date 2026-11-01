@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Solana Signature Neon Gradient -->
+    <linearGradient id="solGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF"/>
+      <stop offset="50%" stop-color="#7000FF"/>
+      <stop offset="100%" stop-color="#14F195"/>
+    </linearGradient>
+
+    <!-- Deep Prism Gradient -->
+    <linearGradient id="prismGrad" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="45%" stop-color="#9945FF"/>
+      <stop offset="100%" stop-color="#00FFA3"/>
+    </linearGradient>
+
+    <!-- Specular Highlight Gradient -->
+    <linearGradient id="highlightGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Dark Facet Gradient -->
+    <linearGradient id="darkFacet" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#090d16"/>
+      <stop offset="100%" stop-color="#182238"/>
+    </linearGradient>
+
+    <!-- Cyber Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#00F0FF" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Ambient Hex / Soft Shield Background -->
+  <rect x="6" y="6" width="88" height="88" rx="24" fill="#060913" stroke="url(#solGrad1)" stroke-width="1.5" stroke-opacity="0.4"/>
+  
+  <!-- Subtle Internal Grid Glow -->
+  <circle cx="50" cy="50" r="32" fill="url(#prismGrad)" opacity="0.12" filter="url(#neonGlow)"/>
+
+  <!-- Iconic SolPlay Geometric Emblem: Fused Speed Play Chevron + Solana 'S' Ribbon -->
+  <g filter="url(#subtleShadow)">
+    <!-- Top Speed Ribbon (Solana style slant) -->
+    <path d="M 26 28 L 68 28 C 72 28 75 31 73 35 L 67 43 C 65 46 62 48 58 48 L 22 48 C 18 48 15 45 17 41 L 21 33 C 22 30 24 28 26 28 Z" 
+          fill="url(#solGrad1)"/>
+    
+    <!-- Central Sharp Dynamic Fast-Play Wedge -->
+    <path d="M 38 41 L 78 50 C 82 51 82 56 78 58 L 38 67 C 34 68 31 65 32 61 L 34 47 C 35 43 36 41 38 41 Z" 
+          fill="url(#prismGrad)" filter="url(#neonGlow)"/>
+
+    <!-- Bottom Speed Ribbon (Inverted Solana parallel flow) -->
+    <path d="M 33 60 L 69 60 C 73 60 76 63 74 67 L 70 75 C 69 78 66 80 62 80 L 20 80 C 16 80 13 77 15 73 L 19 65 C 21 62 23 60 26 60 Z" 
+          fill="url(#solGrad1)"/>
+
+    <!-- Sharp White Specular Core Refraction -->
+    <polygon points="40,46 66,52 40,58 44,52" fill="url(#highlightGrad)" opacity="0.85"/>
+
+    <!-- Dynamic Neon Pulse Dot / Fast Bet Spark -->
+    <circle cx="75" cy="27" r="3.5" fill="#00F0FF" filter="url(#neonGlow)"/>
+    <circle cx="75" cy="27" r="1.5" fill="#FFFFFF"/>
+  </g>
+</svg>
