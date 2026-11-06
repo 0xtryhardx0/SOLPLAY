@@ -120,4 +120,4 @@ Validates complete lifecycle:
 ---
 
 ## 📄 License
-MIT License © 2026 Erioluwa Ayodeji & SolPlay Contributors.
+Proprietary & Confidential — All Rights Reserved.
