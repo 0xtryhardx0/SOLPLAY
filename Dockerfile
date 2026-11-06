@@ -11,3 +11,4 @@ EXPOSE 8080
 
 ENTRYPOINT ["sh", "-c"]
 CMD ["python3 -m http.server ${PORT:-8080}"]
+

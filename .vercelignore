@@ -1,3 +1,9 @@
+Dockerfile
+Dockerfile.vercel
+fly.toml
+railway.json
+render.yaml
+Procfile
 Cargo.toml
 Cargo.lock
 src/

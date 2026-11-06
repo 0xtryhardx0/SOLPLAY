@@ -1,8 +1,11 @@
 {
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": ".",
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/((?!api/|.+\\.).*)",
+      "source": "/((?!.+\\.).*)",
       "destination": "/index.html"
     }
   ]
