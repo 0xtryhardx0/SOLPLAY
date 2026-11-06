@@ -3406,10 +3406,7 @@ let lastOraclePayloadHash = "";
 
 async function loadOracleConfig() {
     try {
-        let resp = await fetch("/api/matches").catch(() => null);
-        if (!resp || !resp.ok) {
-            resp = await fetch("/active_matches.json?t=" + Math.floor(Date.now() / 60000));
-        }
+        const resp = await fetch("/active_matches.json?t=" + Math.floor(Date.now() / 60000));
         if (!resp || !resp.ok) return;
         const text = await resp.text();
         if (text === lastOraclePayloadHash) {
@@ -3434,6 +3431,11 @@ async function loadOracleConfig() {
             renderLiveMatches();
             renderFeaturedMatchesScroll();
             renderMatchOfTheDaySpotlight();
+            // Trigger live client-side ESPN scoreboard sync so scores & schedules stay fresh in real time
+            setTimeout(() => {
+                if (typeof fetchUpcomingMatchesFromAPI === 'function') fetchUpcomingMatchesFromAPI();
+                if (typeof syncLiveScoresFromReliableSource === 'function') syncLiveScoresFromReliableSource(false);
+            }, 300);
         } else if (data.matches) {
             for (const gameId in data.matches) {
                 const oMatch = data.matches[gameId];

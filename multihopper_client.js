@@ -214,8 +214,7 @@
         method: 'POST',
         headers: {
           'x-api-key': rt.apiKey,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': crypto.randomUUID()
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           tokenMint: 'So11111111111111111111111111111111111111112',
@@ -242,8 +241,7 @@
         method: 'POST',
         headers: {
           'x-api-key': rt.apiKey,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': crypto.randomUUID()
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({})
       });
@@ -301,8 +299,7 @@
         method: 'POST',
         headers: {
           'x-api-key': rt.apiKey,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': crypto.randomUUID()
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(signatures)
       });
