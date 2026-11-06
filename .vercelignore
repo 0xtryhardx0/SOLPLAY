@@ -9,13 +9,6 @@ test-ledger/
 cpufeatures_mock/
 docs/
 .github/
-Dockerfile
-Dockerfile.*
-.dockerignore
-Procfile
-fly.toml
-railway.json
-render.yaml
 *_wallet.json
 bettor_*.json
 dev_wallet.json
