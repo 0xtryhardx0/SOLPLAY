@@ -2234,9 +2234,18 @@ function autoUpdateMatchesCalendar() {
             const mDateStr = mDate.toISOString().slice(0, 10);
             const diffMs = now.getTime() - mDate.getTime();
 
-            if (match.status === "LIVE") {
-                match.scheduleGroup = "live";
-                match.isLocked = false;
+            if (match.status === "LIVE" || match.scheduleGroup === "live") {
+                // Any match whose kickoff was more than 3.5 hours ago cannot still be LIVE
+                if (diffMs > (3.5 * 3600 * 1000)) {
+                    match.status = "FINISHED";
+                    match.scheduleGroup = "finished";
+                    match.time = "Full Time";
+                    match.isLocked = true;
+                } else {
+                    match.status = "LIVE";
+                    match.scheduleGroup = "live";
+                    match.isLocked = false;
+                }
             } else if (mDateStr === todayStr) {
                 // If it's today and started more than 2.5h ago WITH official score, it can be finished
                 if (diffMs > (2.5 * 3600 * 1000) && match.score !== null) {
@@ -3397,8 +3406,11 @@ let lastOraclePayloadHash = "";
 
 async function loadOracleConfig() {
     try {
-        const resp = await fetch("/active_matches.json?t=" + Date.now());
-        if (!resp.ok) return;
+        let resp = await fetch("/api/matches").catch(() => null);
+        if (!resp || !resp.ok) {
+            resp = await fetch("/active_matches.json?t=" + Math.floor(Date.now() / 60000));
+        }
+        if (!resp || !resp.ok) return;
         const text = await resp.text();
         if (text === lastOraclePayloadHash) {
             return; // Payload unchanged; prevent DOM thrashing
@@ -3417,6 +3429,8 @@ async function loadOracleConfig() {
         if (Array.isArray(data) && data.length > 0) {
             // Multi-Sport Array Feed (Soccer, NBA, NFL)
             MATCHES_DATA = data;
+            autoUpdateMatchesCalendar();
+            if (typeof updateSportFilterCounts === 'function') updateSportFilterCounts();
             renderLiveMatches();
             renderFeaturedMatchesScroll();
             renderMatchOfTheDaySpotlight();
