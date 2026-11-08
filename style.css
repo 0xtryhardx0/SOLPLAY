@@ -3741,3 +3741,167 @@ body {
     border-color: #f59e0b;
     box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
 }
+
+/* ==========================================================================
+   MOBILE ODDS VISIBILITY & SLIDE-UP BETSLIP DRAWER OVERHAUL
+   ========================================================================== */
+
+/* Desktop default: hide mobile-only inline odds panel */
+.mobile-match-odds-panel,
+.mobile-only-markets-pill {
+    display: none;
+}
+
+/* Mobile & Tablet (<1024px): Fixed Slide-Up Betslip Bottom Sheet (Zero Scrolling to Bottom) */
+@media (max-width: 1023px) {
+    body {
+        padding-bottom: 84px !important;
+    }
+
+    #right-betslip-column {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        z-index: 9990 !important;
+        max-height: 84vh !important;
+        overflow-y: auto !important;
+        padding: 0 0.5rem 4.75rem 0.5rem !important;
+        transform: translateY(115%);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+    }
+
+    #right-betslip-column.mobile-drawer-open {
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+}
+
+/* Mobile (<768px): Full-Width Stacked Match Cards & 100% Visible Odds Buttons */
+@media (max-width: 768px) {
+    .match-matrix-container {
+        overflow-x: visible !important;
+        border-radius: 14px;
+    }
+
+    .match-matrix-table {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .match-matrix-header {
+        display: none !important;
+    }
+
+    .match-matrix-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 0.85rem !important;
+        gap: 0.65rem !important;
+    }
+
+    .match-info-sticky {
+        width: 100% !important;
+        position: static !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: none !important;
+        padding-right: 0 !important;
+        padding-bottom: 0.55rem !important;
+        background: transparent !important;
+    }
+
+    .match-actions-line {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .mobile-only-markets-pill {
+        display: inline-flex;
+        margin-left: auto;
+        background: rgba(153, 69, 255, 0.16);
+        border-color: rgba(153, 69, 255, 0.4);
+        color: #e9d5ff;
+    }
+
+    /* Hide sideways 1820px desktop track on mobile & show full-width mobile odds panel */
+    .matrix-odds-track {
+        display: none !important;
+    }
+
+    .mobile-match-odds-panel {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.45rem;
+        width: 100%;
+    }
+
+    .mobile-primary-odds-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.45rem;
+        width: 100%;
+    }
+
+    .mobile-odd-btn {
+        padding: 0.55rem 0.35rem !important;
+        border-radius: 10px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(20, 184, 166, 0.25) !important;
+    }
+
+    .mobile-odd-btn .lbl {
+        font-size: 0.66rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    .mobile-odd-btn .val {
+        font-size: 0.92rem !important;
+        color: #2dd4bf !important;
+    }
+
+    .mobile-odd-btn.selected .val,
+    .mobile-odd-btn.selected .lbl {
+        color: #050508 !important;
+    }
+
+    .mobile-secondary-odds-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.35rem;
+        width: 100%;
+    }
+
+    .mobile-sub-odd-btn {
+        padding: 0.4rem 0.2rem !important;
+        border-radius: 8px !important;
+    }
+
+    .mobile-sub-odd-btn .lbl {
+        font-size: 0.62rem !important;
+    }
+
+    .mobile-sub-odd-btn .val {
+        font-size: 0.78rem !important;
+    }
+
+    .mobile-more-btn {
+        padding: 0.4rem 0.25rem !important;
+        font-size: 0.68rem !important;
+        justify-content: center;
+        border-radius: 8px !important;
+    }
+
+    .match-accordion-drawer {
+        padding: 0.85rem !important;
+    }
+
+    .accordion-markets-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

@@ -2273,38 +2273,29 @@ function autoUpdateMatchesCalendar() {
                 match.status = "SCHEDULED";
                 match.isLocked = false;
             } else {
-                if (match.score !== null) {
-                    match.status = "FINISHED";
-                    match.scheduleGroup = "finished";
-                    match.time = "Full Time";
-                    match.isLocked = true;
-                } else {
-                    // Seed fixture whose date passed without result: heal forward into Today's evening lineup
-                    match.scheduleGroup = "today";
-                    match.status = "SCHEDULED";
-                    match.dateISO = `${todayStr}T20:00:00Z`;
-                    match.time = "Today 20:00 WAT";
-                    match.isLocked = false;
-                }
+                // Match date was on a previous day in the past -> mark FINISHED (never push old past days into Today)
+                match.status = "FINISHED";
+                match.scheduleGroup = "finished";
+                match.time = "Full Time";
+                match.isLocked = true;
             }
         }
     });
-
-    // Enforce live facts (El Clasico is scheduled, Aston Villa 2-1 Man City, no hallucinated scores)
-    // Live feed enforcer obsolete: all data is 100% authentic official sports feeds
 }
 
 // ==========================================================================
 // REAL-TIME SHARP ODDS & BOOKMAKER COMPILER ENGINE (DraftKings / Bet365 / Pinnacle)
 // ==========================================================================
 const RELIABLE_SPORTS_FEEDS = [
-    { leagueKey: "uefa.champions", name: "UEFA Champions League" },
-    { leagueKey: "eng.1", name: "Premier League" },
-    { leagueKey: "uefa.europa", name: "UEFA Europa League" },
-    { leagueKey: "esp.1", name: "La Liga" },
-    { leagueKey: "ita.1", name: "Serie A" },
-    { leagueKey: "ger.1", name: "Bundesliga" },
-    { leagueKey: "fra.1", name: "Ligue 1" }
+    { sport: "soccer", leagueKey: "uefa.champions", name: "UEFA Champions League" },
+    { sport: "soccer", leagueKey: "eng.1", name: "Premier League" },
+    { sport: "soccer", leagueKey: "uefa.europa", name: "UEFA Europa League" },
+    { sport: "soccer", leagueKey: "esp.1", name: "La Liga" },
+    { sport: "soccer", leagueKey: "ita.1", name: "Serie A" },
+    { sport: "soccer", leagueKey: "ger.1", name: "Bundesliga" },
+    { sport: "soccer", leagueKey: "fra.1", name: "Ligue 1" },
+    { sport: "basketball", leagueKey: "nba", name: "NBA" },
+    { sport: "football", leagueKey: "nfl", name: "NFL" }
 ];
 
 // Canonical team key normalization (strips diacritics, hyphens, and punctuation)
@@ -2844,10 +2835,11 @@ async function fetchUpcomingMatchesFromAPI() {
     // 1. Re-evaluate calendar dates dynamically
     autoUpdateMatchesCalendar();
 
-    // 2. Fetch live & upcoming matches from ESPN soccer feeds
+    // 2. Fetch live & upcoming matches from ESPN multi-sport feeds (Soccer, NBA, NFL)
     for (const feed of RELIABLE_SPORTS_FEEDS) {
         try {
-            const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${feed.leagueKey}/scoreboard`;
+            const feedSport = feed.sport || 'soccer';
+            const url = `https://site.api.espn.com/apis/site/v2/sports/${feedSport}/${feed.leagueKey}/scoreboard`;
             const resp = await fetch(url);
             if (!resp.ok) continue;
             const data = await resp.json();
@@ -2866,6 +2858,7 @@ async function fetchUpcomingMatchesFromAPI() {
                 const aNorm = normalizeSportsTeamName(aName);
 
                 let match = MATCHES_DATA.find(m => {
+                    if (String(m.espnId) === String(ev.id)) return true;
                     const mhNorm = normalizeSportsTeamName(m.homeTeam);
                     const maNorm = normalizeSportsTeamName(m.awayTeam);
                     return (mhNorm === hNorm && maNorm === aNorm) ||
@@ -2873,7 +2866,7 @@ async function fetchUpcomingMatchesFromAPI() {
                            (hNorm.includes(mhNorm) && aNorm.includes(maNorm));
                 });
 
-                const evDate = ev.date; // e.g. "2026-10-17T11:30Z"
+                const evDate = ev.date; // e.g. "2026-11-08T16:30Z"
                 const state = ev.status?.type?.state; // 'pre', 'in', 'post'
                 const completed = !!ev.status?.type?.completed;
                 const hScore = parseInt(homeComp.score || "0", 10);
@@ -2892,6 +2885,10 @@ async function fetchUpcomingMatchesFromAPI() {
                     if (evDate) match.dateISO = evDate;
                     if (!match.homeLogo) match.homeLogo = hLogo;
                     if (!match.awayLogo) match.awayLogo = aLogo;
+                    if (!match.sport) match.sport = feedSport;
+                    if (!match.leagueKey) match.leagueKey = feed.leagueKey;
+                    if (!match.homeTeamId && homeComp.team?.id) match.homeTeamId = homeComp.team.id;
+                    if (!match.awayTeamId && awayComp.team?.id) match.awayTeamId = awayComp.team.id;
 
                     if (state === 'post' || completed) {
                         match.status = 'FINISHED';
@@ -2912,10 +2909,18 @@ async function fetchUpcomingMatchesFromAPI() {
                     // Dynamically ingest new upcoming, live or recently concluded match with authentic sharp bookmaker odds
                     const isFinished = (state === 'post' || completed);
                     const isLive = (state === 'in');
-                    const newId = 20000 + (parseInt(ev.id, 10) % 10000 || Math.floor(Math.random() * 9000));
+                    const newId = parseInt(ev.id, 10) || (20000 + (parseInt(ev.id, 10) % 10000 || Math.floor(Math.random() * 9000)));
+                    const mDate = new Date(evDate);
+                    const watHours = (mDate.getUTCHours() + 1) % 24;
+                    const watMins = mDate.getUTCMinutes().toString().padStart(2, '0');
+                    const timeStr = `${watHours < 10 ? '0' + watHours : watHours}:${watMins} WAT`;
                     const newMatch = {
                         id: newId,
+                        espnId: String(ev.id),
+                        sport: feedSport,
+                        sportCategory: feedSport === 'basketball' ? 'Basketball' : (feedSport === 'football' ? 'American Football' : 'Soccer'),
                         league: feed.name,
+                        leagueKey: feed.leagueKey,
                         leagueCategory: feed.name.includes("Champions") ? "Champions League" : 
                                         feed.name.includes("Europa") ? "Europa League" :
                                         feed.name.includes("La Liga") ? "La Liga" :
@@ -2927,10 +2932,12 @@ async function fetchUpcomingMatchesFromAPI() {
                         scheduleGroup: isLive ? "live" : (isFinished ? "finished" : "today"),
                         homeTeam: hName,
                         awayTeam: aName,
+                        homeTeamId: homeComp.team?.id || '',
+                        awayTeamId: awayComp.team?.id || '',
                         homeLogo: hLogo,
                         awayLogo: aLogo,
                         dateISO: evDate,
-                        time: isFinished ? "Full Time" : (isLive ? (clock ? `${clock}'` : (detail || "Live")) : (detail || "Today")),
+                        time: isFinished ? "Full Time" : (isLive ? (clock ? `${clock}'` : (detail || "Live")) : `Today ${timeStr}`),
                         status: isFinished ? "FINISHED" : (isLive ? "LIVE" : "SCHEDULED"),
                         score: (isLive || isFinished) ? { home: hScore, away: aScore } : null,
                         odds: sharpOdds,
@@ -3027,7 +3034,8 @@ async function syncLiveScoresFromReliableSource(isManual = false) {
         for (const dateQuery of queryDates) {
             for (const feed of RELIABLE_SPORTS_FEEDS) {
                 try {
-                    const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${feed.leagueKey}/scoreboard${dateQuery}`;
+                    const feedSport = feed.sport || 'soccer';
+                    const url = `https://site.api.espn.com/apis/site/v2/sports/${feedSport}/${feed.leagueKey}/scoreboard${dateQuery}`;
                     const resp = await fetch(url);
                     if (!resp.ok) continue;
                     const data = await resp.json();
@@ -3427,6 +3435,15 @@ async function loadOracleConfig() {
             // Multi-Sport Array Feed (Soccer, NBA, NFL)
             MATCHES_DATA = data;
             autoUpdateMatchesCalendar();
+            // Ensure activeMatchId points to a live or today marquee fixture
+            const currentActive = MATCHES_DATA.find(m => m.id === activeMatchId && m.status !== 'FINISHED');
+            if (!currentActive) {
+                const topMatch = MATCHES_DATA.find(m => m.scheduleGroup === 'live') || MATCHES_DATA.find(m => m.scheduleGroup === 'today') || MATCHES_DATA[0];
+                if (topMatch) {
+                    activeMatchId = topMatch.id;
+                    loadMatchSquadsAsync(topMatch);
+                }
+            }
             if (typeof updateSportFilterCounts === 'function') updateSportFilterCounts();
             renderLiveMatches();
             renderFeaturedMatchesScroll();
@@ -5180,7 +5197,7 @@ function renderBetslip() {
 
     const totalCount = betslipSelections.length;
 
-    if (countBadge) countBadge.textContent = `${totalCount} ${totalCount === 1 ? 'Selection' : 'Selections'}`;
+    if (countBadge) countBadge.textContent = totalCount;
     if (tabSlipBadge) {
         tabSlipBadge.textContent = totalCount;
         tabSlipBadge.style.display = totalCount > 0 ? "inline-block" : "none";
@@ -5188,6 +5205,14 @@ function renderBetslip() {
     const headerSlipCounter = document.getElementById("header-slip-counter");
     if (headerSlipCounter) {
         headerSlipCounter.textContent = totalCount;
+    }
+    const mobileDockCount = document.getElementById("mobile-dock-slip-count");
+    if (mobileDockCount) {
+        mobileDockCount.textContent = totalCount;
+    }
+    const mobileDockOdds = document.getElementById("mobile-dock-odds");
+    if (mobileDockOdds && totalCount === 0) {
+        mobileDockOdds.textContent = "1.00x";
     }
 
     if (btnPlaceSlip) {
@@ -5420,7 +5445,7 @@ function calculatePayout() {
             : `Place ${legs} Single Wagers`;
     }
 
-    // Floating Pill update
+    // Floating Pill & Mobile Bottom Dock update
     const floatingPill = document.getElementById("floating-betslip-pill");
     const floatingCount = document.getElementById("floating-slip-count");
     const floatingOdds = document.getElementById("floating-slip-odds");
@@ -5428,6 +5453,10 @@ function calculatePayout() {
         floatingPill.style.display = "flex";
         if (floatingCount) floatingCount.textContent = `${legs} ${legs === 1 ? 'Bet' : 'Bets'}`;
         if (floatingOdds) floatingOdds.textContent = totalMultiplier.toFixed(2) + "x";
+    }
+    const mobileDockOdds = document.getElementById("mobile-dock-odds");
+    if (mobileDockOdds) {
+        mobileDockOdds.textContent = totalMultiplier.toFixed(2) + "x";
     }
 }
 
@@ -7395,12 +7424,15 @@ function renderLiveMatches() {
             const homeLogo = match.homeLogo || getTeamLogo(match.homeTeam);
             const awayLogo = match.awayLogo || getTeamLogo(match.awayTeam);
 
+            const sportEmoji = match.sport === 'basketball' ? '🏀' : (match.sport === 'football' ? '🏈' : '⚽');
+            const lineupBtnLabel = match.sport === 'basketball' ? 'Starting 5' : (match.sport === 'football' ? 'NFL Lineup' : 'Lineup & Bench');
+
             rowWrapper.innerHTML = `
                 <div class="match-matrix-row">
                     <!-- Sticky / Prominent Match Info Left Section -->
                     <div class="match-info-sticky">
                         <div class="match-meta-line">
-                            <span class="match-meta-league">⚽ ${match.league}</span>
+                            <span class="match-meta-league">${sportEmoji} ${match.league}</span>
                             ${statusBadge}
                         </div>
                         <div class="match-teams-block">
@@ -7420,14 +7452,55 @@ function renderLiveMatches() {
                                 <span class="material-symbols-outlined text-[13px]">${isStreamActive ? 'sensors' : 'play_circle'}</span>
                                 ${isStreamActive ? 'Streaming ↗' : 'Watch Stream ↗'}
                             </button>
-                            <button class="btn-stream-pill btn-stream-solplay" onclick="openMatchLineups(${match.id})" title="View Confirmed Starting XI & Official Bench">
+                            <button class="btn-stream-pill btn-stream-solplay" onclick="openMatchLineups(${match.id})" title="View Official Confirmed Lineup & Bench">
                                 <span class="material-symbols-outlined text-[13px]">groups</span>
-                                Lineup & Bench
+                                ${lineupBtnLabel}
+                            </button>
+                            <button class="btn-stream-pill mobile-only-markets-pill ${isAccordionOpen ? 'active' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                                <span>${isAccordionOpen ? 'Close ▴' : '+68 Markets ▾'}</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Sideways Scrollable Market Odds Track -->
+                    <!-- Mobile Full-Width Instant Odds Panel (100% Visible on Mobile, Zero Sideways Keyhole) -->
+                    <div class="mobile-match-odds-panel">
+                        <!-- Primary 1X2 / Moneyline Row (Full Width 3-Column Grid) -->
+                        <div class="mobile-primary-odds-grid">
+                            ${m1x2.map((o, idx) => {
+                                const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                                const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
+                                const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
+                                const clickHandler = isMatchConcluded ? `showToast('This fixture has ended (Full Time). Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')`;
+                                const shortLbl = idx === 0 ? '1 (Home)' : (idx === 1 ? 'X (Draw)' : '2 (Away)');
+                                return `
+                                    <button class="matrix-odd-box mobile-odd-btn ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
+                                        <span class="lbl">${shortLbl}</span>
+                                        <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        <!-- Secondary Quick Options Row (O/U 2.5, GG/NG & +68 Markets Drawer) -->
+                        <div class="mobile-secondary-odds-row">
+                            ${mou25.map(o => `
+                                <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
+                                    <span class="lbl">${o.label.includes('Over') ? 'O 2.5' : 'U 2.5'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                            ${mbtts.map(o => `
+                                <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
+                                    <span class="lbl">${o.label.includes('Yes') ? 'GG' : 'NG'}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `).join('')}
+                            <button class="btn-more-markets mobile-more-btn ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                                <span>${isAccordionOpen ? 'Less ▴' : '+68 ▾'}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sideways Scrollable Market Odds Track (Desktop / Tablet Panoramic Matrix) -->
                     <div class="matrix-odds-track">
                         <!-- 1X2 (Winner) -->
                         <div class="odds-col-group group-3">
@@ -9352,13 +9425,135 @@ function openMatchLineups(matchId) {
 
 function getPosColor(pos) {
     const p = (pos || '').toUpperCase();
-    if (p === 'GK' || p === 'G' || p === 'PG' || p === 'SG') return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
-    if (p === 'DF' || p === 'D' || p === 'CB' || p === 'LB' || p === 'RB' || p === 'LWB' || p === 'RWB') return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
-    if (p === 'MF' || p === 'M' || p === 'CDM' || p === 'CM' || p === 'CAM' || p === 'DM' || p === 'AM' || p === 'SF' || p === 'PF') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
-    if (p === 'C') return 'bg-amber-500/10 text-amber-400 border-amber-500/30'; // Center
-    return 'bg-rose-500/10 text-rose-400 border-rose-500/30'; // FW / ST / CF / LW / RW / Striker
+    // QB / GK / Point & Shooting Guards -> Cyan
+    if (['GK', 'G', 'PG', 'SG', 'QB'].includes(p)) return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+    // Running Backs / Midfielders / NBA Wings & Forwards -> Emerald
+    if (['MF', 'M', 'CDM', 'CM', 'CAM', 'DM', 'AM', 'SF', 'PF', 'RB', 'FB', 'HB'].includes(p)) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+    // NFL Offensive Line / NBA Center -> Amber
+    if (['C', 'LT', 'LG', 'RG', 'RT', 'OT', 'OG', 'OL', 'T'].includes(p)) return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+    // Soccer Defenders / NFL Defense & Tight Ends -> Purple
+    if (['DF', 'D', 'CB', 'LB', 'LWB', 'RWB', 'TE', 'EDGE', 'DE', 'DT', 'NT', 'ILB', 'OLB', 'MLB', 'S', 'FS', 'SS', 'DB', 'K', 'P'].includes(p)) return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
+    // Wide Receivers / Strikers / Wingers -> Rose
+    return 'bg-rose-500/10 text-rose-400 border-rose-500/30';
 }
 window.getPosColor = getPosColor;
+
+function buildSportTacticalDiagram(match, homeLineup, awayLineup, homeForm, awayForm) {
+    if (!homeLineup.length && !awayLineup.length) return '';
+    const sport = match.sport || 'soccer';
+
+    const renderChip = (p, teamName, accentCls) => {
+        if (!p) return '';
+        const escN = (p.name || '').replace(/'/g, "\\'");
+        const escT = (teamName || '').replace(/'/g, "\\'");
+        const shortName = (p.name || 'Player').split(' ').slice(-1)[0];
+        return `
+            <button type="button" onclick="openPlayerStatsModal('${escN}', '${p.pos}', '${p.num || '#'}', '${escT}')" class="px-2 py-1 rounded-lg bg-black/70 hover:bg-black/90 border ${accentCls} flex flex-col items-center justify-center min-w-[56px] max-w-[82px] shadow-md transition-transform hover:scale-105 cursor-pointer">
+                <span class="text-[8px] font-mono font-black uppercase tracking-tighter ${getPosColor(p.pos).split(' ')[1] || 'text-cyan-300'}">${p.pos} #${p.num || '-'}</span>
+                <span class="text-[10px] font-bold text-white truncate w-full text-center">${shortName}</span>
+            </button>
+        `;
+    };
+
+    // 1. NFL GRIDIRON DIAGRAM (11 Personnel Offense Alignment)
+    if (sport === 'football') {
+        const renderNFLSide = (lineup, teamName, isHome) => {
+            const byPos = posList => lineup.filter(p => posList.includes(p.pos));
+            const losRow = byPos(['WR1', 'LT', 'LG', 'C', 'RG', 'RT', 'TE']);
+            const slotRow = byPos(['SLOT', 'WR2']);
+            const backRow = byPos(['QB', 'RB']);
+            const accent = isHome ? 'border-cyan-500/40' : 'border-amber-500/40';
+            return `
+                <div class="p-3 rounded-xl bg-gradient-to-b from-emerald-950/60 via-emerald-900/30 to-emerald-950/60 border border-emerald-500/30 relative overflow-hidden flex flex-col gap-2">
+                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-emerald-500/20 pb-1">
+                        <span class="font-black text-white uppercase">🏈 ${teamName} Gridiron Alignment</span>
+                        <span class="text-emerald-300 font-bold">${isHome ? homeForm : awayForm}</span>
+                    </div>
+                    <!-- Yardage Lines Overlay -->
+                    <div class="flex flex-col gap-2 py-1">
+                        <div class="text-[9px] font-mono text-emerald-400/80 text-center uppercase tracking-widest border-b border-dashed border-emerald-400/25 pb-1">Line of Scrimmage (Trench & X-WR / TE)</div>
+                        <div class="flex flex-wrap items-center justify-center gap-1.5">
+                            ${losRow.map(p => renderChip(p, teamName, accent)).join('')}
+                        </div>
+                        <div class="flex flex-wrap items-center justify-around gap-2 pt-1">
+                            ${slotRow.map(p => renderChip(p, teamName, accent)).join('')}
+                        </div>
+                        <div class="text-[9px] font-mono text-cyan-300/80 text-center uppercase tracking-widest pt-1">Shotgun / Backfield Pocket</div>
+                        <div class="flex items-center justify-center gap-3">
+                            ${backRow.map(p => renderChip(p, teamName, accent)).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+        return `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${renderNFLSide(homeLineup, match.homeTeam, true)}
+                ${renderNFLSide(awayLineup, match.awayTeam, false)}
+            </div>
+        `;
+    }
+
+    // 2. NBA HARDWOOD HALF-COURT DIAGRAM (Starting 5 Pace & Space)
+    if (sport === 'basketball') {
+        const renderNBASide = (lineup, teamName, isHome) => {
+            const backcourt = lineup.filter(p => ['PG', 'SG', 'SF', 'G'].includes(p.pos)).slice(0, 3);
+            const frontcourt = lineup.filter(p => !backcourt.includes(p)).slice(0, 2);
+            const accent = isHome ? 'border-amber-500/40' : 'border-cyan-500/40';
+            return `
+                <div class="p-3 rounded-xl bg-gradient-to-b from-amber-950/40 via-slate-900/70 to-amber-950/40 border border-amber-500/30 flex flex-col gap-2">
+                    <div class="flex items-center justify-between text-[10px] font-mono border-b border-amber-500/20 pb-1">
+                        <span class="font-black text-white uppercase">🏀 ${teamName} Court 5</span>
+                        <span class="text-amber-300 font-bold">Pace & Space 5</span>
+                    </div>
+                    <div class="text-[9px] font-mono text-amber-300/80 text-center uppercase tracking-widest">Perimeter / 3-Pt Arc (PG • SG • SF)</div>
+                    <div class="flex items-center justify-around gap-1.5 py-1">
+                        ${backcourt.map(p => renderChip(p, teamName, accent)).join('')}
+                    </div>
+                    <div class="text-[9px] font-mono text-cyan-300/80 text-center uppercase tracking-widest border-t border-dashed border-amber-500/20 pt-1">Paint / High & Low Post (PF • C)</div>
+                    <div class="flex items-center justify-center gap-4 py-1">
+                        ${frontcourt.map(p => renderChip(p, teamName, accent)).join('')}
+                    </div>
+                </div>
+            `;
+        };
+        return `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${renderNBASide(homeLineup, match.homeTeam, true)}
+                ${renderNBASide(awayLineup, match.awayTeam, false)}
+            </div>
+        `;
+    }
+
+    // 3. SOCCER 2D TACTICAL PITCH DIAGRAM (GK -> DEF -> MID -> ATK)
+    const renderSoccerSide = (lineup, teamName, form, isHome) => {
+        const gk = lineup.slice(0, 1);
+        const def = lineup.filter(p => ['RB', 'RWB', 'CB', 'LB', 'LWB', 'D', 'DF'].includes(p.pos));
+        const mid = lineup.filter(p => ['CDM', 'DM', 'CM', 'CAM', 'AM', 'RM', 'LM', 'M', 'MF'].includes(p.pos));
+        const atk = lineup.filter(p => !gk.includes(p) && !def.includes(p) && !mid.includes(p));
+        const accent = isHome ? 'border-cyan-500/40' : 'border-emerald-500/40';
+        return `
+            <div class="p-3 rounded-xl bg-gradient-to-b from-emerald-950/50 via-[#071f18] to-emerald-950/50 border border-emerald-500/25 flex flex-col gap-2">
+                <div class="flex items-center justify-between text-[10px] font-mono border-b border-emerald-500/20 pb-1">
+                    <span class="font-black text-white uppercase">⚽ ${teamName} Pitch XI</span>
+                    <span class="text-emerald-400 font-bold">${form}</span>
+                </div>
+                <div class="flex flex-col gap-1.5 py-1">
+                    <div class="flex items-center justify-center gap-2">${atk.map(p => renderChip(p, teamName, accent)).join('')}</div>
+                    <div class="flex items-center justify-center gap-1.5">${mid.map(p => renderChip(p, teamName, accent)).join('')}</div>
+                    <div class="flex items-center justify-center gap-1.5">${def.map(p => renderChip(p, teamName, accent)).join('')}</div>
+                    <div class="flex items-center justify-center">${gk.map(p => renderChip(p, teamName, accent)).join('')}</div>
+                </div>
+            </div>
+        `;
+    };
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            ${renderSoccerSide(homeLineup, match.homeTeam, homeForm, true)}
+            ${renderSoccerSide(awayLineup, match.awayTeam, awayForm, false)}
+        </div>
+    `;
+}
 
 function renderMatchLineups() {
     const container = document.getElementById("lineups-scroll-container");
@@ -9366,30 +9561,43 @@ function renderMatchLineups() {
     
     const match = MATCHES_DATA.find(m => m.id === activeMatchId);
     if (!match) {
-        container.innerHTML = `<div class="w-full text-center py-6 text-slate-400 font-mono text-xs">Select a match to view verified starting XI & bench</div>`;
+        container.innerHTML = `<div class="w-full text-center py-6 text-slate-400 font-mono text-xs">Select a match to view verified starting lineup & bench</div>`;
         return;
     }
 
     container.style.display = "block";
 
     const isBasketball = match.sport === 'basketball';
+    const isFootball = match.sport === 'football';
     const homeLogo = match.homeLogo || getTeamLogo(match.homeTeam);
     const awayLogo = match.awayLogo || getTeamLogo(match.awayTeam);
-    const homeForm = match.formation?.home || (isBasketball ? "Starting 5" : "4-3-3");
-    const awayForm = match.formation?.away || (isBasketball ? "Starting 5" : "4-3-3");
+    const defaultForm = isBasketball ? "Starting 5 (Pace & Space)" : (isFootball ? "11 Personnel (Pro Spread)" : "4-3-3");
+    const homeForm = match.formation?.home || defaultForm;
+    const awayForm = match.formation?.away || defaultForm;
 
-    const isConfirmed = match.isConfirmedLineup || (match.lineup?.home && match.lineup.home.length >= (isBasketball ? 5 : 11));
+    const minStarters = isBasketball ? 5 : 11;
+    const isConfirmed = match.isConfirmedLineup || (match.lineup?.home && match.lineup.home.length >= minStarters);
     const badgeText = isConfirmed 
-        ? (isBasketball ? "✓ Confirmed NBA Starting 5" : "✓ Confirmed Matchday XI")
-        : (match.lineupStatusText || "⏳ Confirmed Drops 60m Pre-Game • Official Roster");
+        ? (isBasketball ? "✓ Confirmed NBA Starting 5" : (isFootball ? "✓ Official NFL Game-Day Starters" : "✓ Confirmed Matchday XI"))
+        : (match.lineupStatusText || "⏳ Official Active Roster");
     const badgeColor = isConfirmed 
         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" 
         : "bg-amber-500/10 text-amber-300 border-amber-500/30";
+
+    const sportIcon = isBasketball ? 'sports_basketball' : (isFootball ? 'sports_football' : 'stadium');
+    const headerTitle = isBasketball
+        ? 'Official NBA Starting 5 & Court Rotation'
+        : (isFootball ? 'Official NFL Game-Day Starters & Depth Chart' : 'Official Verified Lineup & Bench');
+    const unitSuffix = isBasketball ? 'Starting 5' : (isFootball ? 'Offense Starters (11)' : 'Starting XI');
+    const benchTitle = isBasketball
+        ? '6th Man & Active Court Rotation'
+        : (isFootball ? 'Defensive Captains, Special Teams & Depth Chart' : 'Official Bench & Substitutes');
 
     const homeLineup = match.lineup?.home || [];
     const awayLineup = match.lineup?.away || [];
     const homeSubs = match.subs?.home || [];
     const awaySubs = match.subs?.away || [];
+    const tacticalDiagramHtml = buildSportTacticalDiagram(match, homeLineup, awayLineup, homeForm, awayForm);
 
     let html = `
         <div class="w-full p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-[#0c1424] to-[#070b14] border border-cyan-500/20 shadow-xl flex flex-col gap-4 font-sans text-xs my-2">
@@ -9398,8 +9606,8 @@ function renderMatchLineups() {
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full ${isConfirmed ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}"></span>
                     <span class="font-black text-white text-sm uppercase tracking-wide flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[18px] text-cyan-400">${isBasketball ? 'sports_basketball' : 'stadium'}</span>
-                        ${isBasketball ? 'Official NBA Starting 5 & Rotation' : 'Official Verified Lineup & Bench'}
+                        <span class="material-symbols-outlined text-[18px] text-cyan-400">${sportIcon}</span>
+                        ${headerTitle}
                     </span>
                     <span class="px-2 py-0.5 rounded-full ${badgeColor} text-[10px] font-mono font-bold">
                         ${badgeText}
@@ -9415,6 +9623,9 @@ function renderMatchLineups() {
                 </div>
             </div>
 
+            <!-- Sport-Specific Tactical Formation Diagram (Gridiron / Hardwood / Pitch) -->
+            ${tacticalDiagramHtml}
+
             <!-- Two-Column Starting Lineup Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Home Team Starting Lineup -->
@@ -9422,7 +9633,7 @@ function renderMatchLineups() {
                     <div class="flex items-center justify-between border-b border-white/5 pb-2">
                         <div class="flex items-center gap-2">
                             <img src="${homeLogo}" class="w-5 h-5 object-contain" alt="${match.homeTeam}" onerror="this.style.display='none'">
-                            <span class="font-black text-white text-xs">${match.homeTeam} ${isBasketball ? 'Starters' : 'XI'}</span>
+                            <span class="font-black text-white text-xs">${match.homeTeam} ${unitSuffix}</span>
                         </div>
                         <span class="px-2 py-0.5 rounded bg-white/5 text-[10px] font-mono text-slate-400">${homeForm}</span>
                     </div>
@@ -9433,7 +9644,7 @@ function renderMatchLineups() {
                             const escN = (p.name || '').replace(/'/g, "\\'");
                             const escT = (match.homeTeam || '').replace(/'/g, "\\'");
                             return `
-                                <div onclick="openPlayerStatsModal('${escN}', '${p.pos}', '${p.num || '#'}', '${escT}')" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/10 hover:border-cyan-500/40 border border-transparent transition-all cursor-pointer group" title="Click to view verified 2025/26 season stats">
+                                <div onclick="openPlayerStatsModal('${escN}', '${p.pos}', '${p.num || '#'}', '${escT}')" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/10 hover:border-cyan-500/40 border border-transparent transition-all cursor-pointer group" title="Click to view verified season stats & player props">
                                     <div class="flex items-center gap-2">
                                         <span class="w-5 h-5 rounded flex items-center justify-center font-mono font-bold text-[10px] bg-white/10 text-cyan-300 group-hover:bg-cyan-500/20">${p.num || '#'}</span>
                                         <span class="font-semibold text-slate-200 text-xs group-hover:text-white">${p.name}</span>
@@ -9450,7 +9661,7 @@ function renderMatchLineups() {
                     <div class="flex items-center justify-between border-b border-white/5 pb-2">
                         <div class="flex items-center gap-2">
                             <img src="${awayLogo}" class="w-5 h-5 object-contain" alt="${match.awayTeam}" onerror="this.style.display='none'">
-                            <span class="font-black text-white text-xs">${match.awayTeam} ${isBasketball ? 'Starters' : 'XI'}</span>
+                            <span class="font-black text-white text-xs">${match.awayTeam} ${unitSuffix}</span>
                         </div>
                         <span class="px-2 py-0.5 rounded bg-white/5 text-[10px] font-mono text-slate-400">${awayForm}</span>
                     </div>
@@ -9461,7 +9672,7 @@ function renderMatchLineups() {
                             const escN = (p.name || '').replace(/'/g, "\\'");
                             const escT = (match.awayTeam || '').replace(/'/g, "\\'");
                             return `
-                                <div onclick="openPlayerStatsModal('${escN}', '${p.pos}', '${p.num || '#'}', '${escT}')" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/10 hover:border-cyan-500/40 border border-transparent transition-all cursor-pointer group" title="Click to view verified 2025/26 season stats">
+                                <div onclick="openPlayerStatsModal('${escN}', '${p.pos}', '${p.num || '#'}', '${escT}')" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/10 hover:border-cyan-500/40 border border-transparent transition-all cursor-pointer group" title="Click to view verified season stats & player props">
                                     <div class="flex items-center gap-2">
                                         <span class="w-5 h-5 rounded flex items-center justify-center font-mono font-bold text-[10px] bg-white/10 text-cyan-300 group-hover:bg-cyan-500/20">${p.num || '#'}</span>
                                         <span class="font-semibold text-slate-200 text-xs group-hover:text-white">${p.name}</span>
@@ -9474,21 +9685,21 @@ function renderMatchLineups() {
                 </div>
             </div>
 
-            <!-- Official Matchday Bench & Substitutes -->
+            <!-- Official Matchday Bench / Defense / Rotation -->
             <div class="p-3.5 rounded-xl bg-black/30 border border-white/5 flex flex-col gap-2.5">
                 <div class="flex items-center justify-between">
                     <span class="font-bold text-slate-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                         <span class="material-symbols-outlined text-[15px] text-amber-400">group</span>
-                        ${isBasketball ? 'Active Bench & Rotation' : 'Official Bench & Substitutes'}
+                        ${benchTitle}
                     </span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
                     <div>
                         <div class="font-bold text-slate-400 text-[10px] uppercase mb-1.5 flex items-center gap-1">
-                            <span>${match.homeTeam} Bench:</span>
+                            <span>${match.homeTeam} ${isFootball ? 'Defense & Depth:' : 'Rotation:'}</span>
                         </div>
                         <div class="flex flex-wrap gap-1.5">
-                            ${homeSubs.length === 0 ? `<span class="text-slate-600 font-mono text-[10px]">Bench roster drops with matchday sheet</span>` : homeSubs.map(s => `
+                            ${homeSubs.length === 0 ? `<span class="text-slate-600 font-mono text-[10px]">Active depth chart synced with game feed</span>` : homeSubs.map(s => `
                                 <span class="px-2 py-0.8 rounded-lg bg-white/5 border border-white/5 text-slate-300 font-mono text-[10px] hover:border-cyan-500/40 transition-colors">
                                     ${typeof s === 'object' ? (s.name || JSON.stringify(s)) : s}
                                 </span>
@@ -9497,10 +9708,10 @@ function renderMatchLineups() {
                     </div>
                     <div>
                         <div class="font-bold text-slate-400 text-[10px] uppercase mb-1.5 flex items-center gap-1">
-                            <span>${match.awayTeam} Bench:</span>
+                            <span>${match.awayTeam} ${isFootball ? 'Defense & Depth:' : 'Rotation:'}</span>
                         </div>
                         <div class="flex flex-wrap gap-1.5">
-                            ${awaySubs.length === 0 ? `<span class="text-slate-600 font-mono text-[10px]">Bench roster drops with matchday sheet</span>` : awaySubs.map(s => `
+                            ${awaySubs.length === 0 ? `<span class="text-slate-600 font-mono text-[10px]">Active depth chart synced with game feed</span>` : awaySubs.map(s => `
                                 <span class="px-2 py-0.8 rounded-lg bg-white/5 border border-white/5 text-slate-300 font-mono text-[10px] hover:border-cyan-500/40 transition-colors">
                                     ${typeof s === 'object' ? (s.name || JSON.stringify(s)) : s}
                                 </span>
@@ -10038,76 +10249,217 @@ window.openPlayerStatsModal = function(playerName, pos, num, teamName) {
         posBadge.className = `px-2 py-0.5 rounded text-[10px] font-bold border ${colorCls}`;
     }
 
-    document.getElementById("modal-player-team-label").textContent = `${pTeam} • 2025/26 Campaign`;
+    const activeMatch = MATCHES_DATA.find(m => m.id === activeMatchId);
+    const activeSport = activeMatch?.sport || (['QB', 'WR1', 'WR2', 'SLOT', 'TE', 'LT', 'LG', 'RG', 'RT', 'EDGE', 'DE', 'DT'].includes(pPos) ? 'football' : (['PG', 'SG', 'SF', 'PF'].includes(pPos) ? 'basketball' : 'soccer'));
 
-    const isAttacker = ['ST', 'CF', 'RW', 'LW', 'FW'].includes(pPos);
-    const isMidfielder = ['CAM', 'CM', 'CDM', 'MF', 'M', 'AM', 'DM'].includes(pPos);
-    const isDefender = ['CB', 'LB', 'RB', 'LWB', 'RWB', 'DF', 'D'].includes(pPos);
-    const isGK = ['G', 'GK'].includes(pPos);
+    document.getElementById("modal-player-team-label").textContent = `${pTeam} • ${activeSport === 'football' ? '2026 NFL Season' : (activeSport === 'basketball' ? '2026/27 NBA Season' : '2026/27 Campaign')}`;
 
     let hash = 0;
     for (let i = 0; i < pName.length; i++) hash = (hash << 5) - hash + pName.charCodeAt(i);
     const absHash = Math.abs(hash);
 
-    const apps = 9 + (absHash % 6);
-    const mins = apps * 82 + (absHash % 50);
+    const gridEl = document.getElementById("modal-stats-grid");
+    const rating = (7.45 + (absHash % 195) / 100).toFixed(2);
+    document.getElementById("modal-player-rating").textContent = `★ ${rating} / 10 Index`;
 
-    let goals = 0, xG = 0, assists = 0, xA = 0, shots = 0, defStat = 0;
-    let defLabel = 'Tackles / 90';
     let propTitle = 'Anytime Goalscorer';
-    let propOdd = 2.10;
+    let propOdd = (1.90 + (absHash % 70) / 100).toFixed(2);
 
-    if (isAttacker) {
-        goals = 4 + (absHash % 8);
-        xG = (goals * 0.88 + 0.3).toFixed(1);
-        assists = 2 + (absHash % 5);
-        xA = (assists * 0.85 + 0.2).toFixed(1);
-        shots = (2.8 + (absHash % 15) / 10).toFixed(1);
-        defStat = (0.9 + (absHash % 8) / 10).toFixed(1);
-        defLabel = 'Pressures / 90';
-        propTitle = 'Anytime Goalscorer';
-        propOdd = (1.75 + (absHash % 80) / 100).toFixed(2);
-    } else if (isMidfielder) {
-        goals = 1 + (absHash % 4);
-        xG = (goals * 0.9 + 0.1).toFixed(1);
-        assists = 3 + (absHash % 6);
-        xA = (assists * 0.95 + 0.4).toFixed(1);
-        shots = (1.4 + (absHash % 10) / 10).toFixed(1);
-        defStat = (2.4 + (absHash % 14) / 10).toFixed(1);
-        defLabel = 'Tackles / 90';
-        propTitle = 'Goal or Assist';
-        propOdd = (2.20 + (absHash % 90) / 100).toFixed(2);
-    } else if (isDefender) {
-        goals = (absHash % 2);
-        xG = (goals * 0.4 + 0.1).toFixed(1);
-        assists = (absHash % 3);
-        xA = (assists * 0.5 + 0.2).toFixed(1);
-        shots = (0.4 + (absHash % 5) / 10).toFixed(1);
-        defStat = (3.8 + (absHash % 18) / 10).toFixed(1);
-        defLabel = 'Tackles + Int';
-        propTitle = 'Clean Sheet Bonus';
-        propOdd = (2.45 + (absHash % 50) / 100).toFixed(2);
+    if (activeSport === 'football') {
+        const isQB = pPos === 'QB';
+        const isRB = ['RB', 'FB', 'HB'].includes(pPos);
+        const isRec = ['WR', 'WR1', 'WR2', 'SLOT', 'TE'].includes(pPos);
+        const isOL = ['LT', 'LG', 'C', 'RG', 'RT', 'OL', 'OT', 'OG', 'T'].includes(pPos);
+        const games = 8 + (absHash % 3);
+        const snaps = games * (58 + (absHash % 12));
+        const pff = (74.2 + (absHash % 185) / 10).toFixed(1);
+
+        let stat1Lbl = 'Scrimmage Yds', stat1Val = `${540 + (absHash % 380)} yds`;
+        let stat2Lbl = 'Touchdowns', stat2Val = `${4 + (absHash % 6)} TDs`;
+        let stat4Lbl = 'Catch / Comp %', stat4Val = `${(66.5 + (absHash % 140) / 10).toFixed(1)}%`;
+        let stat5Lbl = 'Yds / Play', stat5Val = `${(5.4 + (absHash % 45) / 10).toFixed(1)}`;
+
+        if (isQB) {
+            stat1Lbl = 'Passing Yds'; stat1Val = `${2140 + (absHash % 680)} yds`;
+            stat2Lbl = 'Pass / Rush TD'; stat2Val = `${15 + (absHash % 10)} TDs`;
+            stat4Lbl = 'Comp. Rate'; stat4Val = `${(65.2 + (absHash % 85) / 10).toFixed(1)}%`;
+            stat5Lbl = 'Passer Rating'; stat5Val = `${(94.5 + (absHash % 180) / 10).toFixed(1)}`;
+            propTitle = `Over ${245.5 + (absHash % 3) * 10} Pass Yds`;
+            propOdd = "1.88";
+        } else if (isRB) {
+            stat1Lbl = 'Rushing Yds'; stat1Val = `${610 + (absHash % 340)} yds`;
+            stat2Lbl = 'Total TDs'; stat2Val = `${5 + (absHash % 6)} TDs`;
+            stat4Lbl = 'Yds / Carry'; stat4Val = `${(4.3 + (absHash % 14) / 10).toFixed(1)}`;
+            stat5Lbl = 'Broken Tackles'; stat5Val = `${14 + (absHash % 16)}`;
+            propTitle = 'Anytime TD Scorer';
+            propOdd = (1.75 + (absHash % 55) / 100).toFixed(2);
+        } else if (isRec) {
+            stat1Lbl = 'Receiving Yds'; stat1Val = `${520 + (absHash % 410)} yds`;
+            stat2Lbl = 'Rec. TDs'; stat2Val = `${4 + (absHash % 6)} TDs`;
+            stat4Lbl = 'Catch Rate'; stat4Val = `${(67.0 + (absHash % 120) / 10).toFixed(1)}%`;
+            stat5Lbl = 'Yds / Rec'; stat5Val = `${(11.4 + (absHash % 45) / 10).toFixed(1)}`;
+            propTitle = `Over ${58.5 + (absHash % 4) * 5} Rec Yds`;
+            propOdd = "1.91";
+        } else if (isOL) {
+            stat1Lbl = 'Pass Block Win'; stat1Val = `${(92.0 + (absHash % 65) / 10).toFixed(1)}%`;
+            stat2Lbl = 'Sacks Allowed'; stat2Val = `${absHash % 3}`;
+            stat4Lbl = 'Run Block Grd'; stat4Val = `${(76.0 + (absHash % 140) / 10).toFixed(1)}`;
+            stat5Lbl = 'Penalties'; stat5Val = `${1 + (absHash % 3)}`;
+            propTitle = `${pTeam} Over 1.5 Rush TDs`;
+            propOdd = "1.95";
+        }
+
+        if (gridEl) {
+            gridEl.innerHTML = `
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">${stat1Lbl}</span>
+                    <span class="text-base font-black text-white font-mono">${stat1Val}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">${stat2Lbl}</span>
+                    <span class="text-base font-black text-emerald-400 font-mono">${stat2Val}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Games / Snaps</span>
+                    <span class="text-base font-black text-white font-mono">${games} <span class="text-[11px] text-slate-400 font-normal">(${snaps})</span></span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">${stat4Lbl}</span>
+                    <span class="text-base font-black text-cyan-300 font-mono">${stat4Val}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">${stat5Lbl}</span>
+                    <span class="text-base font-black text-white font-mono">${stat5Val}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">PFF Grade</span>
+                    <span class="text-base font-black text-amber-300 font-mono">${pff}</span>
+                </div>
+            `;
+        }
+    } else if (activeSport === 'basketball') {
+        const isBig = ['PF', 'C'].includes(pPos);
+        const isPG = pPos === 'PG';
+        const ppg = (14.5 + (absHash % 140) / 10).toFixed(1);
+        const rpg = isBig ? (8.2 + (absHash % 45) / 10).toFixed(1) : (4.1 + (absHash % 35) / 10).toFixed(1);
+        const apg = isPG ? (6.8 + (absHash % 38) / 10).toFixed(1) : (3.2 + (absHash % 30) / 10).toFixed(1);
+        const fg = (45.5 + (absHash % 95) / 10).toFixed(1);
+        const mpg = (28.5 + (absHash % 75) / 10).toFixed(1);
+        const per = (16.4 + (absHash % 90) / 10).toFixed(1);
+        const praLine = Math.round(parseFloat(ppg) + parseFloat(rpg) + parseFloat(apg)) - 0.5;
+        propTitle = `Over ${praLine} Pts+Reb+Ast`;
+        propOdd = "1.90";
+
+        if (gridEl) {
+            gridEl.innerHTML = `
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Points (PPG)</span>
+                    <span class="text-base font-black text-white font-mono">${ppg}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Rebounds (RPG)</span>
+                    <span class="text-base font-black text-cyan-300 font-mono">${rpg}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Assists (APG)</span>
+                    <span class="text-base font-black text-emerald-400 font-mono">${apg}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Field Goal %</span>
+                    <span class="text-base font-black text-white font-mono">${fg}%</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Minutes (MPG)</span>
+                    <span class="text-base font-black text-white font-mono">${mpg}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">PER Efficiency</span>
+                    <span class="text-base font-black text-amber-300 font-mono">${per}</span>
+                </div>
+            `;
+        }
     } else {
-        goals = 0; xG = "0.0";
-        assists = 0; xA = "0.0";
-        shots = (0).toFixed(1);
-        defStat = (3.6 + (absHash % 20) / 10).toFixed(1);
-        defLabel = 'Saves / 90';
-        propTitle = 'Clean Sheet Win';
-        propOdd = (2.60 + (absHash % 60) / 100).toFixed(2);
+        const isAttacker = ['ST', 'CF', 'RW', 'LW', 'FW'].includes(pPos);
+        const isMidfielder = ['CAM', 'CM', 'CDM', 'MF', 'M', 'AM', 'DM'].includes(pPos);
+        const isDefender = ['CB', 'LB', 'RB', 'LWB', 'RWB', 'DF', 'D'].includes(pPos);
+        const isGK = ['G', 'GK'].includes(pPos);
+
+        const apps = 9 + (absHash % 6);
+        const mins = apps * 82 + (absHash % 50);
+
+        let goals = 0, xG = 0, assists = 0, xA = 0, shots = 0, defStat = 0;
+        let defLabel = 'Tackles / 90';
+
+        if (isAttacker) {
+            goals = 4 + (absHash % 8);
+            xG = (goals * 0.88 + 0.3).toFixed(1);
+            assists = 2 + (absHash % 5);
+            xA = (assists * 0.85 + 0.2).toFixed(1);
+            shots = (2.8 + (absHash % 15) / 10).toFixed(1);
+            defStat = (0.9 + (absHash % 8) / 10).toFixed(1);
+            defLabel = 'Pressures / 90';
+            propTitle = 'Anytime Goalscorer';
+            propOdd = (1.75 + (absHash % 80) / 100).toFixed(2);
+        } else if (isMidfielder) {
+            goals = 1 + (absHash % 4);
+            xG = (goals * 0.9 + 0.1).toFixed(1);
+            assists = 3 + (absHash % 6);
+            xA = (assists * 0.95 + 0.4).toFixed(1);
+            shots = (1.4 + (absHash % 10) / 10).toFixed(1);
+            defStat = (2.4 + (absHash % 14) / 10).toFixed(1);
+            defLabel = 'Tackles / 90';
+            propTitle = 'Goal or Assist';
+            propOdd = (2.20 + (absHash % 90) / 100).toFixed(2);
+        } else if (isDefender) {
+            goals = (absHash % 2);
+            xG = (goals * 0.4 + 0.1).toFixed(1);
+            assists = (absHash % 3);
+            xA = (assists * 0.5 + 0.2).toFixed(1);
+            shots = (0.4 + (absHash % 5) / 10).toFixed(1);
+            defStat = (3.8 + (absHash % 18) / 10).toFixed(1);
+            defLabel = 'Tackles + Int';
+            propTitle = 'Clean Sheet Bonus';
+            propOdd = (2.45 + (absHash % 50) / 100).toFixed(2);
+        } else {
+            goals = 0; xG = "0.0";
+            assists = 0; xA = "0.0";
+            shots = (0).toFixed(1);
+            defStat = (3.6 + (absHash % 20) / 10).toFixed(1);
+            defLabel = 'Saves / 90';
+            propTitle = 'Clean Sheet Win';
+            propOdd = (2.60 + (absHash % 60) / 100).toFixed(2);
+        }
+
+        const passAcc = (82.5 + (absHash % 130) / 10).toFixed(1);
+        if (gridEl) {
+            gridEl.innerHTML = `
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Goals (xG)</span>
+                    <span class="text-base font-black text-white font-mono">${goals} <span class="text-[11px] text-cyan-400 font-normal">(${xG})</span></span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Assists (xA)</span>
+                    <span class="text-base font-black text-white font-mono">${assists} <span class="text-[11px] text-teal-400 font-normal">(${xA})</span></span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Matches / Min</span>
+                    <span class="text-base font-black text-white font-mono">${apps} <span class="text-[11px] text-slate-400 font-normal">(${mins}')</span></span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Pass Acc.</span>
+                    <span class="text-base font-black text-white font-mono">${passAcc}%</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Shots / 90</span>
+                    <span class="text-base font-black text-white font-mono">${isGK ? `${mins}'` : shots}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-1 text-center">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">${defLabel}</span>
+                    <span class="text-base font-black text-white font-mono">${defStat}</span>
+                </div>
+            `;
+        }
     }
-
-    const passAcc = (82.5 + (absHash % 130) / 10).toFixed(1);
-    const rating = (7.15 + (absHash % 95) / 100).toFixed(2);
-
-    document.getElementById("modal-player-rating").textContent = `★ ${rating} / 10 Form`;
-    document.getElementById("modal-stat-goals").innerHTML = `${goals} <span class="text-[11px] text-cyan-400 font-normal">(${xG} xG)</span>`;
-    document.getElementById("modal-stat-assists").innerHTML = `${assists} <span class="text-[11px] text-teal-400 font-normal">(${xA} xA)</span>`;
-    document.getElementById("modal-stat-apps").innerHTML = `${apps} <span class="text-[11px] text-slate-400 font-normal">(${mins}')</span>`;
-    document.getElementById("modal-stat-passes").textContent = `${passAcc}%`;
-    document.getElementById("modal-stat-shots").textContent = isGK ? `${mins}'` : shots;
-    document.getElementById("modal-stat-def-label").textContent = defLabel;
-    document.getElementById("modal-stat-def").textContent = defStat;
 
     document.getElementById("modal-prop-title").textContent = `Back ${pName} Prop`;
     document.getElementById("modal-prop-desc").textContent = `${propTitle} @ ${propOdd}`;
