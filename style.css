@@ -2562,6 +2562,10 @@ body {
     flex-shrink: 0;
 }
 
+.odds-col-group.group-4 {
+    width: 280px;
+}
+
 .odds-col-group.group-3 {
     width: 210px;
 }
@@ -2627,20 +2631,25 @@ body {
 
 /* More Markets Button (+68 Markets) */
 .btn-more-markets {
-    padding: 0.55rem 0.85rem;
+    width: 130px;
+    min-width: 130px;
+    box-sizing: border-box;
+    padding: 0.55rem 0.5rem;
     border-radius: 8px;
     background: rgba(153, 69, 255, 0.12);
     border: 1px solid rgba(153, 69, 255, 0.35);
     color: #d8b9ff;
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 0.3rem;
     flex-shrink: 0;
+    text-align: center;
 }
 
 .btn-more-markets:hover, .btn-more-markets.expanded {

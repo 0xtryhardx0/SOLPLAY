@@ -818,22 +818,29 @@
                     </button>
                 </div>
 
-                <!-- TAB 2: Mobile App / QR Code Scan -->
+                                <!-- TAB 2: Mobile App / QR Code Scan -->
                 <div id="wm-tab-panel-qr" class="wm-tab-panel flex flex-col items-center gap-3 hidden" style="display: none;">
-                    <div class="p-3 bg-white rounded-2xl shadow-inner border border-white/20">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fsolplay-delta.vercel.app&format=svg" alt="SolPlay Mobile QR" class="w-36 h-36 rounded-lg block" />
-                    </div>
-                    <div class="text-center space-y-1">
-                        <p class="text-xs font-bold text-white">Scan with Solflare or Phantom Mobile</p>
-                        <p class="text-[10px] text-slate-400 max-w-xs leading-relaxed">Open camera or in-app browser on iOS / Android to access SolPlay directly.</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 w-full pt-1">
-                        <a href="https://solflare.com/ul/v1/browse/https%3A%2F%2Fsolplay-delta.vercel.app" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 text-orange-300 text-[11px] font-bold text-center transition-all">
-                            Solflare Mobile ↗
+                    <div class="w-full flex flex-col gap-2">
+                        <a href="https://solflare.com/ul/v1/browse/https%3A%2F%2Fsolplay-delta.vercel.app" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 hover:from-orange-500/30 hover:to-amber-500/30 border border-orange-500/40 text-orange-200 text-xs font-bold flex items-center justify-between transition-all">
+                            <span class="flex items-center gap-2">
+                                <span class="text-base">🔥</span>
+                                <span>Open in Solflare Mobile App</span>
+                            </span>
+                            <span class="text-[10px] font-mono text-orange-300">Launch ↗</span>
                         </a>
-                        <a href="https://phantom.app/ul/browse/https%3A%2F%2Fsolplay-delta.vercel.app" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-300 text-[11px] font-bold text-center transition-all">
-                            Phantom Mobile ↗
+                        <a href="https://phantom.app/ul/browse/https%3A%2F%2Fsolplay-delta.vercel.app" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 border border-purple-500/40 text-purple-200 text-xs font-bold flex items-center justify-between transition-all">
+                            <span class="flex items-center gap-2">
+                                <span class="text-base">👻</span>
+                                <span>Open in Phantom Mobile App</span>
+                            </span>
+                            <span class="text-[10px] font-mono text-purple-300">Launch ↗</span>
                         </a>
+                    </div>
+                    <div class="w-full border-t border-white/10 pt-2 flex flex-col items-center gap-2 text-center">
+                        <div class="p-2.5 bg-white rounded-xl shadow-inner border border-white/20 inline-block">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fsolflare.com%2Ful%2Fv1%2Fbrowse%2Fhttps%253A%252F%252Fsolplay-delta.vercel.app&format=svg" alt="Solflare App Universal QR" class="w-32 h-32 rounded block" />
+                        </div>
+                        <p class="text-[10px] text-slate-400 max-w-xs leading-relaxed">Scan with phone camera or Solflare to open directly inside your mobile wallet app (auto-connects Devnet).</p>
                     </div>
                 </div>
 
@@ -843,14 +850,14 @@
                         Connect without any extension. Payouts and cashouts from winning tickets are sent directly to this address.
                     </p>
                     <div class="space-y-1.5">
-                        <input id="wm-input-manual-address" type="text" placeholder="Solana Devnet Address (Base58)..." class="w-full py-2 px-3 rounded-xl bg-black/50 border border-white/15 focus:border-cyan-400 outline-none text-xs font-mono text-white placeholder-slate-500" />
+                        <input id="wm-input-manual-address" type="text" placeholder="Solana Devnet Address (Base58)..." onkeydown="if(event.key==='Enter')connectManualAddressDirect()" class="w-full py-2 px-3 rounded-xl bg-black/50 border border-white/15 focus:border-cyan-400 outline-none text-xs font-mono text-white placeholder-slate-500" />
                         <div class="flex items-center justify-between">
-                            <button type="button" onclick="document.getElementById('wm-input-manual-address').value='2FraWBeqBJF5sn8GfDXvvfP9emUyexdTBMTG3gVd3saJ'" class="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer">
-                                ⚡ Fill Solflare Devnet Address
+                            <button type="button" onclick="document.getElementById('wm-input-manual-address').value='2FraWBeqBJF5sn8GfDXvvfP9emUyexdTBMTG3gVd3saJ'; connectManualAddressDirect('2FraWBeqBJF5sn8GfDXvvfP9emUyexdTBMTG3gVd3saJ');" class="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer">
+                                ⚡ 1-Click Fill & Connect Solflare Devnet Wallet
                             </button>
                         </div>
                     </div>
-                    <button onclick="connectManualAddressDirect()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 hover:brightness-110 text-black font-extrabold text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button type="button" onclick="connectManualAddressDirect()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 hover:brightness-110 text-black font-extrabold text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">key</span>
                         <span>Connect Solana Address</span>
                     </button>

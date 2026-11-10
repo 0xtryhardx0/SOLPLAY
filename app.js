@@ -3827,9 +3827,16 @@ function copyActiveWalletAddress() {
 }
 
 async function connectSolflareWalletDirect() {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const provider = window.solflare;
     if (!provider) {
-        showToast("Solflare wallet extension not detected! Please ensure Solflare is installed.", "warning");
+        if (isMobile) {
+            const deepLink = `https://solflare.com/ul/v1/browse/${encodeURIComponent(window.location.href)}`;
+            showToast("Opening SolPlay inside Solflare Mobile App...", "info");
+            window.location.href = deepLink;
+            return;
+        }
+        showToast("Solflare extension not detected. Opening Solflare install...", "warning");
         window.open("https://solflare.com/", "_blank");
         return;
     }
@@ -3858,9 +3865,16 @@ async function connectSolflareWalletDirect() {
 }
 
 async function connectPhantomWalletDirect() {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const provider = window.phantom?.solana || window.solana;
     if (!provider) {
-        showToast("Phantom wallet extension not detected! Please install Phantom.", "warning");
+        if (isMobile) {
+            const deepLink = `https://phantom.app/ul/browse/${encodeURIComponent(window.location.href)}`;
+            showToast("Opening SolPlay inside Phantom Mobile App...", "info");
+            window.location.href = deepLink;
+            return;
+        }
+        showToast("Phantom extension not detected. Opening Phantom install...", "warning");
         window.open("https://phantom.app/", "_blank");
         return;
     }
@@ -3913,17 +3927,61 @@ async function connectDevnetSandboxDirect() {
 
 async function connectManualAddressDirect(addrInput) {
     const input = document.getElementById("wm-input-manual-address");
-    const rawAddr = (addrInput || (input ? input.value : "")).trim();
-    if (!rawAddr) {
+    let raw = "";
+    if (typeof addrInput === 'string' && addrInput.trim().length > 0) {
+        raw = addrInput.trim();
+    } else if (input && input.value) {
+        raw = input.value.trim();
+    }
+
+    if (!raw) {
         showToast("Please enter a valid Solana Devnet address.", "warning");
         return;
     }
+
+    // Strip surrounding quotes or whitespace
+    raw = raw.replace(/^["'`\s]+|["'`\s]+$/g, '');
+
+    // If user pasted a byte array like [235, 22, 147, ...], derive the public key
+    if (raw.startsWith('[') && raw.endsWith(']')) {
+        try {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr) && arr.length >= 32) {
+                if (typeof solanaWeb3 !== 'undefined' && solanaWeb3.Keypair) {
+                    const kp = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(arr.slice(0, 64)));
+                    raw = kp.publicKey.toString();
+                    if (input) input.value = raw;
+                }
+            }
+        } catch (e) {
+            console.warn("Array parsing fallback:", e);
+        }
+    }
+
+    // Base58 format verification: 32-44 valid base58 characters
+    const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    if (!BASE58_REGEX.test(raw)) {
+        showToast("Invalid address format. Solana public keys are 32-44 Base58 characters.", "error");
+        return;
+    }
+
     let pubkey;
     try {
-        pubkey = new solanaWeb3.PublicKey(rawAddr);
+        if (typeof solanaWeb3 !== 'undefined' && solanaWeb3.PublicKey) {
+            pubkey = new solanaWeb3.PublicKey(raw);
+        } else {
+            pubkey = {
+                toString: () => raw,
+                toBase58: () => raw,
+                toBytes: () => new Uint8Array(32)
+            };
+        }
     } catch (e) {
-        showToast("Invalid Solana address format. Must be Base58.", "error");
-        return;
+        pubkey = {
+            toString: () => raw,
+            toBase58: () => raw,
+            toBytes: () => new Uint8Array(32)
+        };
     }
 
     activePublicKey = pubkey;
@@ -3932,7 +3990,7 @@ async function connectManualAddressDirect(addrInput) {
     activeUserEmail = null;
     window.solanaProvider = null;
     localStorage.setItem("solplay_connected_wallet_type", "watch");
-    localStorage.setItem("solplay_connected_address", pubkey.toString());
+    localStorage.setItem("solplay_connected_address", raw);
 
     updateConnectedUserUI();
     await updateWalletBalance();
@@ -3942,7 +4000,8 @@ async function connectManualAddressDirect(addrInput) {
     renderBetslip();
     if (typeof renderLiveMatches === 'function') renderLiveMatches();
 
-    showToast(`🎉 Connected Devnet Wallet: ${pubkey.toString().slice(0, 4)}...${pubkey.toString().slice(-4)}`, "success");
+    const short = raw.slice(0, 4) + "..." + raw.slice(-4);
+    showToast(`🎉 Connected Solana Wallet: ${short}`, "success");
     closeWalletModal();
     if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
 }
@@ -7872,24 +7931,24 @@ function renderLiveMatches() {
             header.innerHTML = `
                 <div class="col-header-info">Event / NBA Teams</div>
                 <div class="col-header-markets">
-                    <div class="market-group-title" style="width: 210px;">Moneyline (Winner)</div>
-                    <div class="market-group-title" style="width: 180px;">Point Spread (-4.5/+4.5)</div>
-                    <div class="market-group-title" style="width: 180px;">Total Points (O/U 224.5)</div>
-                    <div class="market-group-title" style="width: 180px;">1st Half Winner</div>
-                    <div class="market-group-title" style="width: 180px;">1st Quarter Winner</div>
-                    <div class="market-group-title" style="width: 240px;">Team Total Points</div>
-                    <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
+                    <div class="market-group-title" style="width: 140px;">Moneyline (Winner)</div>
+                    <div class="market-group-title" style="width: 140px;">Point Spread (-4.5/+4.5)</div>
+                    <div class="market-group-title" style="width: 140px;">Total Points (O/U 224.5)</div>
+                    <div class="market-group-title" style="width: 140px;">1st Half Winner</div>
+                    <div class="market-group-title" style="width: 140px;">1st Quarter Winner</div>
+                    <div class="market-group-title" style="width: 280px;">Team Total Points</div>
+                    <div class="market-group-title" style="width: 130px; flex-shrink: 0;">More Markets</div>
                 </div>
             `;
         } else if (isTableFootball) {
             header.innerHTML = `
                 <div class="col-header-info">Event / NFL Teams</div>
                 <div class="col-header-markets">
-                    <div class="market-group-title" style="width: 210px;">Moneyline (Winner)</div>
-                    <div class="market-group-title" style="width: 180px;">Point Spread (-3.5/+3.5)</div>
-                    <div class="market-group-title" style="width: 180px;">Total Points (O/U 45.5)</div>
-                    <div class="market-group-title" style="width: 180px;">1st Half Winner</div>
-                    <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
+                    <div class="market-group-title" style="width: 140px;">Moneyline (Winner)</div>
+                    <div class="market-group-title" style="width: 140px;">Point Spread (-3.5/+3.5)</div>
+                    <div class="market-group-title" style="width: 140px;">Total Points (O/U 45.5)</div>
+                    <div class="market-group-title" style="width: 140px;">1st Half Winner</div>
+                    <div class="market-group-title" style="width: 130px; flex-shrink: 0;">More Markets</div>
                 </div>
             `;
         } else {
@@ -7904,7 +7963,7 @@ function renderLiveMatches() {
                     <div class="market-group-title" style="width: 140px;">Draw No Bet</div>
                     <div class="market-group-title" style="width: 210px;">Handicap (-1)</div>
                     <div class="market-group-title" style="width: 210px;">1st Half (1X2)</div>
-                    <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
+                    <div class="market-group-title" style="width: 130px; flex-shrink: 0;">More Markets</div>
                 </div>
             `;
         }
