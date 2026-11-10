@@ -3355,10 +3355,7 @@ function triggerManualScoreSync() {
 // RESILIENT MULTI-RPC FAILOVER CLUSTER & LATENCY BALANCER
 // ==========================================================================
 const SOLANA_RPC_CLUSTER = [
-    "https://api.devnet.solana.com",
-    "https://rpc.ankr.com/solana_devnet",
-    "https://devnet.helius-rpc.com/?api-key=public",
-    "https://solana-devnet.g.alchemy.com/v2/demo"
+    "https://api.devnet.solana.com"
 ];
 
 let activeRpcClusterIndex = 0;
@@ -3460,6 +3457,7 @@ function initApp() {
             isWalletConnected = true;
             activeWalletType = savedWalletType;
             updateConnectedUserUI();
+            updateWalletBalance();
         } catch (e) {
             localStorage.removeItem("solplay_connected_wallet_type");
             localStorage.removeItem("solplay_connected_address");
@@ -3515,6 +3513,24 @@ function initApp() {
 
     // Launch Autonomous Settlement & Instant Payout Daemon
     startAutonomousPayoutDaemon();
+
+    // Auto-poll live wallet balance every 15s when connected
+    setInterval(() => {
+        if (isWalletConnected && activePublicKey) {
+            updateWalletBalance();
+        }
+    }, 15000);
+
+    // Auto-detect mobile in-app dApp browser environment (Solflare / Phantom)
+    if (!isWalletConnected) {
+        if (typeof window !== "undefined" && window.solflare && (window.solflare.isSolflare || window.solflare.publicKey)) {
+            console.log("[SolPlay] In-app Solflare mobile browser detected. Auto-connecting...");
+            setTimeout(() => { if (!isWalletConnected) connectSolflareWalletDirect(); }, 800);
+        } else if (typeof window !== "undefined" && (window.phantom?.solana?.isPhantom || (window.solana?.isPhantom && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)))) {
+            console.log("[SolPlay] In-app Phantom mobile browser detected. Auto-connecting...");
+            setTimeout(() => { if (!isWalletConnected) connectPhantomWalletDirect(); }, 800);
+        }
+    }
 
     // Close CDN dropdown when clicking outside
     window.addEventListener("click", function(event) {
@@ -3831,7 +3847,8 @@ async function connectSolflareWalletDirect() {
     const provider = window.solflare;
     if (!provider) {
         if (isMobile) {
-            const deepLink = `https://solflare.com/ul/v1/browse/${encodeURIComponent(window.location.href)}`;
+            const appBase = window.location.origin || "https://solplay-delta.vercel.app";
+            const deepLink = `https://solflare.com/ul/v1/browse/${encodeURIComponent(appBase)}?ref=${encodeURIComponent(appBase)}`;
             showToast("Opening SolPlay inside Solflare Mobile App...", "info");
             window.location.href = deepLink;
             return;
@@ -3869,7 +3886,8 @@ async function connectPhantomWalletDirect() {
     const provider = window.phantom?.solana || window.solana;
     if (!provider) {
         if (isMobile) {
-            const deepLink = `https://phantom.app/ul/browse/${encodeURIComponent(window.location.href)}`;
+            const appBase = window.location.origin || "https://solplay-delta.vercel.app";
+            const deepLink = `https://phantom.com/ul/browse/${encodeURIComponent(appBase)}?ref=${encodeURIComponent(appBase)}`;
             showToast("Opening SolPlay inside Phantom Mobile App...", "info");
             window.location.href = deepLink;
             return;
@@ -4129,72 +4147,7 @@ function updateConnectedUserUI() {
     }
 }
 
-function disconnectAccount() {
-    isWalletConnected = false;
-    activeUserEmail = null;
-    activeWalletType = 'sandbox';
-    localStorage.removeItem("solplay_active_session");
-
-    if (window.solana) {
-        try { window.solana.disconnect(); } catch (e) {}
-    }
-
-    loadOrCreateWallet();
-    updateConnectedUserUI();
-    loadWagersFromStorage();
-    renderActiveWagers();
-    showToast("Signed out successfully.", "info");
-    if (typeof closeFiatCashoutModal === 'function') {
-        closeFiatCashoutModal();
-    }
-}
-
-async function connectPhantomWalletDirect() {
-    const provider = window.phantom?.solana || window.solana;
-    if (!provider) {
-        showToast("Phantom wallet extension not detected! Please install Phantom.", "warning");
-        window.open("https://phantom.app/", "_blank");
-        return;
-    }
-    try {
-        const resp = await provider.connect();
-        activePublicKey = resp.publicKey || provider.publicKey;
-        isWalletConnected = true;
-        activeWalletType = 'phantom';
-        activeUserEmail = null;
-        window.solanaProvider = provider;
-        updateConnectedUserUI();
-        await updateWalletBalance();
-        loadWagersFromStorage();
-        renderActiveWagers();
-        loadBetslipFromStorage();
-        renderBetslip();
-        if (typeof renderLiveMatches === 'function') renderLiveMatches();
-        showToast("🎉 Phantom Wallet Connected!", "success");
-        closeWalletModal();
-        if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
-    } catch (e) {
-        showToast("Connection rejected: " + e.message, "error");
-    }
-}
-
-async function connectDevnetSandboxDirect() {
-    loadOrCreateWallet();
-    isWalletConnected = true;
-    activeWalletType = 'sandbox';
-    activeUserEmail = null;
-    window.solanaProvider = null;
-    updateConnectedUserUI();
-    await updateWalletBalance();
-    loadWagersFromStorage();
-    renderActiveWagers();
-    loadBetslipFromStorage();
-    renderBetslip();
-    if (typeof renderLiveMatches === 'function') renderLiveMatches();
-    showToast("⚡ Devnet Sandbox Wallet Connected!", "success");
-    closeWalletModal();
-    if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
-}
+// Redundant duplicate functions removed safely.
 
 async function checkAndResumeEmailSession() {
     try {
@@ -4230,14 +4183,113 @@ function handlePhantomDisconnect() {
     stopWatchMilestone();
 }
 
+// Synchronous global wallet balance for instant wager calculation
+window.walletBalance = 0;
+
+function switchQrWallet(wallet) {
+    const solflareBtn = document.getElementById("btn-qr-solflare");
+    const phantomBtn = document.getElementById("btn-qr-phantom");
+    const qrImg = document.getElementById("wm-qr-code-img");
+    const qrDesc = document.getElementById("wm-qr-desc");
+    
+    if (wallet === "phantom") {
+        if (phantomBtn) phantomBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-purple-300 bg-purple-500/20 border border-purple-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (solflareBtn) solflareBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (qrImg) qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Fphantom.com%2Ful%2Fbrowse%2Fhttps%253A%252F%252Fsolplay-delta.vercel.app%3Fref%3Dhttps%253A%252F%252Fsolplay-delta.vercel.app&format=svg";
+        if (qrDesc) qrDesc.textContent = "Point your camera here to launch SolPlay inside Phantom mobile browser.";
+    } else {
+        if (solflareBtn) solflareBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-orange-300 bg-orange-500/20 border border-orange-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (phantomBtn) phantomBtn.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (qrImg) qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Fsolflare.com%2Ful%2Fv1%2Fbrowse%2Fhttps%253A%252F%252Fsolplay-delta.vercel.app%3Fref%3Dhttps%253A%252F%252Fsolplay-delta.vercel.app&format=svg";
+        if (qrDesc) qrDesc.textContent = "Point your camera here to launch SolPlay inside Solflare mobile browser.";
+    }
+}
+
 async function updateWalletBalance() {
-    if (!activePublicKey || !connection) return;
+    if (!activePublicKey) {
+        window.walletBalance = 0;
+        const balEl = document.getElementById("wallet-balance");
+        if (balEl) balEl.textContent = "0.0000";
+        const wmBal = document.getElementById("wm-wallet-balance");
+        if (wmBal) wmBal.textContent = "0.0000 SOL";
+        return 0;
+    }
+
+    const rawAddr = (activePublicKey && typeof activePublicKey.toBase58 === "function") 
+        ? activePublicKey.toBase58() 
+        : (activePublicKey ? activePublicKey.toString() : "");
+
+    if (!rawAddr || rawAddr.length < 32) return 0;
+
+    let solVal = null;
+
+    // Layer 1: SolPlay dedicated serverless proxy API (zero CORS, server-side caching)
     try {
-        const balance = await connection.getBalance(activePublicKey);
-        const solVal = balance / solanaWeb3.LAMPORTS_PER_SOL;
-        document.getElementById("wallet-balance").textContent = solVal.toFixed(4);
-    } catch (e) {
-        document.getElementById("wallet-balance").textContent = "0.0000";
+        const resp = await fetch(`/api/balance?address=${encodeURIComponent(rawAddr)}`);
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data && data.success && typeof data.sol === "number") {
+                solVal = data.sol;
+            }
+        }
+    } catch (e) {}
+
+    // Layer 2: Direct browser JSON-RPC to official Solana Devnet
+    if (solVal === null) {
+        try {
+            const rpcResp = await fetch("https://api.devnet.solana.com", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    id: 1,
+                    method: "getBalance",
+                    params: [rawAddr]
+                })
+            });
+            if (rpcResp.ok) {
+                const rpcData = await rpcResp.json();
+                if (rpcData && rpcData.result && typeof rpcData.result.value === "number") {
+                    solVal = rpcData.result.value / 1000000000;
+                }
+            }
+        } catch (e) {}
+    }
+
+    // Layer 3: Connection web3.js instance
+    if (solVal === null && connection) {
+        try {
+            const pk = (typeof solanaWeb3 !== "undefined" && solanaWeb3.PublicKey) 
+                ? new solanaWeb3.PublicKey(rawAddr) 
+                : activePublicKey;
+            const lamports = await connection.getBalance(pk);
+            solVal = lamports / 1000000000;
+        } catch (e) {
+            console.warn("Connection.getBalance error:", e);
+        }
+    }
+
+    if (solVal !== null && !isNaN(solVal)) {
+        window.walletBalance = solVal;
+        const formatted = solVal.toFixed(4);
+
+        const balEl = document.getElementById("wallet-balance");
+        if (balEl) balEl.textContent = formatted;
+
+        const wmBal = document.getElementById("wm-wallet-balance");
+        if (wmBal) wmBal.textContent = `${formatted} SOL`;
+
+        const balContainer = document.getElementById("sol-balance-container");
+        if (balContainer) balContainer.style.display = "flex";
+
+        return solVal;
+    } else {
+        const current = window.walletBalance || 0;
+        const balEl = document.getElementById("wallet-balance");
+        if (balEl && (!balEl.textContent || balEl.textContent === "0.0000")) {
+            balEl.textContent = current.toFixed(4);
+        }
+        return current;
     }
 }
 
