@@ -33,6 +33,8 @@ test_tabs.js
 # Environment variables & secrets
 .env
 *.env
+mh_runtime_config.json
+*.runtime_config.json
 
 # Local backups
 backup_ui_v1/

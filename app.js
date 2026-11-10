@@ -3249,26 +3249,14 @@ function rotateToNextRpcEndpoint(errorReason) {
 // AUTONOMOUS SETTLEMENT & ZERO-WITHHOLDING INSTANT PAYOUT DAEMON
 // ==========================================================================
 function startAutonomousPayoutDaemon() {
-    console.log("[Auto-Payout Sentinel] Autonomous settlement daemon active. Scanning for winning tickets every 8s...");
+    console.log("[Auto-Payout Sentinel] Status monitor active. Scanning match statuses every 8s...");
     
     setInterval(async () => {
         if (!Array.isArray(localWagers) || localWagers.length === 0) return;
         
-        // 1. Sweep all active wagers and re-evaluate completed fixtures
+        // 1. Sweep all active wagers and re-evaluate completed fixtures to mark WON / LOST in UI
         verifyAllWagersStatus();
-        
-        // 2. Find any ticket that is WON but hasn't been paid out/claimed yet
-        for (let i = 0; i < localWagers.length; i++) {
-            const w = localWagers[i];
-            if ((w.status === "WON" || w.status === "Won") && !w.claimed && !w._isClaiming) {
-                console.log(`[Auto-Payout Sentinel] Auto-processing instant payout for winning ticket ${w.ticketId || w.id}...`);
-                try {
-                    await claimWagerOnchain(i);
-                } catch (err) {
-                    console.warn(`[Auto-Payout Sentinel] Auto-claim retry scheduled for ticket ${w.ticketId || w.id}:`, err);
-                }
-            }
-        }
+        // Winning payouts are explicitly claimed on-demand by the bettor via Claim Payout button with their connected wallet
     }, 8000);
 }
 
@@ -6643,7 +6631,7 @@ async function executeCashOut(idx, percent = 100) {
         w.settledAt = new Date().toISOString();
         w.mhSupportId = (window.multiHopper && typeof window.multiHopper.getLatestSupportId === "function")
             ? window.multiHopper.getLatestSupportId()
-            : "KZIB-1582-EF12";
+            : null;
         delete partialCashoutOpen[idx];
 
         if (isWalletConnected && activePublicKey) {
@@ -6911,6 +6899,10 @@ async function claimWagerOnchain(idx) {
         showToast("Wager has already been claimed or payout is currently in-flight.", "warning");
         return;
     }
+    if (!activePublicKey) {
+        showToast("Please connect your Phantom or Solflare wallet to claim this payout.", "warning");
+        return;
+    }
     w._isClaiming = true;
     const ticketCode = w.ticketId || `#SP-${String(w.id || idx).replace(/\D/g, '').slice(-6) || '849201'}`;
     const payoutSol = parseFloat(w.potentialPayout || (w.amount * w.odds) || 0.05);
@@ -7002,7 +6994,7 @@ async function claimWagerOnchain(idx) {
         w._isClaiming = false;
         w.mhSupportId = (window.multiHopper && typeof window.multiHopper.getLatestSupportId === "function")
             ? window.multiHopper.getLatestSupportId()
-            : "KZIB-1582-EF12";
+            : null;
 
         if (typeof localSandboxBalance !== 'undefined') {
             localSandboxBalance += parseFloat(winAmount);
@@ -8539,46 +8531,8 @@ function loadWagersFromStorage() {
         localWagers = [];
     }
 
-    if (!Array.isArray(localWagers) || localWagers.length === 0) {
-        localWagers = [
-            {
-                id: 90101,
-                ticketId: "#SP-MHOP01",
-                gameId: 101,
-                matchTitle: "Arsenal vs Real Madrid",
-                homeTeam: "Arsenal",
-                awayTeam: "Real Madrid",
-                market: "Total Goals (O/U 2.5)",
-                outcomeId: 3,
-                outcomeLabel: "Over 2.5 Goals",
-                selection: "Over 2.5 Goals",
-                amount: 0.05,
-                odds: 1.95,
-                potentialPayout: 0.0975,
-                status: "WON",
-                claimed: false,
-                timestamp: "Settled • Ready for MultiHopper Payout"
-            },
-            {
-                id: 90102,
-                ticketId: "#SP-MHOP02",
-                gameId: 102,
-                matchTitle: "FC Barcelona vs Bayern Munich",
-                homeTeam: "FC Barcelona",
-                awayTeam: "Bayern Munich",
-                market: "Both Teams To Score",
-                outcomeId: 8,
-                outcomeLabel: "BTTS - Yes",
-                selection: "BTTS - Yes",
-                amount: 0.05,
-                odds: 1.85,
-                potentialPayout: 0.0925,
-                status: "PENDING",
-                claimed: false,
-                timestamp: "Live 64' • Instant Cash Out Available"
-            }
-        ];
-        localStorage.setItem(key, JSON.stringify(localWagers));
+    if (!Array.isArray(localWagers)) {
+        localWagers = [];
     }
 
     // Async Cloud DB sync

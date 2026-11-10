@@ -24,3 +24,5 @@ platform_state*.json
 punter_*.json
 treasury.json
 wager_*.json
+mh_runtime_config.json
+*.runtime_config.json

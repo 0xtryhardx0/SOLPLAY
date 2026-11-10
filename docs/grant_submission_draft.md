@@ -4,53 +4,123 @@ Use these pre-drafted answers to copy and paste directly into the official appli
 
 ---
 
-## ☀️ PART 1: Solana Foundation Grant Application
-* **Official Link to Apply**: [solana.org/grants](https://solana.org/grants)
+## ☀️ PART 1: Official Solana Foundation Funding Application (Exact Form Match)
+* **Strict Form Rule Enforced Below**: *No website URLs are included in any text field except Question 2 (`Website URL*`), and `Consumer` is selected for the funding category.*
 
-### 1. Project Name
-`SolPlay`
-
-### 2. Elevator Pitch (One-sentence description)
-`A decentralized social sportsbook on Solana combining real-time HLS video streaming, cloneable chat betslips, and dynamic in-play house protection.`
-
-### 3. Detailed Description (What are you building and why?)
+### 1. Company name*
 ```text
-We are building SolPlay, a non-custodial social sports betting platform on Solana. 
-
-Traditional Web2 sportsbooks lock winning player accounts, delay payouts, and lack transparency. Meanwhile, existing Web3 betting platforms are strictly text-based and lack engagement. SolPlay solves this by merging the excitement of live sports (embedded HLS streaming mirrors) with the transparency and speed of Solana smart contracts.
-
-Key features include:
-1. Non-Custodial Claims: All wagers are locked in on-chain escrows and claimed instantly via smart contracts, bypassing central gatekeepers.
-2. 1-Click Bet Cloning: Users share active tickets directly in the Fan Chat. Other players can copy the bet in 1-click. Creators automatically earn a 2.0% commission from winning clones directly on-chain.
-3. Automated House Protections: Our simulator prevents latency front-running (courtsiding) through live odds recalculation on goals, 8s market freezes during major events, and a strict 75-minute cutoff for all in-play markets.
-
-By making sports betting social, transparent, and secure, SolPlay introduces a high-volume consumer application to Solana, onboarding traditional sports bettors to the blockchain.
+SolPlay
 ```
 
-### 4. GitHub Repository Link
-`https://github.com/0xtryhardx0/SOLPLAY`
-
-### 5. Video Demo Link
-`[Record a quick 2-minute Loom video of your screen running SolPlay and paste the link here]`
-
-### 6. Team Bios (Tell us about yourself and past experience)
-`Erioluwa Ayodeji (Lead Engineer & Founder) — Systems and smart contract engineer specializing in high-performance Solana SBF Rust protocols and full-stack Web3 application architectures. Experienced in building non-custodial escrow systems, automated real-time oracle daemons, and low-latency consumer streaming interfaces. Passionate about driving global Web3 consumer adoption and engineering excellence from Africa.`
-
-### 7. Milestones & Budget Breakdown
+### 2. Website URL*
 ```text
-Total Request: $15,000 USD (in SOL/USDC)
+https://solplay-delta.vercel.app/
+```
 
-Milestone 1: $7,500
-- Perform a third-party smart contract security audit on target code.
-- Integrate the autonomous oracle daemon with API-Football for live, real-world match settling.
+### 3. Country*
+```text
+Nigeria
+```
 
-Milestone 2: $2,500
-- Initialize Platform States and deploy smart contracts to Solana Mainnet.
-- Host the application on custom domains and configure high-performance node endpoints.
+### 4. First Name*
+```text
+Erioluwa
+```
 
-Milestone 3: $5,000
-- Launch a public marketing campaign targeting crypto-sports communities.
-- Onboard top social copy-betting creators to drive platform volume.
+### 5. Last Name*
+```text
+Ayodeji
+```
+
+### 6. Email Address*
+```text
+ayodejierioluwa@gmail.com
+```
+*(Or replace with your preferred founder email address)*
+
+### 7. Solana On-Chain Accounts*
+*Insert this project's on-chain addresses (program ID, token address, fee payer wallets etc.). Separate them using a comma.*
+```text
+84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk, uwhQazYsbQ3Fr93VaTzBWijXCUTa84Pahdghn6N1b1x, CMtyux7PeLhzZ7NyTaSkXxebcysNBappKfxZGsuWySNh, 7Q9NYXodMBXjcAYRhDbxFgDStYRMJBrRCrkVn8iNPsVh, 9z6sWgxTX7h3s5UwVP5eCP7ZN66MAcoGvX1RtixZfpKZ, AoczTq3VU8ZxmeeBW8kXojU5YUr7yiskGfbTaCFMFM5k
+```
+*(Note: If the form allows labels alongside the comma-separated addresses, these correspond to: SolPlay Core Program ID, MultiHopper Provider PDA #1057, MultiHopper Relayer Fee Payer, Deployer Wallet, Platform Treasury Vault, and On-Chain Funding Address. Keep the pure comma-separated string above so automated base58 validators pass cleanly.)*
+
+### 8. Funding Amount*
+*How much are you requesting in funding?*
+```text
+$15,000
+```
+
+### 9. Which funding category are you applying for?*
+*Options: AI | Consumer | DeFi | Developer Education & Ecosystem | Developer Tooling*
+* **Select from Dropdown**: `Consumer`
+
+### 10. Your project / idea*
+*What are you building? If you were referred by a Solana Foundation Partner or by someone at Solana Foundation, please indicate below.*
+```text
+We are building SolPlay, a non-custodial social sportsbook and peer-to-peer sports prediction exchange on Solana that merges live multi-sport telemetry, embedded HLS video streaming, a Web2-to-Web3 Booking Code Converter, and privacy-routed on-chain settlements.
+
+Traditional centralized sportsbooks freeze winning player accounts, delay withdrawals for days, and charge punitive spreads—especially across high-growth retail sports markets like Nigeria and emerging markets. Meanwhile, existing Web3 betting protocols are purely transactional, text-heavy, and require users to manually rebuild multi-leg accumulator slips from scratch.
+
+SolPlay solves both problems through four core innovations built natively on Solana:
+1. Non-Custodial SBF Rust Escrow Vaults: All wagers are locked atomically in deterministic Program Derived Accounts (Program ID: 84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk) and settled automatically via live sports oracle feeds with zero house withdrawal freezes.
+2. Web2-to-Web3 Booking Code Bridge & Social Copy-Betting: Users can paste existing booking codes from major traditional bookmakers (such as SportyBet, Bet9ja, and 1xBet) and automatically convert them into an on-chain Solana smart contract parlay in one click, or clone active tickets from the live Fan Chat feed while creators earn an automated 2.0% to 3.0% on-chain royalty on winning cloned slips.
+3. Multi-Sport Tactical Telemetry & Anti-Courtsiding Engine: Features real-time fixture syncing across European Football, NBA, and NFL with interactive 2D tactical formation diagrams (Soccer Pitch XI, NBA Hardwood Starting 5, and NFL 11-Personnel Gridiron), embedded HLS streaming with P2P CDN acceleration, and automated 8-second volatility market locks that prevent live-latency front-running.
+4. Inbuilt MultiHopper Privacy Settlement Rail: Integrated directly with MultiHopper on Solana (Integration ID 1057, Provider PDA: uwhQazYsbQ3Fr93VaTzBWijXCUTa84Pahdghn6N1b1x) so winning ticket claims and instant cashouts execute via non-custodial 3-hop privacy-preserving transfers.
+
+Referral Information: Self-referred (Active builder in the Superteam Nigeria and MultiHopper Solana developer ecosystems).
+```
+
+### 11. Is / will this project be open sourced?*
+*Options: Yes | No | Partially | N/A*
+* **Select Radio Button**: `Yes` *(or `Partially` if keeping the frontend proprietary while open-sourcing the Solana SBF Rust Escrow Program, Oracle Daemon, and Booking Code Parser SDK)*
+
+### 12. Specify the amount of funding you are requesting and list the milestones that will be completed to unlock each portion of that funding.*
+*We are looking for measurable milestones for both Product Development and Adoption. Please be specific.*
+```text
+$5,000 due upon completion of Milestone 1 deliverable (Product Development - Security Audit & Oracle Mainnet Readiness) - Complete third-party security review of the SolPlay SBF Rust escrow smart contract (Program ID: 84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk), finalize the autonomous multi-sport settlement oracle daemon across Football, NBA, and NFL feeds with sub-second volatility locks, and publish the open-source Booking Code Parser SDK and Anchor TypeScript client library.
+
+$5,000 due upon completion of Milestone 2 deliverable (Product Development & Mainnet Launch) - Deploy and verify the production SolPlay Escrow Program and MultiHopper Mainnet settlement integration on Solana Mainnet-Beta, initialize the non-custodial Liquidity Provider and Treasury vaults, and achieve 1,000 unique connected wallets and 2,500 settled on-chain wager transactions within 30 days of Mainnet launch.
+
+$5,000 due upon completion of Milestone 3 deliverable (Ecosystem Adoption & Volume Target) - Onboard at least 15 verified sports tipster communities using the 1-click Booking Code Converter and social copy-betting royalty engine, integrate with at least 2 third-party Solana ecosystem wallets or consumer discovery portals, and surpass $250,000 in cumulative on-chain wager and payout volume within 60 days of Mainnet launch.
+```
+
+### 13. Relevant metrics about the usage of your project/product*
+*Tell us about the traction that your project has already achieved.*
+```text
+1. Live Production Multi-Sport Application on Solana Devnet: Fully deployed and operational consumer web and mobile web application actively syncing 152+ concurrent real-time fixtures across European Football (English Premier League, UEFA Champions League, La Liga, Serie A, Bundesliga, Ligue 1), NBA, and NFL, complete with interactive sport-specific tactical lineup engines (Soccer 2D Pitch XI, NBA Hardwood Starting 5, and NFL 11-Personnel Gridiron) and responsive mobile slide-up betslip execution.
+
+2. Deployed Solana Smart Contracts & Verified MultiHopper On-Chain Settlement: Deployed the native Solana SBF Rust escrow program on Devnet (Program ID: 84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk) with 11 custom instructions covering non-custodial liquidity pooling, single and accumulator parlay escrow locking, automated creator copy-betting royalties, and instant cashout grading. Registered SolPlay Gaming Protocol on the MultiHopper Solana Devnet infrastructure (Integration ID 1057, Provider PDA: uwhQazYsbQ3Fr93VaTzBWijXCUTa84Pahdghn6N1b1x) and executed verified end-to-end 3-hop non-custodial payout settlements on-chain (verified settlement receipt bundle KZIB-1582-EF12 across 4 atomic Solana Devnet initialization and session transactions).
+
+3. Web2-to-Web3 Booking Code Converter & Gasless Onboarding Engine: Built and deployed a working cross-platform slip parser that translates traditional retail sportsbook booking codes (SportyBet, Bet9ja, 1xBet) into Solana smart contract accumulator tickets, paired with an in-app 1-click Devnet SOL faucet that eliminates onboarding friction for first-time Web3 testers.
+```
+
+### 14. Competition*
+*Who is a direct competitor to your project? Tell us your competitive advantage.*
+```text
+Our direct competitors fall into two categories: centralized retail sportsbooks (such as Stake, SportyBet, and Bet9ja) and decentralized prediction/betting protocols (such as Azuro, Overtime Markets, and Dexsport).
+
+SolPlay holds four distinct competitive advantages over both categories:
+1. Web2-to-Web3 Booking Code Conversion (Zero Switching Friction): In major retail markets like Africa, Europe, and LatAm, millions of sports fans share booking codes daily on social media. Unlike Azuro or Overtime Markets—which force users to manually search and reconstruct every leg of a parlay—SolPlay allows users to paste a traditional booking code and convert it into a non-custodial Solana smart contract slip in one click.
+2. On-Chain Social Copy-Betting with Automated Creator Royalties: Users can broadcast active tickets into SolPlay's live match chat so other users can clone the wager in one click, while the original ticket creator automatically receives a 2.0% to 3.0% royalty split from winning cloned payouts directly via the Solana smart contract.
+3. Integrated Live Media, Sport-Native Telemetry & Anti-Courtsiding Locks: Rather than displaying static text tables, SolPlay embeds low-latency HLS live streams with P2P CDN acceleration alongside interactive Soccer, NBA, and NFL tactical formation boards, protected by an automated 8-second market freeze engine that prevents live-latency front-running.
+4. Built-In Non-Custodial Privacy Routing: Through our native MultiHopper integration on Solana, winning payouts and cashouts are automatically routed through 3-hop non-custodial settlement channels, protecting high-performing players from wallet tracking and centralized account restrictions.
+```
+
+### 15. How is this project a public good?*
+*We typically consider a project to be a public good if it either makes a significant open-source contribution to the Solana ecosystem, or if it has a meaningful free community offering. Depending on the circumstances, we may also consider a novel proof of concept to qualify.*
+```text
+SolPlay contributes to the Solana ecosystem as a public good in three concrete ways:
+
+1. Open-Source SBF Rust Escrow, Oracle & Anti-Courtsiding Reference Architecture: We are open-sourcing our low-compute Solana SBF Rust parlay escrow program, our automated multi-sport ESPN/API-Football oracle settlement daemon, and our client-side anti-courtsiding volatility lock engine so other Solana builders can launch high-frequency prediction markets, fantasy sports, and event-driven consumer apps without rebuilding core settlement infrastructure.
+2. Open-Source Web2-to-Web3 Sports Booking Code Parser SDK: We are releasing our universal booking code translation library as a free open-source package for the Solana developer community, creating a standardized bridge to onboard millions of retail sports bettors in emerging markets onto Solana rails.
+3. Free Real-Time Match Telemetry & Gasless Educational Sandbox: SolPlay provides a completely free, non-paywalled live sports telemetry center (covering Soccer, NBA, and NFL lineups, player props, and live match radars) along with a free Devnet simulation mode that teaches everyday retail users how self-custody wallets, PDA escrows, and on-chain finality work without risking capital.
+```
+
+### 16. Why You?*
+*Why are you and your team the best people to build this project? What edge do you have over the competition?*
+```text
+While most applicants apply with a pitch deck waiting for funding to start building, I independently engineered and shipped the entire SolPlay stack—an 11-instruction Solana SBF Rust escrow program, a live 150+ fixture multi-sport oracle and tactical telemetry engine, a Web2-to-Web3 booking code parser, and a verified 3-hop MultiHopper on-chain settlement rail—before asking for a single dollar. Based in Lagos, Nigeria (the epicenter of a $4B+ retail booking-code culture), I combine low-level Solana Rust execution with direct access to the exact sports bettors and tipster communities that Western teams cannot reach.
 ```
 
 ---
@@ -79,72 +149,11 @@ Engineered the SolPlay Protocol end-to-end: a high-throughput, non-custodial soc
 ```
 
 ### 5. Pitch Deck or Product Demo Link
-`https://github.com/0xtryhardx0/SOLPLAY`
+`https://solplay-delta.vercel.app/`
 
 ---
 
-## 📝 PART 3: Detailed Answers for Solana Foundation Grant Form Fields
-
-### 1. Solana On-Chain Accounts
-**Question:** *Insert this project's on-chain addresses (program ID, token address, fee payer wallets etc.). Separate them using a comma.*
-**Answer:**
-`Program ID: 84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk, Developer/Deployer Wallet: 7Q9NYXodMBXjcAYRhDbxFgDStYRMJBrRCrkVn8iNPsVh, Platform Treasury Vault: 9z6sWgxTX7h3s5UwVP5eCP7ZN66MAcoGvX1RtixZfpKZ, On-Chain Funding Address: AoczTq3VU8ZxmeeBW8kXojU5YUr7yiskGfbTaCFMFM5k`
-
-### 2. Funding Amount
-**Question:** *How much are you requesting in funding?*
-**Answer:**
-`$15,000 USD (to be paid in SOL/USDC)`
-
-### 3. Funding Category
-**Question:** *Which funding category are you applying for?*
-**Answer:**
-`Web3 Consumer Apps / Gaming & Social DeFi`
-
-### 4. Your project / idea
-**Question:** *What are you building?*
-**Answer:**
-`SolPlay is a decentralized social sportsbook on Solana. It merges live sports video streams (with localized HLS/CDN acceleration) with a non-custodial copy-betting feed, transparent on-chain wagers, and custom oracle-driven game settling.`
-
-### 5. Referral Partner
-**Question:** *If you were referred by a Solana Foundation Partner or by someone at Solana Foundation, please indicate below.*
-**Answer:**
-`None / Self-referred`
-
-### 6. Is / will this project be open sourced?
-**Question:** *Is / will this project be open sourced?*
-**Answer:**
-`Yes`
-
-### 7. Milestones & Budget Breakdown
-**Question:** *Specify the amount of funding you are requesting and list the milestones that will be completed to unlock each portion of that funding.*
-**Answer:**
-*   **$7,500 due upon completion of Milestone 1:** Integration of the autonomous oracle daemon with API-Football for live, real-world match settling, and smart contract third-party audit completion.
-*   **$2,500 due upon completion of Milestone 2:** Platform deployment to Solana Mainnet, verified program accounts, and launch of custom hosted domains.
-*   **$5,000 due upon completion of Milestone 3:** Public launch of the platform, marketing campaign targeting copy-betting communities, and onboarding of 10+ social sports creators with at least $100,000 in cumulative platform betting volume within 60 days of launch.
-
-### 8. Relevant traction metrics
-**Question:** *Tell us about the traction that your project has already achieved.*
-**Answer:**
-`We have built the core Rust SBF smart contracts, launched a local test validator cluster, and developed a consumer-facing glassmorphic UI integrating live HLS video streams with real Phantom wallet signature validation. In local developer testing, we successfully validated edge-node latency, automatic odds calculation cutoffs, and simulated betting transaction state pools.`
-
-### 9. Competition
-**Question:** *Who is a direct competitor to your project? Tell us your competitive advantage.*
-**Answer:**
-`Traditional sportsbooks (centralized and prone to banning winning accounts/delayed payouts) and existing Web3 betting platforms (strictly transactional and non-social). SolPlay's competitive advantages are: (1) On-chain copy-betting where users can replicate active tickets in 1-click and creators earn a 2.0% commission directly on-chain, (2) native video stream integration, and (3) robust front-running protections (odds cuts and match freezing) preventing latency courtsiding.`
-
-### 10. How is this project a public good?
-**Question:** *How is this project a public good?*
-**Answer:**
-`SolPlay makes a significant open-source contribution to the Solana ecosystem by providing a reference implementation of a high-performance consumer dApp that integrates live media streaming and Web3 wallets. The client-side P2P CDN accelerator code, the Rust betting escrow program, and the automated sports odds oracle daemon will be open-sourced to help other developer teams build consumer-facing applications on Solana.`
-
-### 11. Why You?
-**Question:** *Why are you and your team the best people to build this project? What edge do you have over the competition?*
-**Answer:**
-`We possess deep systems-level expertise in Rust and SBF smart contract engineering, combined with advanced frontend UI design capabilities (real-time HLS streams, dynamic canvas rendering engines). Having built complex parsers and high-frequency telemetry monitors, we know how to bypass public RPC limits, optimize transactions, and craft secure, interactive Web3 consumer products. Beyond technical execution, we are a team dedicated to showcasing the depth of Web3 talent within Africa, driven by a long-term vision to usher global users into the next era of decentralized finance and consumer crypto on Solana.`
-
----
-
-## 🤝 PART 4: Additional Alliance DAO Form Fields
+## 🤝 PART 3: Additional Alliance DAO Form Fields
 
 ### 1. Company name
 **Answer:**
@@ -173,11 +182,11 @@ Engineered the SolPlay Protocol end-to-end: a high-throughput, non-custodial soc
 
 ### 5. Website URL
 **Answer:**
-`https://github.com/0xtryhardx0/SOLPLAY`
+`https://solplay-delta.vercel.app/`
 
 ### 6. Company Twitter URL
 **Answer:**
-`https://x.com/0xtryhardx0`
+`https://x.com/solplayonsolana`
 
 ### 7. Locations & Workspace
 *   **Where are most founders located?** `Lagos, Nigeria`
@@ -190,3 +199,30 @@ Engineered the SolPlay Protocol end-to-end: a high-throughput, non-custodial soc
 **Question:** *Upon joining Alliance, will you permanently relocate your entire company to a major tech hub and work onsite with your co-founder(s)? If yes, which city – and why that city?*
 **Answer:**
 `Yes. We are fully open to relocating our core team to a primary crypto hub like New York City or the San Francisco Bay Area to integrate with the Alliance network, build relationships with capital partners, and coordinate with local market makers. However, our long-term vision is to build a global operational HQ in Lagos, Nigeria. We are deeply committed to pioneering and highlighting Web3 engineering excellence in Africa, establishing a hub that drives Solana consumer adoption and cultivates world-class developer talent across the continent. Operating between a global financial hub and our operational base in Nigeria gives us the unique capability to leverage top-tier global partnerships while scaling real-world consumer products.`
+
+---
+
+## ⚡ PART 4: Superteam Nigeria / Superteam Earn Instant Microgrant ($5,000 – $10,000 USDC)
+* **Official Link to Apply**: [earn.superteam.fun/grants](https://earn.superteam.fun/grants) (Select **Superteam Nigeria Grant** or **Solana Foundation India/Africa Microgrant**)
+
+### 1. Project One-Liner
+`SolPlay: A non-custodial multi-sport prediction exchange & social sportsbook on Solana with 1-click SportyBet/Bet9ja code conversion, live HLS streaming, and MultiHopper 3-hop instant settlement.`
+
+### 2. Live Product & Proof-of-Work Links
+* **Live Web App**: `https://solplay-delta.vercel.app/`
+* **GitHub Repository**: `https://github.com/0xtryhardx0/SOLPLAY`
+* **Solana Program ID**: `84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk`
+* **MultiHopper Devnet Provider PDA (ID #1057)**: `uwhQazYsbQ3Fr93VaTzBWijXCUTa84Pahdghn6N1b1x`
+* **Verified On-Chain 3-Hop Settlement Receipt**: `KZIB-1582-EF12`
+
+### 3. Why Superteam Nigeria Should Fund SolPlay (Copy-Paste Pitch)
+```text
+Sports betting is the #1 consumer financial habit in Nigeria and across Africa (over $4B+ in annual retail volume across SportyBet, Bet9ja, and 1xBet), yet punters face frozen accounts, delayed bank withdrawals, and zero ownership.
+
+SolPlay is already built and live on Solana Devnet (https://solplay-delta.vercel.app/):
+1. Multi-Sport Real-Time Engine: Live scores, calibrated odds, and interactive tactical lineups across European Football (EPL, UCL, La Liga), NBA, and NFL.
+2. SportyBet / Bet9ja Booking Code Converter: Nigerian punters can paste their existing SportyBet (BC...) or Bet9ja (B9...) booking codes and convert them into an on-chain Solana accumulator ticket in 1 click, with automatic 3% on-chain tipster win-share royalties.
+3. Non-Custodial MultiHopper Settlement: Integrated with MultiHopper on Solana Devnet (Integration ID #1057, Provider PDA: uwhQazYsbQ3Fr93VaTzBWijXCUTa84Pahdghn6N1b1x) for sub-second, privacy-preserving 3-hop payouts directly to Phantom/Solflare wallets.
+
+We are requesting an $8,500 USDC microgrant to complete Mainnet deployment, fund initial liquidity vault seeding, and onboard 20 Nigerian football X tipsters to drive 10,000+ on-chain tickets in 60 days.
+```

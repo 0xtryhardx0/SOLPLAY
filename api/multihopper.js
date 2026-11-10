@@ -14,49 +14,52 @@ const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const PKCS8_ED25519_PREFIX = Buffer.from('302e020100300506032b657004220420', 'hex');
 
 function loadRuntimeConfig() {
-  const cfgPath = path.join(process.cwd(), 'mh_runtime_config.json');
-  let fileCfg = {};
-  if (fs.existsSync(cfgPath)) {
-    fileCfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+  const apiKey = process.env.MH_API_KEY;
+  if (!apiKey) {
+    throw new Error('MH_API_KEY environment variable is not configured');
   }
 
-  let apiKey = process.env.MH_API_KEY;
-  if (!apiKey && fileCfg.apiKey) {
-    apiKey = fileCfg.apiKey;
-  }
-  if (!apiKey) {
-    console.warn('Generating ephemeral secret. Instance-isolated!');
-    apiKey = crypto.randomBytes(32).toString('hex');
+  const sourceOwner = process.env.MH_SOURCE_OWNER;
+  if (!sourceOwner) {
+    throw new Error('MH_SOURCE_OWNER environment variable is not configured');
   }
 
   return {
-    apiBase: process.env.MH_API_BASE || fileCfg.apiBase || 'https://devnet.multihopper.com/api/v1',
+    apiBase: process.env.MH_API_BASE || 'https://devnet.multihopper.com/api/v1',
     apiKey,
-    sourceOwner: process.env.MH_SOURCE_OWNER || fileCfg.sourceOwner || 'CMtyux7PeLhzZ7NyTaSkXxebcysNBappKfxZGsuWySNh',
-    defaultRecipient: fileCfg.defaultRecipient || '5syXsU47xYXcixG8wyV31NC1kKgDC53PZfVhsuXnDjDe',
-    supportBundlePrefix: fileCfg.supportBundlePrefix || 'KZIB',
-    integrationId: fileCfg.integrationId || 1057,
-    providerPda: fileCfg.providerPda || 'uwhQazYsbQ3Fr93VaTzBWijXCUTa84Pahdghn6N1b1x'
+    sourceOwner,
+    supportBundlePrefix: process.env.MH_SUPPORT_BUNDLE_PREFIX || 'KZIB',
+    integrationId: parseInt(process.env.MH_INTEGRATION_ID, 10) || 1057,
+    providerPda: process.env.MH_PROVIDER_PDA || 'uwhQazYsbQ3Fr93VaTzBWijXCUTa84Pahdghn6N1b1x',
+    rpcUrl: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com'
   };
 }
 
 function loadRelayerKeypair() {
-  const cfgPath = path.join(process.cwd(), 'mh_runtime_config.json');
-  const walletPath = path.join(process.cwd(), 'dev_wallet.json');
   let rawArr = null;
   if (process.env.MH_RELAYER_KEYPAIR_JSON) {
-    rawArr = JSON.parse(process.env.MH_RELAYER_KEYPAIR_JSON);
-  } else if (fs.existsSync(cfgPath)) {
-    const parsed = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
-    if (Array.isArray(parsed.relayerBytes)) {
-      rawArr = parsed.relayerBytes;
+    try {
+      rawArr = JSON.parse(process.env.MH_RELAYER_KEYPAIR_JSON);
+    } catch (_) {}
+  }
+  
+  // Local fallback for development if dev_wallet.json exists
+  if (!rawArr) {
+    const devWalletPath = path.join(__dirname, '..', 'dev_wallet.json');
+    const cwdWalletPath = path.join(process.cwd(), 'dev_wallet.json');
+    if (fs.existsSync(devWalletPath)) {
+      try {
+        rawArr = JSON.parse(fs.readFileSync(devWalletPath, 'utf8'));
+      } catch (_) {}
+    } else if (fs.existsSync(cwdWalletPath)) {
+      try {
+        rawArr = JSON.parse(fs.readFileSync(cwdWalletPath, 'utf8'));
+      } catch (_) {}
     }
   }
-  if (!rawArr && fs.existsSync(walletPath)) {
-    rawArr = JSON.parse(fs.readFileSync(walletPath, 'utf8'));
-  }
-  if (!rawArr) {
-    throw new Error('Relayer keypair configuration unavailable');
+
+  if (!rawArr || !Array.isArray(rawArr) || rawArr.length < 64) {
+    throw new Error('MH_RELAYER_KEYPAIR_JSON environment variable is not configured or invalid');
   }
 
   const keyBytes = Buffer.from(rawArr);
@@ -118,6 +121,59 @@ function signPreparedTxsBundle(preparedTxs, relayer) {
   return signed;
 }
 
+async function broadcastAndConfirmSolanaTx(signedBase64, rpcUrl) {
+  if (!signedBase64) return null;
+  
+  const sendResp = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: crypto.randomUUID(),
+      method: 'sendTransaction',
+      params: [signedBase64, { encoding: 'base64', preflightCommitment: 'confirmed' }]
+    })
+  });
+  
+  const sendData = await sendResp.json();
+  if (sendData.error) {
+    throw new Error(`Solana RPC sendTransaction error: ${sendData.error.message || JSON.stringify(sendData.error)}`);
+  }
+  const signature = sendData.result;
+
+  // Poll confirmation on Solana RPC
+  const start = Date.now();
+  while (Date.now() - start < 35000) {
+    await new Promise(r => setTimeout(r, 1200));
+    try {
+      const statusResp = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: crypto.randomUUID(),
+          method: 'getSignatureStatuses',
+          params: [[signature], { searchTransactionHistory: true }]
+        })
+      });
+      const statusData = await statusResp.json();
+      const st = statusData.result && statusData.result.value && statusData.result.value[0];
+      if (st) {
+        if (st.err) {
+          throw new Error(`Transaction ${signature} failed on-chain: ${JSON.stringify(st.err)}`);
+        }
+        if (st.confirmationStatus === 'confirmed' || st.confirmationStatus === 'finalized') {
+          return signature;
+        }
+      }
+    } catch (e) {
+      if (e.message && e.message.includes('failed on-chain')) throw e;
+    }
+  }
+
+  return signature;
+}
+
 function applySecurityHeaders(req, res) {
   const origin = req.headers.origin || '';
   if (ALLOWED_ORIGINS.has(origin)) {
@@ -126,7 +182,7 @@ function applySecurityHeaders(req, res) {
     res.setHeader('Access-Control-Allow-Origin', 'https://solplay-delta.vercel.app');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Idempotency-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Idempotency-Key, Authorization');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Cache-Control', 'no-store');
@@ -167,21 +223,30 @@ module.exports = async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const action = String(body.action || '');
 
-    if (action === 'init_payout') {
-      const relayer = loadRelayerKeypair();
-      let recipientWallet = String(body.recipientWallet || '').trim();
-      // If recipient isn't a valid base58 Solana pubkey or equals sourceOwner, route to verified player vault
-      if (!BASE58_REGEX.test(recipientWallet) || recipientWallet === cfg.sourceOwner) {
-        recipientWallet = cfg.defaultRecipient;
+    // Fully Server-Orchestrated Payout Execution
+    if (action === 'init_payout' || action === 'execute_payout') {
+      const recipientWallet = String(body.recipientWallet || '').trim();
+
+      // Recipient Validation
+      if (!BASE58_REGEX.test(recipientWallet)) {
+        return res.status(400).json({ error: 'Invalid recipientWallet: valid Solana base58 address required' });
+      }
+      if (recipientWallet === cfg.sourceOwner) {
+        return res.status(400).json({ error: 'Recipient wallet cannot match treasury sourceOwner' });
       }
 
-      const requestedSol = parseFloat(body.amountSol) || 0.05;
-      // Keep Devnet test payouts between 0.02 and 0.05 SOL so treasury can run many live settlements
-      const clampedSol = Math.max(0.02, Math.min(0.05, requestedSol));
-      const lamports = Math.round(clampedSol * 1e9);
+      // Amount Validation (Exact winning bettor payout, no artificial clamping)
+      const requestedSol = parseFloat(body.amountSol);
+      if (!requestedSol || isNaN(requestedSol) || requestedSol <= 0) {
+        return res.status(400).json({ error: 'Valid positive amountSol is required' });
+      }
+
+      const relayer = loadRelayerKeypair();
+
+      const lamports = Math.round(requestedSol * 1e9);
       const hops = Math.max(3, Math.min(10, parseInt(body.hops, 10) || 3));
       const arrivalSeconds = Math.max(60, Math.min(3600, parseInt(body.arrivalSeconds, 10) || 60));
-      const cleanTicket = String(body.ticketId || 'SP').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 20);
+      const cleanTicket = String(body.ticketId || 'SP').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24);
       const externalId = `solplay-${cleanTicket}-${Date.now()}`;
 
       // 1. Create Transfer on MultiHopper API
@@ -194,7 +259,7 @@ module.exports = async function handler(req, res) {
         body: JSON.stringify({
           tokenMint: 'So11111111111111111111111111111111111111112',
           amountRaw: String(lamports),
-          amountTokens: String(clampedSol),
+          amountTokens: String(requestedSol),
           tokenDecimals: 9,
           tokenSymbol: 'SOL',
           sourceOwner: cfg.sourceOwner,
@@ -230,32 +295,56 @@ module.exports = async function handler(req, res) {
       if (!prepResp.ok) {
         return res.status(prepResp.status).json({
           error: prepData.message || 'MultiHopper prepare failed',
-          transfer: transferObj,
-          supportBundleId: transferObj.supportBundleId
+          transferId,
+          supportBundleId: transferObj.supportBundleId,
+          details: prepData
         });
       }
 
-      const signedTxs = signPreparedTxsBundle(prepData.preparedTxs, relayer);
+      // 3. Sign All Transactions on Server
+      const signedBundle = signPreparedTxsBundle(prepData.preparedTxs, relayer);
 
-      return res.status(200).json({
-        success: true,
-        transfer: transferObj,
-        transferId,
-        supportBundleId: transferObj.supportBundleId,
-        externalId: transferObj.externalId,
-        route: transferObj.route,
-        signedTxs,
-        recentBlockhash: prepData.preparedTxs ? prepData.preparedTxs.recentBlockhash : null,
-        lastValidBlockHeight: prepData.preparedTxs ? prepData.preparedTxs.lastValidBlockHeight : null
-      });
-    }
+      // 4. Server-Side Sequential Broadcasting & Confirmation on Solana Devnet
+      const signaturesPayload = {};
+      const executedSteps = [];
 
-    if (action === 'confirm_broadcast') {
-      const transferId = parseInt(body.transferId, 10);
-      if (!transferId || isNaN(transferId) || transferId <= 0) {
-        return res.status(400).json({ error: 'Valid transferId required' });
+      // A. Keeper Funding
+      if (signedBundle.keeperFundingTx) {
+        const kfSig = await broadcastAndConfirmSolanaTx(signedBundle.keeperFundingTx, cfg.rpcUrl);
+        signaturesPayload.keeperFundingSignature = kfSig;
+        executedSteps.push({ step: 'keeperFunding', signature: kfSig });
       }
-      const signaturesPayload = body.signatures || {};
+
+      // B. Route Initialization Transactions
+      if (Array.isArray(signedBundle.routeInitTxs) && signedBundle.routeInitTxs.length > 0) {
+        const routeSigs = [];
+        for (const rawTx of signedBundle.routeInitTxs) {
+          const rSig = await broadcastAndConfirmSolanaTx(rawTx, cfg.rpcUrl);
+          routeSigs.push(rSig);
+        }
+        signaturesPayload.routeInitSignatures = routeSigs;
+        executedSteps.push({ step: 'routeInit', signatures: routeSigs });
+      }
+
+      // C. Orchestrator Initialization
+      if (signedBundle.orchestratorInitTx) {
+        const orchSig = await broadcastAndConfirmSolanaTx(signedBundle.orchestratorInitTx, cfg.rpcUrl);
+        signaturesPayload.orchestratorInitSignature = orchSig;
+        executedSteps.push({ step: 'orchestratorInit', signature: orchSig });
+      }
+
+      // D. Session Initialization Transactions
+      if (Array.isArray(signedBundle.sessionInitTxs) && signedBundle.sessionInitTxs.length > 0) {
+        const sessionSigs = [];
+        for (const rawTx of signedBundle.sessionInitTxs) {
+          const sSig = await broadcastAndConfirmSolanaTx(rawTx, cfg.rpcUrl);
+          sessionSigs.push(sSig);
+        }
+        signaturesPayload.sessionInitSignatures = sessionSigs;
+        executedSteps.push({ step: 'sessionInit', signatures: sessionSigs });
+      }
+
+      // 5. Confirm Broadcast on MultiHopper API to Activate Keepers
       const confResp = await fetch(`${cfg.apiBase}/transfers/${transferId}/confirm-broadcast`, {
         method: 'POST',
         headers: {
@@ -264,8 +353,30 @@ module.exports = async function handler(req, res) {
         },
         body: JSON.stringify(signaturesPayload)
       });
+
       const confData = await confResp.json();
-      return res.status(confResp.status).json(confData);
+      if (!confResp.ok) {
+        return res.status(confResp.status).json({
+          error: confData.message || 'MultiHopper confirm-broadcast failed',
+          transferId,
+          supportBundleId: transferObj.supportBundleId,
+          signatures: signaturesPayload,
+          details: confData
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        transferId,
+        supportBundleId: transferObj.supportBundleId,
+        externalId: transferObj.externalId,
+        recipientWallet,
+        amountSol: requestedSol,
+        route: transferObj.route,
+        signatures: signaturesPayload,
+        executedSteps,
+        confirmResult: confData
+      });
     }
 
     if (action === 'status') {
@@ -283,6 +394,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(400).json({ error: 'Unsupported action' });
   } catch (err) {
-    return res.status(500).json({ error: 'Internal MultiHopper BFF processing error' });
+    console.error('MultiHopper backend error:', err);
+    return res.status(500).json({ error: err.message || 'Internal MultiHopper processing error' });
   }
 };

@@ -3,6 +3,11 @@
   "buildCommand": "",
   "outputDirectory": ".",
   "cleanUrls": true,
+  "functions": {
+    "api/multihopper.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!.+\\.).*)",
