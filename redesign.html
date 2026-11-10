@@ -728,69 +728,130 @@
         })();
     </script>
 
-    <!-- SolPlay Web3 Wallet Connection & Account Details Modal -->
+        <!-- SolPlay Web3 Wallet Connection Modal (Institutional Redesign) -->
     <div id="solplay-wallet-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300 hidden" style="display: none;" onclick="if(event.target===this)closeWalletModal()">
-        <div class="relative w-full max-w-md rounded-3xl bg-[#0b1120] border border-cyan-500/30 p-5 md:p-6 flex flex-col gap-4 shadow-[0_0_50px_rgba(0,240,255,0.25)] text-white font-sans">
-            <!-- Modal Accent Top Glow -->
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 rounded-t-3xl"></div>
+        <div class="relative w-full max-w-md rounded-2xl bg-[#0b101e] border border-white/10 p-5 md:p-6 flex flex-col gap-4 shadow-2xl text-white font-sans">
+            <!-- Modal Accent Line -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-cyan-400 to-emerald-400 rounded-t-2xl"></div>
 
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-white/10 pb-3 pt-1">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-9 h-9 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                        <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
-                    </span>
+                    <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                        <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                    </div>
                     <div>
-                        <h3 class="text-sm font-black text-white" id="wallet-modal-title">Connect Solana Wallet</h3>
-                        <p class="text-[10px] text-slate-400 font-mono">Devnet Verified • MultiHopper Engine</p>
+                        <h3 class="text-sm font-bold text-white tracking-tight" id="wallet-modal-title">Connect Solana Wallet</h3>
+                        <p class="text-[10px] text-slate-400 font-mono">Devnet Verified • Non-Custodial MultiHopper</p>
                     </div>
                 </div>
-                <button onclick="closeWalletModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white font-bold text-sm flex items-center justify-center cursor-pointer transition-all">✕</button>
+                <button onclick="closeWalletModal()" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center cursor-pointer transition-all">✕</button>
             </div>
 
-            <!-- If Not Connected: Wallet Options -->
-            <div id="wallet-modal-unconnected-view" class="flex flex-col gap-2.5">
-                <!-- Solflare Option -->
-                <button onclick="connectSolflareWalletDirect()" class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-orange-500/30 hover:border-orange-500/60 transition-all flex items-center justify-between group cursor-pointer text-left">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-black text-base shadow-md">
-                            🔥
-                        </div>
-                        <div>
-                            <div class="text-xs font-bold text-white group-hover:text-orange-300 transition-colors">Solflare Wallet</div>
-                            <div class="text-[10px] text-slate-400 font-mono">Browser Extension (Devnet Ready)</div>
-                        </div>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30" id="badge-solflare-status">Connect</span>
-                </button>
+            <!-- If Not Connected: Tab Switcher & Views -->
+            <div id="wallet-modal-unconnected-view" class="flex flex-col gap-3">
+                <!-- Navigation Tabs -->
+                <div class="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-medium">
+                    <button id="wm-tab-btn-ext" onclick="switchWalletModalTab('ext')" class="wm-tab-btn py-1.5 px-2 rounded-lg font-bold text-white bg-white/15 text-[11px] transition-all text-center cursor-pointer">
+                        Extensions
+                    </button>
+                    <button id="wm-tab-btn-qr" onclick="switchWalletModalTab('qr')" class="wm-tab-btn py-1.5 px-2 rounded-lg font-bold text-slate-400 hover:text-white text-[11px] transition-all text-center cursor-pointer">
+                        Mobile / QR
+                    </button>
+                    <button id="wm-tab-btn-addr" onclick="switchWalletModalTab('addr')" class="wm-tab-btn py-1.5 px-2 rounded-lg font-bold text-slate-400 hover:text-white text-[11px] transition-all text-center cursor-pointer">
+                        Public Key
+                    </button>
+                </div>
 
-                <!-- Phantom Option -->
-                <button onclick="connectPhantomWalletDirect()" class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 border border-purple-500/30 hover:border-purple-500/60 transition-all flex items-center justify-between group cursor-pointer text-left">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-black text-base shadow-md">
-                            👻
+                <!-- TAB 1: Extensions & Browser Wallets -->
+                <div id="wm-tab-panel-ext" class="wm-tab-panel flex flex-col gap-2">
+                    <!-- Solflare Option -->
+                    <button onclick="connectSolflareWalletDirect()" class="w-full p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-orange-500/40 transition-all flex items-center justify-between group cursor-pointer text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-[#18181b] border border-white/10 flex items-center justify-center">
+                                <svg width="22" height="22" viewBox="0 0 128 128" fill="none"><path d="M64 18L104 74H80L64 48L48 74H24L64 18Z" fill="#FCA311"/><path d="M64 110L24 54H48L64 80L80 54H104L64 110Z" fill="#FC761E"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white group-hover:text-orange-300 transition-colors">Solflare Wallet</div>
+                                <div class="text-[10px] text-slate-400 font-mono">Chrome / Brave / Firefox Extension</div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">Phantom Wallet</div>
-                            <div class="text-[10px] text-slate-400 font-mono">Phantom Browser Extension</div>
-                        </div>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30" id="badge-phantom-status">Connect</span>
-                </button>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-500/15 text-orange-300 border border-orange-500/30" id="badge-solflare-status">Connect</span>
+                    </button>
 
-                <!-- Devnet Sandbox Option -->
-                <button onclick="connectDevnetSandboxDirect()" class="w-full p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-500/40 transition-all flex items-center justify-between group cursor-pointer text-left">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center text-black font-black text-base shadow-md">
-                            ⚡
+                    <!-- Phantom Option -->
+                    <button onclick="connectPhantomWalletDirect()" class="w-full p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-purple-500/40 transition-all flex items-center justify-between group cursor-pointer text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-[#4E44CE]/20 border border-[#AB9FF2]/30 flex items-center justify-center">
+                                <svg width="22" height="22" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="28" fill="#AB9FF2"/><path d="M110.8 64c0 25.8-20.9 46.8-46.8 46.8-19.5 0-36.4-12-43.4-29.1-1.3-3.2 1-6.7 4.5-6.7h4.8c2.1 0 3.9 1.3 4.6 3.2 4.9 12.8 17.3 21.9 31.9 21.9 18.8 0 34.1-15.3 34.1-34.1S87.4 32 68.6 32c-15.1 0-28 9.9-32.4 23.6-.6 2-2.5 3.4-4.6 3.4H24c-3.5 0-5.8-3.5-4.5-6.7C26.5 35.2 44.4 22.8 65 22.8c25.3 0 45.8 20.5 45.8 45.8z" fill="#4E44CE"/><circle cx="50" cy="58" r="6" fill="#4E44CE"/><circle cx="78" cy="58" r="6" fill="#4E44CE"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">Phantom Wallet</div>
+                                <div class="text-[10px] text-slate-400 font-mono">Chrome / Edge / Safari Extension</div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Developer Sandbox Wallet</div>
-                            <div class="text-[10px] text-slate-400 font-mono">Instant Pre-funded Devnet Keypair</div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30" id="badge-phantom-status">Connect</span>
+                    </button>
+
+                    <!-- Devnet Test Sandbox -->
+                    <button onclick="connectDevnetSandboxDirect()" class="w-full p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-500/40 transition-all flex items-center justify-between group cursor-pointer text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Devnet Sandbox Wallet</div>
+                                <div class="text-[10px] text-slate-400 font-mono">Instant Simulated Account (Zero Extension)</div>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Instant</span>
+                    </button>
+                </div>
+
+                <!-- TAB 2: Mobile App / QR Code Scan -->
+                <div id="wm-tab-panel-qr" class="wm-tab-panel flex flex-col items-center gap-3 hidden" style="display: none;">
+                    <div class="p-3 bg-white rounded-2xl shadow-inner border border-white/20">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fsolplay-delta.vercel.app&format=svg" alt="SolPlay Mobile QR" class="w-36 h-36 rounded-lg block" />
+                    </div>
+                    <div class="text-center space-y-1">
+                        <p class="text-xs font-bold text-white">Scan with Solflare or Phantom Mobile</p>
+                        <p class="text-[10px] text-slate-400 max-w-xs leading-relaxed">Open camera or in-app browser on iOS / Android to access SolPlay directly.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 w-full pt-1">
+                        <a href="https://solflare.com/ul/v1/browse/https%3A%2F%2Fsolplay-delta.vercel.app" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 text-orange-300 text-[11px] font-bold text-center transition-all">
+                            Solflare Mobile ↗
+                        </a>
+                        <a href="https://phantom.app/ul/browse/https%3A%2F%2Fsolplay-delta.vercel.app" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-300 text-[11px] font-bold text-center transition-all">
+                            Phantom Mobile ↗
+                        </a>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Public Address (Non-Custodial Watch / Bettor Wallet) -->
+                <div id="wm-tab-panel-addr" class="wm-tab-panel flex flex-col gap-2.5 hidden" style="display: none;">
+                    <p class="text-[11px] text-slate-300 leading-relaxed">
+                        Connect without any extension. Payouts and cashouts from winning tickets are sent directly to this address.
+                    </p>
+                    <div class="space-y-1.5">
+                        <input id="wm-input-manual-address" type="text" placeholder="Solana Devnet Address (Base58)..." class="w-full py-2 px-3 rounded-xl bg-black/50 border border-white/15 focus:border-cyan-400 outline-none text-xs font-mono text-white placeholder-slate-500" />
+                        <div class="flex items-center justify-between">
+                            <button type="button" onclick="document.getElementById('wm-input-manual-address').value='2FraWBeqBJF5sn8GfDXvvfP9emUyexdTBMTG3gVd3saJ'" class="text-[10px] font-mono text-cyan-400 hover:underline cursor-pointer">
+                                ⚡ Fill Solflare Devnet Address
+                            </button>
                         </div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Instant</span>
-                </button>
+                    <button onclick="connectManualAddressDirect()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 hover:brightness-110 text-black font-extrabold text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">key</span>
+                        <span>Connect Solana Address</span>
+                    </button>
+                    <!-- Security Safe Guard Box -->
+                    <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-2 text-[10px] text-emerald-300/90 leading-relaxed">
+                        <span class="text-sm">🛡️</span>
+                        <div>
+                            <strong class="text-emerald-300">100% Drain-Proof & Non-Custodial:</strong> A public key is read-only. SolPlay never requests private keys or seed phrases.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- If Connected: Account Details View -->

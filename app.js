@@ -52,7 +52,7 @@ if (typeof solanaWeb3 === 'undefined') {
 // SolPlay Client Application Logic
 let connection;
 let walletKeypair = null;
-let activeWalletType = 'sandbox'; // 'sandbox' or 'phantom'
+let activeWalletType = null; // null (unconnected), 'solflare', 'phantom', 'sandbox', or 'watch'
 let activePublicKey = null;
 let currentProgramId = new solanaWeb3.PublicKey("84AVToEkDwsMXNh77n156DYHaWJa2zVqi8han3qqVdAk");
 let betslipSelections = [];
@@ -1890,6 +1890,149 @@ function getMatchMarkets(match) {
     }
     const markets = MATCH_MARKETS[match.id];
 
+    // =========================================================================
+    // 🏀 BASKETBALL (NBA) AUTHENTIC BETTING MARKETS (2-Way Moneyline, Spread, Total Points)
+    // =========================================================================
+    if (match.sport === 'basketball') {
+        const homeOdds = match.odds?.home || 1.85;
+        const awayOdds = match.odds?.away || 1.95;
+
+        // 1. Moneyline (2-Way Match Winner - Basketball has NO Draw)
+        if (!markets['1x2'] || markets['1x2'].length !== 2) {
+            markets['1x2'] = [
+                { label: `1 (${match.homeTeam})`, value: homeOdds, outcomeId: 0, desc: `${match.homeTeam} Win (Moneyline)`, marketName: 'Moneyline (Winner)' },
+                { label: `2 (${match.awayTeam})`, value: awayOdds, outcomeId: 1, desc: `${match.awayTeam} Win (Moneyline)`, marketName: 'Moneyline (Winner)' }
+            ];
+        }
+
+        // 2. Point Spread (Handicap: -4.5 / +4.5)
+        if (!markets['spread']) {
+            const spreadPoints = 4.5;
+            markets['spread'] = [
+                { label: `${match.homeTeam} -${spreadPoints}`, value: 1.91, outcomeId: 100, desc: `${match.homeTeam} Spread (-${spreadPoints})`, marketName: `Point Spread (-${spreadPoints}/+${spreadPoints})` },
+                { label: `${match.awayTeam} +${spreadPoints}`, value: 1.91, outcomeId: 101, desc: `${match.awayTeam} Spread (+${spreadPoints})`, marketName: `Point Spread (-${spreadPoints}/+${spreadPoints})` }
+            ];
+        }
+
+        // 3. Total Points (Over / Under 224.5)
+        if (!markets['totalpoints']) {
+            const line = 224.5;
+            markets['totalpoints'] = [
+                { label: `Over ${line}`, value: 1.90, outcomeId: 110, desc: `${match.homeTeam} vs ${match.awayTeam} - Over ${line} Points`, marketName: `Total Points (O/U ${line})` },
+                { label: `Under ${line}`, value: 1.90, outcomeId: 111, desc: `${match.homeTeam} vs ${match.awayTeam} - Under ${line} Points`, marketName: `Total Points (O/U ${line})` }
+            ];
+        }
+        markets['overunder'] = markets['totalpoints'];
+
+        // 4. Alternate Total Points (O/U 219.5 & 229.5)
+        if (!markets['alt_totals']) {
+            markets['alt_totals'] = [
+                { label: "Over 219.5", value: 1.62, outcomeId: 112, desc: `Over 219.5 Points`, marketName: 'Alt Total Points' },
+                { label: "Under 219.5", value: 2.30, outcomeId: 113, desc: `Under 219.5 Points`, marketName: 'Alt Total Points' },
+                { label: "Over 229.5", value: 2.25, outcomeId: 114, desc: `Over 229.5 Points`, marketName: 'Alt Total Points' },
+                { label: "Under 229.5", value: 1.65, outcomeId: 115, desc: `Under 229.5 Points`, marketName: 'Alt Total Points' }
+            ];
+        }
+
+        // 5. 1st Half Winner (2-Way Moneyline)
+        if (!markets['halftime']) {
+            markets['halftime'] = [
+                { label: `1st H: ${match.homeTeam}`, value: parseFloat((homeOdds * 1.05).toFixed(2)), outcomeId: 120, desc: `1st Half: ${match.homeTeam} Win`, marketName: '1st Half Moneyline' },
+                { label: `1st H: ${match.awayTeam}`, value: parseFloat((awayOdds * 1.05).toFixed(2)), outcomeId: 121, desc: `1st Half: ${match.awayTeam} Win`, marketName: '1st Half Moneyline' }
+            ];
+        }
+
+        // 6. 1st Quarter Winner (2-Way)
+        if (!markets['quarter1']) {
+            markets['quarter1'] = [
+                { label: `1Q: ${match.homeTeam}`, value: 1.88, outcomeId: 130, desc: `1st Quarter: ${match.homeTeam} Win`, marketName: '1st Quarter Winner' },
+                { label: `1Q: ${match.awayTeam}`, value: 1.95, outcomeId: 131, desc: `1st Quarter: ${match.awayTeam} Win`, marketName: '1st Quarter Winner' }
+            ];
+        }
+
+        // 7. Team Total Points
+        if (!markets['team_totals']) {
+            markets['team_totals'] = [
+                { label: `${match.homeTeam} Over 113.5`, value: 1.86, outcomeId: 140, desc: `${match.homeTeam} Over 113.5 Points`, marketName: `${match.homeTeam} Points` },
+                { label: `${match.homeTeam} Under 113.5`, value: 1.86, outcomeId: 141, desc: `${match.homeTeam} Under 113.5 Points`, marketName: `${match.homeTeam} Points` },
+                { label: `${match.awayTeam} Over 110.5`, value: 1.86, outcomeId: 142, desc: `${match.awayTeam} Over 110.5 Points`, marketName: `${match.awayTeam} Points` },
+                { label: `${match.awayTeam} Under 110.5`, value: 1.86, outcomeId: 143, desc: `${match.awayTeam} Under 110.5 Points`, marketName: `${match.awayTeam} Points` }
+            ];
+        }
+
+        // 8. Winning Margin
+        if (!markets['winning_margin']) {
+            markets['winning_margin'] = [
+                { label: `${match.homeTeam} 1-5 pts`, value: 4.50, outcomeId: 150, desc: `${match.homeTeam} by 1-5 Pts`, marketName: 'Winning Margin' },
+                { label: `${match.homeTeam} 6-10 pts`, value: 3.80, outcomeId: 151, desc: `${match.homeTeam} by 6-10 Pts`, marketName: 'Winning Margin' },
+                { label: `${match.homeTeam} 11+ pts`, value: 2.85, outcomeId: 152, desc: `${match.homeTeam} by 11+ Pts`, marketName: 'Winning Margin' },
+                { label: `${match.awayTeam} 1-5 pts`, value: 4.80, outcomeId: 153, desc: `${match.awayTeam} by 1-5 Pts`, marketName: 'Winning Margin' },
+                { label: `${match.awayTeam} 6-10 pts`, value: 4.10, outcomeId: 154, desc: `${match.awayTeam} by 6-10 Pts`, marketName: 'Winning Margin' },
+                { label: `${match.awayTeam} 11+ pts`, value: 3.30, outcomeId: 155, desc: `${match.awayTeam} by 11+ Pts`, marketName: 'Winning Margin' }
+            ];
+        }
+
+        return markets;
+    }
+
+    // =========================================================================
+    // 🏈 AMERICAN FOOTBALL (NFL) AUTHENTIC BETTING MARKETS
+    // =========================================================================
+    if (match.sport === 'football') {
+        const homeOdds = match.odds?.home || 1.70;
+        const awayOdds = match.odds?.away || 2.20;
+
+        // 1. Moneyline (2-Way)
+        if (!markets['1x2'] || markets['1x2'].length !== 2) {
+            markets['1x2'] = [
+                { label: `1 (${match.homeTeam})`, value: homeOdds, outcomeId: 0, desc: `${match.homeTeam} Win (Moneyline)`, marketName: 'Moneyline' },
+                { label: `2 (${match.awayTeam})`, value: awayOdds, outcomeId: 1, desc: `${match.awayTeam} Win (Moneyline)`, marketName: 'Moneyline' }
+            ];
+        }
+
+        // 2. Point Spread (-3.5 / +3.5)
+        if (!markets['spread']) {
+            const spread = 3.5;
+            markets['spread'] = [
+                { label: `${match.homeTeam} -${spread}`, value: 1.91, outcomeId: 200, desc: `${match.homeTeam} Spread (-${spread})`, marketName: `Spread (-${spread}/+${spread})` },
+                { label: `${match.awayTeam} +${spread}`, value: 1.91, outcomeId: 201, desc: `${match.awayTeam} Spread (+${spread})`, marketName: `Spread (-${spread}/+${spread})` }
+            ];
+        }
+
+        // 3. Total Points (O/U 45.5)
+        if (!markets['totalpoints']) {
+            const line = 45.5;
+            markets['totalpoints'] = [
+                { label: `Over ${line}`, value: 1.90, outcomeId: 210, desc: `Over ${line} Points`, marketName: `Total Points (O/U ${line})` },
+                { label: `Under ${line}`, value: 1.90, outcomeId: 211, desc: `Under ${line} Points`, marketName: `Total Points (O/U ${line})` }
+            ];
+        }
+        markets['overunder'] = markets['totalpoints'];
+
+        // 4. 1st Half Winner
+        if (!markets['halftime']) {
+            markets['halftime'] = [
+                { label: `1st H: ${match.homeTeam}`, value: parseFloat((homeOdds * 1.08).toFixed(2)), outcomeId: 220, desc: `1st Half: ${match.homeTeam} Win`, marketName: '1st Half Moneyline' },
+                { label: `1st H: ${match.awayTeam}`, value: parseFloat((awayOdds * 1.08).toFixed(2)), outcomeId: 221, desc: `1st Half: ${match.awayTeam} Win`, marketName: '1st Half Moneyline' }
+            ];
+        }
+
+        // 5. Team Total Points
+        if (!markets['team_totals']) {
+            markets['team_totals'] = [
+                { label: `${match.homeTeam} Over 24.5`, value: 1.88, outcomeId: 230, desc: `${match.homeTeam} Over 24.5 Points`, marketName: `${match.homeTeam} Points` },
+                { label: `${match.homeTeam} Under 24.5`, value: 1.88, outcomeId: 231, desc: `${match.homeTeam} Under 24.5 Points`, marketName: `${match.homeTeam} Points` },
+                { label: `${match.awayTeam} Over 21.5`, value: 1.88, outcomeId: 232, desc: `${match.awayTeam} Over 21.5 Points`, marketName: `${match.awayTeam} Points` },
+                { label: `${match.awayTeam} Under 21.5`, value: 1.88, outcomeId: 233, desc: `${match.awayTeam} Under 21.5 Points`, marketName: `${match.awayTeam} Points` }
+            ];
+        }
+
+        return markets;
+    }
+
+    // =========================================================================
+    // ⚽ SOCCER / ASSOCIATION FOOTBALL STANDARD MARKETS
+    // =========================================================================
     // Base odds with ~107% house overround
     const homeOdds = match.odds?.home || 2.10;
     const drawOdds = match.odds?.draw || 3.30;
@@ -3308,11 +3451,29 @@ function initApp() {
     // Populate stream providers
     initStreams();
     
-    // Load and render persistent wagers
+    // Restore persistent session if user previously connected
+    const savedWalletType = localStorage.getItem("solplay_connected_wallet_type");
+    const savedAddress = localStorage.getItem("solplay_connected_address");
+    if (savedWalletType && savedAddress) {
+        try {
+            activePublicKey = new solanaWeb3.PublicKey(savedAddress);
+            isWalletConnected = true;
+            activeWalletType = savedWalletType;
+            updateConnectedUserUI();
+        } catch (e) {
+            localStorage.removeItem("solplay_connected_wallet_type");
+            localStorage.removeItem("solplay_connected_address");
+            activePublicKey = null;
+            isWalletConnected = false;
+            activeWalletType = null;
+        }
+    }
+
+    // Load and render persistent wagers (clean [] if unconnected)
     loadWagersFromStorage();
     renderActiveWagers();
 
-    // Load and restore persistent betslip selections on reload
+    // Load and restore persistent betslip selections on reload (clean [] if unconnected)
     loadBetslipFromStorage();
     renderBetslip();
 
@@ -3564,6 +3725,25 @@ function changeWalletType() {
 
 let activeUserEmail = null;
 
+function switchWalletModalTab(tabId) {
+    const tabs = ['ext', 'qr', 'addr'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`wm-tab-btn-${t}`);
+        const panel = document.getElementById(`wm-tab-panel-${t}`);
+        const isActive = (t === tabId);
+        if (btn) {
+            btn.className = isActive 
+                ? "wm-tab-btn py-1.5 px-2 rounded-lg font-bold text-white bg-white/15 text-[11px] transition-all text-center cursor-pointer" 
+                : "wm-tab-btn py-1.5 px-2 rounded-lg font-bold text-slate-400 hover:text-white text-[11px] transition-all text-center cursor-pointer";
+        }
+        if (panel) {
+            panel.style.display = isActive ? 'flex' : 'none';
+            if (isActive) panel.classList.remove('hidden');
+            else panel.classList.add('hidden');
+        }
+    });
+}
+
 function openWalletModal() {
     let modal = document.getElementById("solplay-wallet-modal");
     if (!modal) return;
@@ -3575,7 +3755,7 @@ function openWalletModal() {
     const modalTitle = document.getElementById("wallet-modal-title");
 
     if (isWalletConnected && activePublicKey) {
-        if (modalTitle) modalTitle.textContent = "Wallet Account Details";
+        if (modalTitle) modalTitle.textContent = "Connected Solana Account";
         if (unconView) unconView.style.display = "none";
         if (conView) {
             conView.style.display = "flex";
@@ -3598,6 +3778,8 @@ function openWalletModal() {
             unconView.classList.remove("hidden");
         }
         if (conView) conView.style.display = "none";
+
+        switchWalletModalTab('ext');
 
         const solflareBadge = document.getElementById("badge-solflare-status");
         if (solflareBadge) {
@@ -3658,6 +3840,8 @@ async function connectSolflareWalletDirect() {
         activeWalletType = 'solflare';
         activeUserEmail = null;
         window.solanaProvider = provider;
+        localStorage.setItem("solplay_connected_wallet_type", "solflare");
+        localStorage.setItem("solplay_connected_address", activePublicKey.toString());
         updateConnectedUserUI();
         await updateWalletBalance();
         loadWagersFromStorage();
@@ -3670,6 +3854,123 @@ async function connectSolflareWalletDirect() {
     } catch (e) {
         console.error("Solflare error:", e);
         showToast("Solflare connection failed: " + (e.message || e), "error");
+    }
+}
+
+async function connectPhantomWalletDirect() {
+    const provider = window.phantom?.solana || window.solana;
+    if (!provider) {
+        showToast("Phantom wallet extension not detected! Please install Phantom.", "warning");
+        window.open("https://phantom.app/", "_blank");
+        return;
+    }
+    try {
+        const resp = await provider.connect();
+        activePublicKey = resp.publicKey || provider.publicKey;
+        isWalletConnected = true;
+        activeWalletType = 'phantom';
+        activeUserEmail = null;
+        window.solanaProvider = provider;
+        localStorage.setItem("solplay_connected_wallet_type", "phantom");
+        localStorage.setItem("solplay_connected_address", activePublicKey.toString());
+        updateConnectedUserUI();
+        await updateWalletBalance();
+        loadWagersFromStorage();
+        renderActiveWagers();
+        loadBetslipFromStorage();
+        renderBetslip();
+        if (typeof renderLiveMatches === 'function') renderLiveMatches();
+        showToast("🎉 Phantom Wallet Connected!", "success");
+        closeWalletModal();
+        if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
+    } catch (e) {
+        showToast("Connection rejected: " + e.message, "error");
+    }
+}
+
+async function connectDevnetSandboxDirect() {
+    loadOrCreateWallet();
+    if (walletKeypair) {
+        activePublicKey = walletKeypair.publicKey;
+        isWalletConnected = true;
+        activeWalletType = 'sandbox';
+        activeUserEmail = null;
+        window.solanaProvider = null;
+        localStorage.setItem("solplay_connected_wallet_type", "sandbox");
+        localStorage.setItem("solplay_connected_address", activePublicKey.toString());
+        updateConnectedUserUI();
+        await updateWalletBalance();
+        loadWagersFromStorage();
+        renderActiveWagers();
+        loadBetslipFromStorage();
+        renderBetslip();
+        if (typeof renderLiveMatches === 'function') renderLiveMatches();
+        showToast("⚡ Devnet Sandbox Wallet Connected!", "success");
+        closeWalletModal();
+        if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
+    }
+}
+
+async function connectManualAddressDirect(addrInput) {
+    const input = document.getElementById("wm-input-manual-address");
+    const rawAddr = (addrInput || (input ? input.value : "")).trim();
+    if (!rawAddr) {
+        showToast("Please enter a valid Solana Devnet address.", "warning");
+        return;
+    }
+    let pubkey;
+    try {
+        pubkey = new solanaWeb3.PublicKey(rawAddr);
+    } catch (e) {
+        showToast("Invalid Solana address format. Must be Base58.", "error");
+        return;
+    }
+
+    activePublicKey = pubkey;
+    isWalletConnected = true;
+    activeWalletType = 'watch';
+    activeUserEmail = null;
+    window.solanaProvider = null;
+    localStorage.setItem("solplay_connected_wallet_type", "watch");
+    localStorage.setItem("solplay_connected_address", pubkey.toString());
+
+    updateConnectedUserUI();
+    await updateWalletBalance();
+    loadWagersFromStorage();
+    renderActiveWagers();
+    loadBetslipFromStorage();
+    renderBetslip();
+    if (typeof renderLiveMatches === 'function') renderLiveMatches();
+
+    showToast(`🎉 Connected Devnet Wallet: ${pubkey.toString().slice(0, 4)}...${pubkey.toString().slice(-4)}`, "success");
+    closeWalletModal();
+    if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
+}
+
+function disconnectAccount() {
+    isWalletConnected = false;
+    activeUserEmail = null;
+    activeWalletType = null;
+    activePublicKey = null;
+    localStorage.removeItem("solplay_active_session");
+    localStorage.removeItem("solplay_connected_wallet_type");
+    localStorage.removeItem("solplay_connected_address");
+
+    if (window.solana && typeof window.solana.disconnect === 'function') {
+        try { window.solana.disconnect(); } catch (e) {}
+    }
+    if (window.solflare && typeof window.solflare.disconnect === 'function') {
+        try { window.solflare.disconnect(); } catch (e) {}
+    }
+
+    betslipSelections = [];
+    localWagers = [];
+    updateConnectedUserUI();
+    renderActiveWagers();
+    renderBetslip();
+    showToast("Wallet disconnected.", "info");
+    if (typeof closeFiatCashoutModal === 'function') {
+        closeFiatCashoutModal();
     }
 }
 
@@ -5057,6 +5358,13 @@ function saveBetslipToStorage() {
 
 function loadBetslipFromStorage() {
     try {
+        betslipSelections = [];
+        activeSelection = null;
+        if (!isWalletConnected || !activePublicKey) {
+            // Unconnected visitor: betslip must remain clean
+            return;
+        }
+
         // Priority 1: Unified active betslip
         let raw = localStorage.getItem(BETSLIP_STORAGE_KEY);
         
@@ -5843,6 +6151,12 @@ function depositLP() {
 
 // 7. Place Wager On-Chain & Accumulator Engine
 async function placeBet() {
+    if (!isWalletConnected || !activePublicKey) {
+        showToast("Please connect your Solana wallet to lock in your wager.", "info");
+        openWalletModal();
+        return;
+    }
+
     if (betslipSelections.length === 0) {
         showToast("Select odds from matches to build your slip.", "error");
         return;
@@ -7370,26 +7684,8 @@ function renderLiveMatches() {
         return;
     }
 
-    // Helper to generate a match accordion drawer with 60+ categorized betting options
+    // Helper to generate a match accordion drawer with categorized betting options
     const renderAccordionDrawer = (match, markets, activeCat) => {
-        const cats = [
-            { id: 'all', label: '🌟 All Markets (68)' },
-            { id: 'goals', label: '⚽ Total Goals (14)' },
-            { id: 'halves', label: '⏱️ Halves & HT/FT (12)' },
-            { id: 'score', label: '🔢 Correct Score (14)' },
-            { id: 'dc_dnb', label: '🛡️ Double Chance & DNB (5)' },
-            { id: 'corners', label: '🚩 Corners & Cards (3)' },
-            { id: 'combos', label: '⚡ Combos & Specials (4)' }
-        ];
-
-        const catButtons = cats.map(c => `
-            <button class="market-cat-pill ${activeCat === c.id ? 'active' : ''}" onclick="setAccordionCategory(${match.id}, '${c.id}', event)">
-                ${c.label}
-            </button>
-        `).join('');
-
-        let blocksHtml = '';
-
         const renderBlock = (title, items, gridClass, marketName) => {
             if (!items || items.length === 0) return '';
             return `
@@ -7409,6 +7705,111 @@ function renderLiveMatches() {
                 </div>
             `;
         };
+
+        // Basketball Specific Accordion Drawer
+        if (match.sport === 'basketball') {
+            const bCats = [
+                { id: 'all', label: '🌟 All NBA Markets (32)' },
+                { id: 'spread', label: '🏀 Point Spread & Margins' },
+                { id: 'totals', label: '🎯 Total Points' },
+                { id: 'halves', label: '⏱️ 1st Half & 1st Quarter' },
+                { id: 'team_totals', label: '👥 Team Points' }
+            ];
+            const bCatButtons = bCats.map(c => `
+                <button class="market-cat-pill ${activeCat === c.id ? 'active' : ''}" onclick="setAccordionCategory(${match.id}, '${c.id}', event)">
+                    ${c.label}
+                </button>
+            `).join('');
+
+            let bBlocksHtml = '';
+            if (activeCat === 'all' || activeCat === 'spread') {
+                bBlocksHtml += renderBlock('Point Spread (-4.5 / +4.5)', markets['spread'] || [], 'grid-2', 'Point Spread');
+                bBlocksHtml += renderBlock('Winning Margin (Full Time)', markets['winning_margin'] || [], 'grid-3', 'Winning Margin');
+            }
+            if (activeCat === 'all' || activeCat === 'totals') {
+                bBlocksHtml += renderBlock('Total Points (Over/Under 224.5)', markets['totalpoints'] || [], 'grid-2', 'Total Points');
+                bBlocksHtml += renderBlock('Alternate Total Points', markets['alt_totals'] || [], 'grid-2', 'Alt Total Points');
+            }
+            if (activeCat === 'all' || activeCat === 'halves') {
+                bBlocksHtml += renderBlock('1st Half Winner (Moneyline)', markets['halftime'] || [], 'grid-2', '1st Half Moneyline');
+                bBlocksHtml += renderBlock('1st Quarter Winner (2-Way)', markets['quarter1'] || [], 'grid-2', '1st Quarter Winner');
+            }
+            if (activeCat === 'all' || activeCat === 'team_totals') {
+                bBlocksHtml += renderBlock('Team Total Points', markets['team_totals'] || [], 'grid-2', 'Team Total Points');
+            }
+
+            return `
+                <div class="match-accordion-drawer">
+                    <div class="market-cat-tabs">
+                        ${bCatButtons}
+                    </div>
+                    <div class="accordion-markets-grid">
+                        ${bBlocksHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Football (NFL) Specific Accordion Drawer
+        if (match.sport === 'football') {
+            const fCats = [
+                { id: 'all', label: '🌟 All NFL Markets (24)' },
+                { id: 'spread', label: '🏈 Spread & Moneyline' },
+                { id: 'totals', label: '🎯 Total Points (O/U)' },
+                { id: 'halves', label: '⏱️ 1st Half Winner' },
+                { id: 'team_totals', label: '👥 Team Totals' }
+            ];
+            const fCatButtons = fCats.map(c => `
+                <button class="market-cat-pill ${activeCat === c.id ? 'active' : ''}" onclick="setAccordionCategory(${match.id}, '${c.id}', event)">
+                    ${c.label}
+                </button>
+            `).join('');
+
+            let fBlocksHtml = '';
+            if (activeCat === 'all' || activeCat === 'spread') {
+                fBlocksHtml += renderBlock('Point Spread (-3.5 / +3.5)', markets['spread'] || [], 'grid-2', 'Point Spread');
+                fBlocksHtml += renderBlock('Moneyline (Winner)', markets['1x2'] || [], 'grid-2', 'Moneyline');
+            }
+            if (activeCat === 'all' || activeCat === 'totals') {
+                fBlocksHtml += renderBlock('Total Points (Over/Under 45.5)', markets['totalpoints'] || [], 'grid-2', 'Total Points');
+            }
+            if (activeCat === 'all' || activeCat === 'halves') {
+                fBlocksHtml += renderBlock('1st Half Winner (Moneyline)', markets['halftime'] || [], 'grid-2', '1st Half Moneyline');
+            }
+            if (activeCat === 'all' || activeCat === 'team_totals') {
+                fBlocksHtml += renderBlock('Team Total Points', markets['team_totals'] || [], 'grid-2', 'Team Total Points');
+            }
+
+            return `
+                <div class="match-accordion-drawer">
+                    <div class="market-cat-tabs">
+                        ${fCatButtons}
+                    </div>
+                    <div class="accordion-markets-grid">
+                        ${fBlocksHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Soccer / Association Football Accordion Drawer
+        const cats = [
+            { id: 'all', label: '🌟 All Markets (68)' },
+            { id: 'goals', label: '⚽ Total Goals (14)' },
+            { id: 'halves', label: '⏱️ Halves & HT/FT (12)' },
+            { id: 'score', label: '🔢 Correct Score (14)' },
+            { id: 'dc_dnb', label: '🛡️ Double Chance & DNB (5)' },
+            { id: 'corners', label: '🚩 Corners & Cards (3)' },
+            { id: 'combos', label: '⚡ Combos & Specials (4)' }
+        ];
+
+        const catButtons = cats.map(c => `
+            <button class="market-cat-pill ${activeCat === c.id ? 'active' : ''}" onclick="setAccordionCategory(${match.id}, '${c.id}', event)">
+                ${c.label}
+            </button>
+        `).join('');
+
+        let blocksHtml = '';
 
         if (activeCat === 'all' || activeCat === 'goals') {
             blocksHtml += renderBlock('Over / Under Total Goals (0.5 to 3.5)', (markets['ou05'] || []).concat(markets['ou15'] || []).concat(markets['overunder'] || []).concat(markets['ou35'] || []), 'grid-4', 'Total Goals');
@@ -7460,23 +7861,53 @@ function renderLiveMatches() {
         const table = document.createElement("div");
         table.className = "match-matrix-table";
 
-        // Table Header Row
+        // Table Header Row - Adaptive to sport filter
+        const isTableBasketball = activeSportFilter === 'basketball';
+        const isTableFootball = activeSportFilter === 'football';
+
         const header = document.createElement("div");
         header.className = "match-matrix-header";
-        header.innerHTML = `
-            <div class="col-header-info">Event / Teams</div>
-            <div class="col-header-markets">
-                <div class="market-group-title" style="width: 210px;">1X2 (Winner)</div>
-                <div class="market-group-title" style="width: 140px;">O/U 2.5 Goals</div>
-                <div class="market-group-title" style="width: 140px;">GG / NG (BTTS)</div>
-                <div class="market-group-title" style="width: 210px;">Double Chance</div>
-                <div class="market-group-title" style="width: 140px;">O/U 1.5 Goals</div>
-                <div class="market-group-title" style="width: 140px;">Draw No Bet</div>
-                <div class="market-group-title" style="width: 210px;">Handicap (-1)</div>
-                <div class="market-group-title" style="width: 210px;">1st Half (1X2)</div>
-                <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
-            </div>
-        `;
+        
+        if (isTableBasketball) {
+            header.innerHTML = `
+                <div class="col-header-info">Event / NBA Teams</div>
+                <div class="col-header-markets">
+                    <div class="market-group-title" style="width: 210px;">Moneyline (Winner)</div>
+                    <div class="market-group-title" style="width: 180px;">Point Spread (-4.5/+4.5)</div>
+                    <div class="market-group-title" style="width: 180px;">Total Points (O/U 224.5)</div>
+                    <div class="market-group-title" style="width: 180px;">1st Half Winner</div>
+                    <div class="market-group-title" style="width: 180px;">1st Quarter Winner</div>
+                    <div class="market-group-title" style="width: 240px;">Team Total Points</div>
+                    <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
+                </div>
+            `;
+        } else if (isTableFootball) {
+            header.innerHTML = `
+                <div class="col-header-info">Event / NFL Teams</div>
+                <div class="col-header-markets">
+                    <div class="market-group-title" style="width: 210px;">Moneyline (Winner)</div>
+                    <div class="market-group-title" style="width: 180px;">Point Spread (-3.5/+3.5)</div>
+                    <div class="market-group-title" style="width: 180px;">Total Points (O/U 45.5)</div>
+                    <div class="market-group-title" style="width: 180px;">1st Half Winner</div>
+                    <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
+                </div>
+            `;
+        } else {
+            header.innerHTML = `
+                <div class="col-header-info">Event / Teams</div>
+                <div class="col-header-markets">
+                    <div class="market-group-title" style="width: 210px;">1X2 (Winner)</div>
+                    <div class="market-group-title" style="width: 140px;">O/U 2.5 Goals</div>
+                    <div class="market-group-title" style="width: 140px;">GG / NG (BTTS)</div>
+                    <div class="market-group-title" style="width: 210px;">Double Chance</div>
+                    <div class="market-group-title" style="width: 140px;">O/U 1.5 Goals</div>
+                    <div class="market-group-title" style="width: 140px;">Draw No Bet</div>
+                    <div class="market-group-title" style="width: 210px;">Handicap (-1)</div>
+                    <div class="market-group-title" style="width: 210px;">1st Half (1X2)</div>
+                    <div class="market-group-title" style="min-width: 120px; flex: 1;">More Markets</div>
+                </div>
+            `;
+        }
         table.appendChild(header);
 
         matchesList.forEach(match => {
@@ -7493,6 +7924,13 @@ function renderLiveMatches() {
             const mdnb = markets['dnb'] || [];
             const mhandicap = markets['handicap'] || [];
             const mhalftime = markets['halftime'] || [];
+            const mspread = markets['spread'] || [];
+            const mtotalpoints = markets['totalpoints'] || [];
+            const mquarter1 = markets['quarter1'] || [];
+            const mteamtotals = markets['team_totals'] || [];
+
+            const isBasketball = match.sport === 'basketball';
+            const isFootball = match.sport === 'football';
 
             const isMatchConcluded = (match.status === 'FINISHED' || match.time === 'Full Time' || match.time === 'FT');
             let statusBadge = '';
@@ -7503,7 +7941,7 @@ function renderLiveMatches() {
             } else if (match.scheduleGroup === 'today') {
                 statusBadge = `<span class="badge-schedule-today" style="font-size:0.65rem; padding:0.15rem 0.4rem;">📅 ${match.time}</span>`;
             } else if (match.scheduleGroup === 'tomorrow') {
-                statusBadge = `<span class="badge-schedule-tomorrow" style="font-size:0.65rem; padding:0.15rem 0.4rem;">⚽ ${match.time}</span>`;
+                statusBadge = `<span class="badge-schedule-tomorrow" style="font-size:0.65rem; padding:0.15rem 0.4rem;">${isBasketball ? '🏀' : '⚽'} ${match.time}</span>`;
             } else {
                 statusBadge = `<span class="badge-schedule-week" style="font-size:0.65rem; padding:0.15rem 0.4rem;">🏆 ${match.time}</span>`;
             }
@@ -7527,8 +7965,322 @@ function renderLiveMatches() {
             const homeLogo = match.homeLogo || getTeamLogo(match.homeTeam);
             const awayLogo = match.awayLogo || getTeamLogo(match.awayTeam);
 
-            const sportEmoji = match.sport === 'basketball' ? '🏀' : (match.sport === 'football' ? '🏈' : '⚽');
-            const lineupBtnLabel = match.sport === 'basketball' ? 'Starting 5' : (match.sport === 'football' ? 'NFL Lineup' : 'Lineup & Bench');
+            const sportEmoji = isBasketball ? '🏀' : (isFootball ? '🏈' : '⚽');
+            const lineupBtnLabel = isBasketball ? 'Starting 5' : (isFootball ? 'NFL Lineup' : 'Lineup & Bench');
+            const moreMarketsLabel = isBasketball ? (isAccordionOpen ? 'Close ▴' : '+32 Markets ▾') : (isFootball ? (isAccordionOpen ? 'Close ▴' : '+24 Markets ▾') : (isAccordionOpen ? 'Close ▴' : '+68 Markets ▾'));
+
+            // Build Mobile Primary & Secondary Grid
+            let mobileOddsHtml = '';
+            if (isBasketball) {
+                mobileOddsHtml = `
+                    <div class="mobile-primary-odds-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        ${m1x2.map((o, idx) => {
+                            const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                            const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
+                            const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
+                            const clickHandler = isMatchConcluded ? `showToast('This NBA fixture has ended. Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Moneyline (Winner)')`;
+                            return `
+                                <button class="matrix-odd-box mobile-odd-btn ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
+                                    <span class="lbl">${idx === 0 ? `1 (${match.homeTeam.slice(0, 8)})` : `2 (${match.awayTeam.slice(0, 8)})`}</span>
+                                    <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="mobile-secondary-odds-row">
+                        ${mtotalpoints.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Points (O/U 224.5)')">
+                                <span class="lbl">${o.label.includes('Over') ? 'O 224.5' : 'U 224.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        ${mspread.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Point Spread')">
+                                <span class="lbl">${o.label.includes('-') ? '-4.5' : '+4.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        <button class="btn-more-markets mobile-more-btn ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                            <span>${isAccordionOpen ? 'Less ▴' : '+32 ▾'}</span>
+                        </button>
+                    </div>
+                `;
+            } else if (isFootball) {
+                mobileOddsHtml = `
+                    <div class="mobile-primary-odds-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        ${m1x2.map((o, idx) => {
+                            const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                            const clickHandler = `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Moneyline')`;
+                            return `
+                                <button class="matrix-odd-box mobile-odd-btn ${isSelected ? 'selected' : ''}" onclick="${clickHandler}">
+                                    <span class="lbl">${idx === 0 ? `1 (${match.homeTeam.slice(0, 8)})` : `2 (${match.awayTeam.slice(0, 8)})`}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="mobile-secondary-odds-row">
+                        ${mtotalpoints.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Points')">
+                                <span class="lbl">${o.label.includes('Over') ? 'O 45.5' : 'U 45.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        ${mspread.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Point Spread')">
+                                <span class="lbl">${o.label.includes('-') ? '-3.5' : '+3.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        <button class="btn-more-markets mobile-more-btn ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                            <span>${isAccordionOpen ? 'Less ▴' : '+24 ▾'}</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                mobileOddsHtml = `
+                    <div class="mobile-primary-odds-grid">
+                        ${m1x2.map((o, idx) => {
+                            const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                            const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
+                            const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
+                            const clickHandler = isMatchConcluded ? `showToast('This fixture has ended (Full Time). Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')`;
+                            const shortLbl = idx === 0 ? '1 (Home)' : (idx === 1 ? 'X (Draw)' : '2 (Away)');
+                            return `
+                                <button class="matrix-odd-box mobile-odd-btn ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
+                                    <span class="lbl">${shortLbl}</span>
+                                    <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="mobile-secondary-odds-row">
+                        ${mou25.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
+                                <span class="lbl">${o.label.includes('Over') ? 'O 2.5' : 'U 2.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        ${mbtts.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
+                                <span class="lbl">${o.label.includes('Yes') ? 'GG' : 'NG'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        <button class="btn-more-markets mobile-more-btn ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                            <span>${isAccordionOpen ? 'Less ▴' : '+68 ▾'}</span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // Build Desktop Panoramic Matrix Track
+            let desktopTrackHtml = '';
+            if (isBasketball) {
+                desktopTrackHtml = `
+                    <!-- 2-Way Moneyline -->
+                    <div class="odds-col-group group-2">
+                        ${m1x2.map(o => {
+                            const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                            const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
+                            const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
+                            const clickHandler = isMatchConcluded ? `showToast('This NBA fixture has ended. Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Moneyline (Winner)')`;
+                            return `
+                                <button class="matrix-odd-box ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
+                                    <span class="lbl">${o.label}</span>
+                                    <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Point Spread (-4.5/+4.5) -->
+                    <div class="odds-col-group group-2">
+                        ${mspread.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Point Spread')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Total Points (O/U 224.5) -->
+                    <div class="odds-col-group group-2">
+                        ${mtotalpoints.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Points (O/U 224.5)')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- 1st Half Winner -->
+                    <div class="odds-col-group group-2">
+                        ${mhalftime.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half Moneyline')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- 1st Quarter Winner -->
+                    <div class="odds-col-group group-2">
+                        ${mquarter1.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Quarter Winner')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Team Totals (4 selections) -->
+                    <div class="odds-col-group group-4">
+                        ${mteamtotals.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Team Total Points')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- More Markets Button -->
+                    <button class="btn-more-markets ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                        <span>${isAccordionOpen ? 'Close Markets ▴' : '+32 NBA Markets ▾'}</span>
+                    </button>
+                `;
+            } else if (isFootball) {
+                desktopTrackHtml = `
+                    <div class="odds-col-group group-2">
+                        ${m1x2.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Moneyline')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="odds-col-group group-2">
+                        ${mspread.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Point Spread')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="odds-col-group group-2">
+                        ${mtotalpoints.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Points')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="odds-col-group group-2">
+                        ${mhalftime.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half Moneyline')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <button class="btn-more-markets ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                        <span>${isAccordionOpen ? 'Close Markets ▴' : '+24 NFL Markets ▾'}</span>
+                    </button>
+                `;
+            } else {
+                desktopTrackHtml = `
+                    <!-- 1X2 (Winner) -->
+                    <div class="odds-col-group group-3">
+                        ${m1x2.map(o => {
+                            const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                            const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
+                            const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
+                            const clickHandler = isMatchConcluded ? `showToast('This fixture has ended (Full Time). Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')`;
+                            return `
+                                <button class="matrix-odd-box ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
+                                    <span class="lbl">${o.label}</span>
+                                    <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Over / Under 2.5 -->
+                    <div class="odds-col-group group-2">
+                        ${mou25.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
+                                <span class="lbl">${o.label.includes('Over') ? 'Over 2.5' : 'Under 2.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- BTTS (GG / NG) -->
+                    <div class="odds-col-group group-2">
+                        ${mbtts.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
+                                <span class="lbl">${o.label.includes('Yes') ? 'GG (Yes)' : 'NG (No)'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Double Chance -->
+                    <div class="odds-col-group group-dc">
+                        ${mdc.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Double Chance')">
+                                <span class="lbl">${o.label.split(' ')[0]}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Over / Under 1.5 -->
+                    <div class="odds-col-group group-2">
+                        ${mou15.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 1.5)')">
+                                <span class="lbl">${o.label.includes('Over') ? 'Over 1.5' : 'Under 1.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Draw No Bet -->
+                    <div class="odds-col-group group-2">
+                        ${mdnb.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Draw No Bet')">
+                                <span class="lbl">${o.label.includes(match.homeTeam) ? '1 DNB' : '2 DNB'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- European Handicap (-1) -->
+                    <div class="odds-col-group group-3">
+                        ${mhandicap.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'European Handicap')">
+                                <span class="lbl">${o.label.includes('(-1)') ? 'Home (-1)' : (o.label.includes('(+1)') ? 'Away (+1)' : 'Tie (-1)')}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- 1st Half Winner (1X2) -->
+                    <div class="odds-col-group group-3">
+                        ${mhalftime.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half 1X2')">
+                                <span class="lbl">${o.label.includes('Draw') ? 'HT: X' : (o.label.includes(match.homeTeam) ? 'HT: 1' : 'HT: 2')}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- More Markets Button -->
+                    <button class="btn-more-markets ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                        <span>${isAccordionOpen ? 'Close Markets ▴' : '+68 Markets ▾'}</span>
+                    </button>
+                `;
+            }
 
             rowWrapper.innerHTML = `
                 <div class="match-matrix-row">
@@ -7560,141 +8312,19 @@ function renderLiveMatches() {
                                 ${lineupBtnLabel}
                             </button>
                             <button class="btn-stream-pill mobile-only-markets-pill ${isAccordionOpen ? 'active' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
-                                <span>${isAccordionOpen ? 'Close ▴' : '+68 Markets ▾'}</span>
+                                <span>${moreMarketsLabel}</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Mobile Full-Width Instant Odds Panel (100% Visible on Mobile, Zero Sideways Keyhole) -->
                     <div class="mobile-match-odds-panel">
-                        <!-- Primary 1X2 / Moneyline Row (Full Width 3-Column Grid) -->
-                        <div class="mobile-primary-odds-grid">
-                            ${m1x2.map((o, idx) => {
-                                const isSelected = isOutcomeSelected(match.id, o.outcomeId);
-                                const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
-                                const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
-                                const clickHandler = isMatchConcluded ? `showToast('This fixture has ended (Full Time). Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')`;
-                                const shortLbl = idx === 0 ? '1 (Home)' : (idx === 1 ? 'X (Draw)' : '2 (Away)');
-                                return `
-                                    <button class="matrix-odd-box mobile-odd-btn ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
-                                        <span class="lbl">${shortLbl}</span>
-                                        <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
-                                    </button>
-                                `;
-                            }).join('')}
-                        </div>
-                        <!-- Secondary Quick Options Row (O/U 2.5, GG/NG & +68 Markets Drawer) -->
-                        <div class="mobile-secondary-odds-row">
-                            ${mou25.map(o => `
-                                <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
-                                    <span class="lbl">${o.label.includes('Over') ? 'O 2.5' : 'U 2.5'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                            ${mbtts.map(o => `
-                                <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
-                                    <span class="lbl">${o.label.includes('Yes') ? 'GG' : 'NG'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                            <button class="btn-more-markets mobile-more-btn ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
-                                <span>${isAccordionOpen ? 'Less ▴' : '+68 ▾'}</span>
-                            </button>
-                        </div>
+                        ${mobileOddsHtml}
                     </div>
 
                     <!-- Sideways Scrollable Market Odds Track (Desktop / Tablet Panoramic Matrix) -->
                     <div class="matrix-odds-track">
-                        <!-- 1X2 (Winner) -->
-                        <div class="odds-col-group group-3">
-                            ${m1x2.map(o => {
-                                const isSelected = isOutcomeSelected(match.id, o.outcomeId);
-                                const isWinner = isMatchConcluded && (o.outcomeId === winning1x2Id);
-                                const extraClass = isMatchConcluded ? (isWinner ? 'winning-outcome' : 'concluded') : '';
-                                const clickHandler = isMatchConcluded ? `showToast('This fixture has ended (Full Time). Outcome settled.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Winner (1X2)')`;
-                                return `
-                                    <button class="matrix-odd-box ${isSelected ? 'selected' : ''} ${extraClass}" onclick="${clickHandler}">
-                                        <span class="lbl">${o.label}</span>
-                                        <span class="val">${o.value.toFixed(2)}${isWinner ? ' ✓' : ''}</span>
-                                    </button>
-                                `;
-                            }).join('')}
-                        </div>
-
-                        <!-- Over / Under 2.5 -->
-                        <div class="odds-col-group group-2">
-                            ${mou25.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 2.5)')">
-                                    <span class="lbl">${o.label.includes('Over') ? 'Over 2.5' : 'Under 2.5'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <!-- BTTS (GG / NG) -->
-                        <div class="odds-col-group group-2">
-                            ${mbtts.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Teams To Score')">
-                                    <span class="lbl">${o.label.includes('Yes') ? 'GG (Yes)' : 'NG (No)'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <!-- Double Chance -->
-                        <div class="odds-col-group group-dc">
-                            ${mdc.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Double Chance')">
-                                    <span class="lbl">${o.label.split(' ')[0]}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <!-- Over / Under 1.5 -->
-                        <div class="odds-col-group group-2">
-                            ${mou15.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 1.5)')">
-                                    <span class="lbl">${o.label.includes('Over') ? 'Over 1.5' : 'Under 1.5'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <!-- Draw No Bet -->
-                        <div class="odds-col-group group-2">
-                            ${mdnb.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Draw No Bet')">
-                                    <span class="lbl">${o.label.includes(match.homeTeam) ? '1 DNB' : '2 DNB'}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <!-- European Handicap (-1) -->
-                        <div class="odds-col-group group-3">
-                            ${mhandicap.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'European Handicap')">
-                                    <span class="lbl">${o.label.includes('(-1)') ? 'Home (-1)' : (o.label.includes('(+1)') ? 'Away (+1)' : 'Tie (-1)')}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <!-- 1st Half Winner (1X2) -->
-                        <div class="odds-col-group group-3">
-                            ${mhalftime.map(o => `
-                                <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half 1X2')">
-                                    <span class="lbl">${o.label.includes('Draw') ? 'HT: X' : (o.label.includes(match.homeTeam) ? 'HT: 1' : 'HT: 2')}</span>
-                                    <span class="val">${o.value.toFixed(2)}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-
-                        <!-- More Markets Button -->
-                        <button class="btn-more-markets ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
-                            <span>${isAccordionOpen ? 'Close Markets ▴' : '+68 Markets ▾'}</span>
-                        </button>
+                        ${desktopTrackHtml}
                     </div>
                 </div>
 
@@ -8615,7 +9245,11 @@ function saveWagersToStorage() {
 }
 
 function loadWagersFromStorage() {
-    const key = activePublicKey ? `solplay_wagers_${activePublicKey.toString()}` : "solplay_wagers_anonymous";
+    if (!isWalletConnected || !activePublicKey) {
+        localWagers = [];
+        return;
+    }
+    const key = `solplay_wagers_${activePublicKey.toString()}`;
     const stored = localStorage.getItem(key);
     if (stored) {
         try {
