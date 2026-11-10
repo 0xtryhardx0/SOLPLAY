@@ -3564,9 +3564,112 @@ function changeWalletType() {
 
 let activeUserEmail = null;
 
-async function toggleWallet() {
-    if (typeof openFiatCashoutModal === 'function') {
-        openFiatCashoutModal('auth');
+function openWalletModal() {
+    let modal = document.getElementById("solplay-wallet-modal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    modal.classList.remove("hidden");
+
+    const unconView = document.getElementById("wallet-modal-unconnected-view");
+    const conView = document.getElementById("wallet-modal-connected-view");
+    const modalTitle = document.getElementById("wallet-modal-title");
+
+    if (isWalletConnected && activePublicKey) {
+        if (modalTitle) modalTitle.textContent = "Wallet Account Details";
+        if (unconView) unconView.style.display = "none";
+        if (conView) {
+            conView.style.display = "flex";
+            conView.classList.remove("hidden");
+            const addrEl = document.getElementById("wm-wallet-address");
+            const typeEl = document.getElementById("wm-wallet-type");
+            const balEl = document.getElementById("wm-wallet-balance");
+            const solscanLink = document.getElementById("wm-solscan-link");
+            const rawAddr = activePublicKey.toString();
+            if (addrEl) addrEl.textContent = rawAddr;
+            if (typeEl) typeEl.textContent = (activeWalletType || 'Solana').toUpperCase();
+            const curBal = document.getElementById("wallet-balance");
+            if (balEl && curBal) balEl.textContent = `${curBal.textContent} SOL`;
+            if (solscanLink) solscanLink.href = `https://solscan.io/account/${rawAddr}?cluster=devnet`;
+        }
+    } else {
+        if (modalTitle) modalTitle.textContent = "Connect Solana Wallet";
+        if (unconView) {
+            unconView.style.display = "flex";
+            unconView.classList.remove("hidden");
+        }
+        if (conView) conView.style.display = "none";
+
+        const solflareBadge = document.getElementById("badge-solflare-status");
+        if (solflareBadge) {
+            const hasSolflare = Boolean(window.solflare && (window.solflare.isSolflare || window.solflare.publicKey || typeof window.solflare.connect === 'function'));
+            solflareBadge.textContent = hasSolflare ? "Detected ✓" : "Connect";
+            if (hasSolflare) {
+                solflareBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            }
+        }
+        const phantomBadge = document.getElementById("badge-phantom-status");
+        if (phantomBadge) {
+            const hasPhantom = Boolean(window.phantom?.solana || window.solana?.isPhantom);
+            phantomBadge.textContent = hasPhantom ? "Detected ✓" : "Connect";
+            if (hasPhantom) {
+                phantomBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            }
+        }
+    }
+}
+
+function closeWalletModal() {
+    const modal = document.getElementById("solplay-wallet-modal");
+    if (!modal) return;
+    modal.style.display = "none";
+    modal.classList.add("hidden");
+}
+
+function toggleWallet() {
+    openWalletModal();
+}
+
+function copyActiveWalletAddress() {
+    if (!activePublicKey) return;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(activePublicKey.toString());
+        const btn = document.getElementById("btn-copy-address");
+        if (btn) {
+            btn.innerHTML = `<span class="material-symbols-outlined text-[14px]">check</span><span>Copied!</span>`;
+            setTimeout(() => {
+                btn.innerHTML = `<span class="material-symbols-outlined text-[14px]">content_copy</span><span>Copy Address</span>`;
+            }, 1800);
+        }
+        showToast("Address copied to clipboard!", "success");
+    }
+}
+
+async function connectSolflareWalletDirect() {
+    const provider = window.solflare;
+    if (!provider) {
+        showToast("Solflare wallet extension not detected! Please ensure Solflare is installed.", "warning");
+        window.open("https://solflare.com/", "_blank");
+        return;
+    }
+    try {
+        await provider.connect();
+        activePublicKey = provider.publicKey;
+        isWalletConnected = true;
+        activeWalletType = 'solflare';
+        activeUserEmail = null;
+        window.solanaProvider = provider;
+        updateConnectedUserUI();
+        await updateWalletBalance();
+        loadWagersFromStorage();
+        renderActiveWagers();
+        loadBetslipFromStorage();
+        renderBetslip();
+        if (typeof renderLiveMatches === 'function') renderLiveMatches();
+        showToast("🎉 Solflare Wallet Connected!", "success");
+        closeWalletModal();
+    } catch (e) {
+        console.error("Solflare error:", e);
+        showToast("Solflare connection failed: " + (e.message || e), "error");
     }
 }
 
@@ -3687,16 +3790,19 @@ function disconnectAccount() {
 }
 
 async function connectPhantomWalletDirect() {
-    if (!window.solana) {
-        showToast("Phantom wallet extension not detected! Please install Phantom.", "error");
+    const provider = window.phantom?.solana || window.solana;
+    if (!provider) {
+        showToast("Phantom wallet extension not detected! Please install Phantom.", "warning");
+        window.open("https://phantom.app/", "_blank");
         return;
     }
     try {
-        const resp = await window.solana.connect();
-        activePublicKey = resp.publicKey;
+        const resp = await provider.connect();
+        activePublicKey = resp.publicKey || provider.publicKey;
         isWalletConnected = true;
         activeWalletType = 'phantom';
         activeUserEmail = null;
+        window.solanaProvider = provider;
         updateConnectedUserUI();
         await updateWalletBalance();
         loadWagersFromStorage();
@@ -3704,7 +3810,8 @@ async function connectPhantomWalletDirect() {
         loadBetslipFromStorage();
         renderBetslip();
         if (typeof renderLiveMatches === 'function') renderLiveMatches();
-        showToast("Phantom Wallet Connected!", "success");
+        showToast("🎉 Phantom Wallet Connected!", "success");
+        closeWalletModal();
         if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
     } catch (e) {
         showToast("Connection rejected: " + e.message, "error");
@@ -3716,6 +3823,7 @@ async function connectDevnetSandboxDirect() {
     isWalletConnected = true;
     activeWalletType = 'sandbox';
     activeUserEmail = null;
+    window.solanaProvider = null;
     updateConnectedUserUI();
     await updateWalletBalance();
     loadWagersFromStorage();
@@ -3723,7 +3831,8 @@ async function connectDevnetSandboxDirect() {
     loadBetslipFromStorage();
     renderBetslip();
     if (typeof renderLiveMatches === 'function') renderLiveMatches();
-    showToast("Devnet Sandbox Wallet Connected!", "success");
+    showToast("⚡ Devnet Sandbox Wallet Connected!", "success");
+    closeWalletModal();
     if (typeof closeFiatCashoutModal === 'function') closeFiatCashoutModal();
 }
 
@@ -7195,7 +7304,8 @@ function renderLiveMatches() {
         return (m.status === 'FINISHED' || m.time === 'Full Time' || m.time === 'FT' || m.scheduleGroup === 'finished');
     };
 
-    const countAll = MATCHES_DATA.filter(m => !m.isArchived && leagueFilterPass(m)).length;
+    // Count open, bet-able active fixtures for "All Fixtures" (excludes completed history)
+    const countAll = MATCHES_DATA.filter(m => !m.isArchived && !isRecentFinished(m) && leagueFilterPass(m)).length;
     const countLive = MATCHES_DATA.filter(m => (m.scheduleGroup === 'live' || m.status === 'LIVE') && m.status !== 'FINISHED' && m.time !== 'Full Time' && leagueFilterPass(m)).length;
     const countToday = MATCHES_DATA.filter(m => m.scheduleGroup === 'today' && m.status !== 'FINISHED' && leagueFilterPass(m)).length;
     const countTomorrow = MATCHES_DATA.filter(m => m.scheduleGroup === 'tomorrow' && leagueFilterPass(m)).length;
@@ -7216,10 +7326,10 @@ function renderLiveMatches() {
     const elFinished = document.getElementById("count-pill-finished");
     if (elFinished) elFinished.textContent = countFinished;
 
-    // Update Sport Pill Counts
-    const cntSoccer = MATCHES_DATA.filter(m => (m.sport || 'soccer') === 'soccer').length;
-    const cntNba = MATCHES_DATA.filter(m => m.sport === 'basketball').length;
-    const cntNfl = MATCHES_DATA.filter(m => m.sport === 'football').length;
+    // Update Sport Pill Counts for active fixtures
+    const cntSoccer = MATCHES_DATA.filter(m => (m.sport || 'soccer') === 'soccer' && !isRecentFinished(m)).length;
+    const cntNba = MATCHES_DATA.filter(m => m.sport === 'basketball' && !isRecentFinished(m)).length;
+    const cntNfl = MATCHES_DATA.filter(m => m.sport === 'football' && !isRecentFinished(m)).length;
     const elSoccer = document.getElementById("sport-count-soccer");
     if (elSoccer) elSoccer.textContent = cntSoccer;
     const elNba = document.getElementById("sport-count-basketball");
@@ -7238,6 +7348,7 @@ function renderLiveMatches() {
             return searchHaystack.includes(matchSearchQuery);
         }
 
+        if (activeScheduleFilter === 'all' && isRecentFinished(match)) return false;
         if (activeScheduleFilter === 'live' && (match.status === 'FINISHED' || match.time === 'Full Time' || (match.scheduleGroup !== 'live' && match.status !== 'LIVE'))) return false;
         if (activeScheduleFilter === 'finished' && !isRecentFinished(match)) return false;
         if (activeScheduleFilter === 'today' && (match.scheduleGroup !== 'today' || match.status === 'FINISHED')) return false;
