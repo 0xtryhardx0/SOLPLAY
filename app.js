@@ -1585,7 +1585,7 @@ let MATCHES_DATA = [
         "isLocked": true
     },
     // =========================================================================
-    // 🎮 EA SPORTS FC PRO OPEN 25/26 GLOBAL TOURNAMENT FIXTURES
+    // 🎮 EA SPORTS FC PRO OPEN 25/26 GLOBAL TOURNAMENT FIXTURES (ALL 24 COMPETITORS)
     // Calibrated with FC-ELO & Poisson Odds Rating System
     // =========================================================================
     {
@@ -1595,6 +1595,7 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
+        "group": "Group B",
         "scheduleGroup": "live",
         "homeTeam": "Anders Vejrgang (RBLZ)",
         "awayTeam": "Tekkz (Man City)",
@@ -1611,7 +1612,7 @@ let MATCHES_DATA = [
         "odds": {
             "home": 1.42,
             "away": 2.95,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
             { "time": "11'", "type": "goal", "desc": "⚽ Goal! Anders Vejrgang (R9 Ronaldo finesse)", "icon": "⚽" },
@@ -1622,6 +1623,7 @@ let MATCHES_DATA = [
         ],
         "isLocked": false
     },
+    // --- GROUP A FIXTURES ---
     {
         "id": 950102,
         "espnId": "950102",
@@ -1629,26 +1631,27 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
+        "group": "Group A",
         "scheduleGroup": "today",
-        "homeTeam": "Emre Yilmaz (Gullit)",
-        "awayTeam": "nicolas99fc (Sevilla)",
-        "homePlayerName": "Emre Yilmaz",
-        "awayPlayerName": "Nicolás Villalba",
-        "homeElo": 2140,
-        "awayElo": 2080,
-        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
-        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/243.png",
-        "dateISO": "2026-11-11T16:30Z",
-        "time": "Today 16:30 WAT",
+        "homeTeam": "Jafonso (Luna Galaxy)",
+        "awayTeam": "Mark11 (FUTWIZ)",
+        "homePlayerName": "João 'Jafonso' Vasconcelos",
+        "awayPlayerName": "Mark 'Mark11' Zakhary",
+        "homeElo": 2210,
+        "awayElo": 2020,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/18844.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/363.png",
+        "dateISO": "2026-11-11T15:30Z",
+        "time": "Today 15:30 WAT",
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.65,
-            "away": 2.32,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "home": 1.48,
+            "away": 2.70,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
-            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group A • Kickoff 16:30 WAT", "icon": "🎮" }
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group A • Reigning World Champion vs FUTWIZ Legend", "icon": "🎮" }
         ],
         "isLocked": false
     },
@@ -1659,26 +1662,27 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
+        "group": "Group A",
         "scheduleGroup": "today",
-        "homeTeam": "ManuBachoore (Gullit)",
-        "awayTeam": "Obrun2002 (exeed)",
-        "homePlayerName": "Manuel Bachoore",
-        "awayPlayerName": "Francesco Tagliafierro",
-        "homeElo": 2120,
-        "awayElo": 2020,
-        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
-        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
-        "dateISO": "2026-11-11T17:45Z",
-        "time": "Today 17:45 WAT",
+        "homeTeam": "xCharifx (Morocco)",
+        "awayTeam": "NiKSNEB (1J Esports)",
+        "homePlayerName": "Charif 'xCharifx' Farkous",
+        "awayPlayerName": "Ben 'NiKSNEB' Dobson",
+        "homeElo": 1970,
+        "awayElo": 1960,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/601.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/381.png",
+        "dateISO": "2026-11-11T16:15Z",
+        "time": "Today 16:15 WAT",
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.51,
-            "away": 2.62,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "home": 1.88,
+            "away": 1.98,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
-            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group B • Kickoff 17:45 WAT", "icon": "🎮" }
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group A • Kickoff 16:15 WAT", "icon": "🎮" }
         ],
         "isLocked": false
     },
@@ -1689,29 +1693,31 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
+        "group": "Group A",
         "scheduleGroup": "today",
-        "homeTeam": "AbuMakkah (Falcons)",
-        "awayTeam": "Levi de Weerd (Gullit)",
-        "homePlayerName": "Ahmad Mujahid",
-        "awayPlayerName": "Levi de Weerd",
-        "homeElo": 2010,
-        "awayElo": 2040,
-        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/18844.png",
-        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
-        "dateISO": "2026-11-11T19:00Z",
-        "time": "Today 19:00 WAT",
+        "homeTeam": "FacuCowen (Tuzzy)",
+        "awayTeam": "Stingray (Twisted Minds)",
+        "homePlayerName": "Facundo 'Cowen' Cowen",
+        "awayPlayerName": "Marley 'Stingray' Ray",
+        "homeElo": 1920,
+        "awayElo": 1940,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/103.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7454.png",
+        "dateISO": "2026-11-11T17:00Z",
+        "time": "Today 17:00 WAT",
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 2.12,
-            "away": 1.78,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "home": 2.05,
+            "away": 1.82,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
-            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group B • Kickoff 19:00 WAT", "icon": "🎮" }
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group A • Kickoff 17:00 WAT", "icon": "🎮" }
         ],
         "isLocked": false
     },
+    // --- GROUP B FIXTURES ---
     {
         "id": 950105,
         "espnId": "950105",
@@ -1719,26 +1725,27 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
-        "scheduleGroup": "tomorrow",
-        "homeTeam": "GuiBarros (RBLZ)",
-        "awayTeam": "KTzn_91 (Galatasaray)",
-        "homePlayerName": "Guilherme Barros",
-        "awayPlayerName": "Kaan Tüzün",
-        "homeElo": 1990,
-        "awayElo": 1970,
-        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/11420.png",
-        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/436.png",
-        "dateISO": "2026-11-12T14:00Z",
-        "time": "Tomorrow 14:00 WAT",
+        "group": "Group B",
+        "scheduleGroup": "today",
+        "homeTeam": "ManuBachoore (Gullit)",
+        "awayTeam": "nicolas99fc (Sevilla)",
+        "homePlayerName": "Manuel Bachoore",
+        "awayPlayerName": "Nicolás 'The Iceman' Villalba",
+        "homeElo": 2120,
+        "awayElo": 2080,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/243.png",
+        "dateISO": "2026-11-11T17:45Z",
+        "time": "Today 17:45 WAT",
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.83,
-            "away": 2.04,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "home": 1.78,
+            "away": 2.12,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
-            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group C • Kickoff Tomorrow 14:00 WAT", "icon": "🎮" }
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group B • 2023 World Champ vs The Iceman", "icon": "🎮" }
         ],
         "isLocked": false
     },
@@ -1749,26 +1756,27 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
-        "scheduleGroup": "tomorrow",
-        "homeTeam": "1OS (Twisted Minds)",
-        "awayTeam": "NiKSNEB (1J Esports)",
-        "homePlayerName": "Abdulaziz Al-Otaibi",
-        "awayPlayerName": "Ben Dobson",
+        "group": "Group B",
+        "scheduleGroup": "today",
+        "homeTeam": "The1OS (Twisted Minds)",
+        "awayTeam": "AboFawzi (Twisted Minds)",
+        "homePlayerName": "Abdulaziz 'The1OS' Al-Otaibi",
+        "awayPlayerName": "Fawzi 'AboFawzi' Al-Rashidi",
         "homeElo": 1980,
-        "awayElo": 1960,
+        "awayElo": 1940,
         "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7454.png",
-        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/381.png",
-        "dateISO": "2026-11-12T15:15Z",
-        "time": "Tomorrow 15:15 WAT",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7454.png",
+        "dateISO": "2026-11-11T18:30Z",
+        "time": "Today 18:30 WAT",
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.83,
-            "away": 2.04,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "home": 1.76,
+            "away": 2.15,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
-            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group C • Kickoff Tomorrow 15:15 WAT", "icon": "🎮" }
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group B • Twisted Minds Derby", "icon": "🎮" }
         ],
         "isLocked": false
     },
@@ -1779,29 +1787,31 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
-        "scheduleGroup": "tomorrow",
-        "homeTeam": "LJR_Peixoto (Lorient)",
-        "awayTeam": "Stingray (Twisted Minds)",
-        "homePlayerName": "Julien Peixoto",
-        "awayPlayerName": "Marley Ray",
-        "homeElo": 1950,
-        "awayElo": 1940,
-        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/273.png",
-        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7454.png",
-        "dateISO": "2026-11-12T16:30Z",
-        "time": "Tomorrow 16:30 WAT",
+        "group": "Group B",
+        "scheduleGroup": "today",
+        "homeTeam": "Anders Vejrgang (RBLZ)",
+        "awayTeam": "LJR_Peixoto (Lorient)",
+        "homePlayerName": "Anders Vejrgang",
+        "awayPlayerName": "Julien 'LJR_Peixoto' Peixoto",
+        "homeElo": 2180,
+        "awayElo": 1950,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/11420.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/273.png",
+        "dateISO": "2026-11-11T19:15Z",
+        "time": "Today 19:15 WAT",
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.89,
-            "away": 1.97,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "home": 1.34,
+            "away": 3.40,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
-            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group D • Kickoff Tomorrow 16:30 WAT", "icon": "🎮" }
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group B • Kickoff 19:15 WAT", "icon": "🎮" }
         ],
         "isLocked": false
     },
+    // --- GROUP C FIXTURES ---
     {
         "id": 950108,
         "espnId": "950108",
@@ -1809,26 +1819,183 @@ let MATCHES_DATA = [
         "sportCategory": "Esports",
         "league": "EA SPORTS FC Pro Open",
         "leagueCategory": "EA FC Pro Open",
+        "group": "Group C",
         "scheduleGroup": "tomorrow",
-        "homeTeam": "Paulo Neto (Atlanta)",
-        "awayTeam": "Cowen (Tuzzy)",
-        "homePlayerName": "Paulo Neto",
-        "awayPlayerName": "Facundo Cowen",
-        "homeElo": 1930,
-        "awayElo": 1920,
-        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/18418.png",
-        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/103.png",
+        "homeTeam": "Emre Yilmaz (Gullit)",
+        "awayTeam": "Obrun2002 (exeed)",
+        "homePlayerName": "Emre Yilmaz",
+        "awayPlayerName": "Francesco 'Obrun2002' Tagliafierro",
+        "homeElo": 2140,
+        "awayElo": 2020,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
+        "dateISO": "2026-11-12T14:00Z",
+        "time": "Tomorrow 14:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.55,
+            "away": 2.50,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group C • eCL Champion vs eSerie A Winner", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950109,
+        "espnId": "950109",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "group": "Group C",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Umut (RBLZ Gaming)",
+        "awayTeam": "Tekkz (Man City)",
+        "homePlayerName": "Umut Gültekin",
+        "awayPlayerName": "Donovan 'Tekkz' Hunt",
+        "homeElo": 2110,
+        "awayElo": 2050,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/11420.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+        "dateISO": "2026-11-12T14:45Z",
+        "time": "Tomorrow 14:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.72,
+            "away": 2.20,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group C • World Champion Umut vs 5x Major Champ Tekkz", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950110,
+        "espnId": "950110",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "group": "Group C",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "GuiBarros (RBLZ)",
+        "awayTeam": "Yuval (Famalicão)",
+        "homePlayerName": "Guilherme 'GuiBarros' Barros",
+        "awayPlayerName": "Yuval Blizovsky",
+        "homeElo": 1990,
+        "awayElo": 1960,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/11420.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/490.png",
+        "dateISO": "2026-11-12T15:30Z",
+        "time": "Tomorrow 15:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.80,
+            "away": 2.08,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group C • Kickoff Tomorrow 15:30 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    // --- GROUP D FIXTURES ---
+    {
+        "id": 950111,
+        "espnId": "950111",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "group": "Group D",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "PHzin (Ajax Esports)",
+        "awayTeam": "Levi de Weerd (Gullit)",
+        "homePlayerName": "Paulo Henrique 'PHzin' Chaves",
+        "awayPlayerName": "Levi de Weerd",
+        "homeElo": 2160,
+        "awayElo": 2040,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/137.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
+        "dateISO": "2026-11-12T16:15Z",
+        "time": "Tomorrow 16:15 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.52,
+            "away": 2.60,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group D • World Champion PHzin vs Gullit Maestro", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950112,
+        "espnId": "950112",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "group": "Group D",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "AbuMakkah (Falcons)",
+        "awayTeam": "KTzn_91 (Galatasaray)",
+        "homePlayerName": "Ahmad 'AbuMakkah' Mujahid",
+        "awayPlayerName": "Kaan 'KTzn_91' Tüzün",
+        "homeElo": 2010,
+        "awayElo": 1970,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/18844.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/436.png",
+        "dateISO": "2026-11-12T17:00Z",
+        "time": "Tomorrow 17:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.80,
+            "away": 2.08,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group D • Kickoff Tomorrow 17:00 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950113,
+        "espnId": "950113",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "group": "Group D",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Fouma (FC Lorient)",
+        "awayTeam": "Paulo Neto (Atlanta)",
+        "homePlayerName": "Lucas 'Fouma' Larcher",
+        "awayPlayerName": "Paulo Neto",
+        "homeElo": 1980,
+        "awayElo": 1930,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/273.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/18418.png",
         "dateISO": "2026-11-12T17:45Z",
         "time": "Tomorrow 17:45 WAT",
         "status": "SCHEDULED",
         "score": null,
         "odds": {
-            "home": 1.89,
-            "away": 1.97,
-            "provider": "SolPlay FC-ELO Model (v26.1)"
+            "home": 1.74,
+            "away": 2.18,
+            "provider": "SolPlay FC-ELO Model (v26.2)"
         },
         "timeline": [
-            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group D • Kickoff Tomorrow 17:45 WAT", "icon": "🎮" }
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group D • eLigue 1 Champ vs eMLS Champ", "icon": "🎮" }
         ],
         "isLocked": false
     }
