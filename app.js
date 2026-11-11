@@ -1583,6 +1583,254 @@ let MATCHES_DATA = [
             }
         ],
         "isLocked": true
+    },
+    // =========================================================================
+    // 🎮 EA SPORTS FC PRO OPEN 25/26 GLOBAL TOURNAMENT FIXTURES
+    // Calibrated with FC-ELO & Poisson Odds Rating System
+    // =========================================================================
+    {
+        "id": 950101,
+        "espnId": "950101",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "live",
+        "homeTeam": "Anders Vejrgang (RBLZ)",
+        "awayTeam": "Tekkz (Man City)",
+        "homePlayerName": "Anders Vejrgang",
+        "awayPlayerName": "Donovan 'Tekkz' Hunt",
+        "homeElo": 2180,
+        "awayElo": 2050,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/11420.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+        "dateISO": "2026-11-11T14:00Z",
+        "time": "42' (1st Half)",
+        "status": "LIVE",
+        "score": { "home": 3, "away": 2 },
+        "odds": {
+            "home": 1.42,
+            "away": 2.95,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "11'", "type": "goal", "desc": "⚽ Goal! Anders Vejrgang (R9 Ronaldo finesse)", "icon": "⚽" },
+            { "time": "22'", "type": "goal", "desc": "⚽ Goal! Tekkz (Zidane low driven finish)", "icon": "⚽" },
+            { "time": "31'", "type": "goal", "desc": "⚽ Goal! Anders Vejrgang (Mbappé speed boost)", "icon": "⚽" },
+            { "time": "38'", "type": "goal", "desc": "⚽ Goal! Tekkz (Henry near post blast)", "icon": "⚽" },
+            { "time": "41'", "type": "goal", "desc": "⚽ Goal! Anders Vejrgang (Trivela volley)", "icon": "⚽" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950102,
+        "espnId": "950102",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "today",
+        "homeTeam": "Emre Yilmaz (Gullit)",
+        "awayTeam": "nicolas99fc (Sevilla)",
+        "homePlayerName": "Emre Yilmaz",
+        "awayPlayerName": "Nicolás Villalba",
+        "homeElo": 2140,
+        "awayElo": 2080,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/243.png",
+        "dateISO": "2026-11-11T16:30Z",
+        "time": "Today 16:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.65,
+            "away": 2.32,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group A • Kickoff 16:30 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950103,
+        "espnId": "950103",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "today",
+        "homeTeam": "ManuBachoore (Gullit)",
+        "awayTeam": "Obrun2002 (exeed)",
+        "homePlayerName": "Manuel Bachoore",
+        "awayPlayerName": "Francesco Tagliafierro",
+        "homeElo": 2120,
+        "awayElo": 2020,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/110.png",
+        "dateISO": "2026-11-11T17:45Z",
+        "time": "Today 17:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.51,
+            "away": 2.62,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group B • Kickoff 17:45 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950104,
+        "espnId": "950104",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "today",
+        "homeTeam": "AbuMakkah (Falcons)",
+        "awayTeam": "Levi de Weerd (Gullit)",
+        "homePlayerName": "Ahmad Mujahid",
+        "awayPlayerName": "Levi de Weerd",
+        "homeElo": 2010,
+        "awayElo": 2040,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/18844.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/139.png",
+        "dateISO": "2026-11-11T19:00Z",
+        "time": "Today 19:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 2.12,
+            "away": 1.78,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group B • Kickoff 19:00 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950105,
+        "espnId": "950105",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "GuiBarros (RBLZ)",
+        "awayTeam": "KTzn_91 (Galatasaray)",
+        "homePlayerName": "Guilherme Barros",
+        "awayPlayerName": "Kaan Tüzün",
+        "homeElo": 1990,
+        "awayElo": 1970,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/11420.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/436.png",
+        "dateISO": "2026-11-12T14:00Z",
+        "time": "Tomorrow 14:00 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.83,
+            "away": 2.04,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group C • Kickoff Tomorrow 14:00 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950106,
+        "espnId": "950106",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "1OS (Twisted Minds)",
+        "awayTeam": "NiKSNEB (1J Esports)",
+        "homePlayerName": "Abdulaziz Al-Otaibi",
+        "awayPlayerName": "Ben Dobson",
+        "homeElo": 1980,
+        "awayElo": 1960,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7454.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/381.png",
+        "dateISO": "2026-11-12T15:15Z",
+        "time": "Tomorrow 15:15 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.83,
+            "away": 2.04,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group C • Kickoff Tomorrow 15:15 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950107,
+        "espnId": "950107",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "LJR_Peixoto (Lorient)",
+        "awayTeam": "Stingray (Twisted Minds)",
+        "homePlayerName": "Julien Peixoto",
+        "awayPlayerName": "Marley Ray",
+        "homeElo": 1950,
+        "awayElo": 1940,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/273.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/7454.png",
+        "dateISO": "2026-11-12T16:30Z",
+        "time": "Tomorrow 16:30 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.89,
+            "away": 1.97,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group D • Kickoff Tomorrow 16:30 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
+    },
+    {
+        "id": 950108,
+        "espnId": "950108",
+        "sport": "esports",
+        "sportCategory": "Esports",
+        "league": "EA SPORTS FC Pro Open",
+        "leagueCategory": "EA FC Pro Open",
+        "scheduleGroup": "tomorrow",
+        "homeTeam": "Paulo Neto (Atlanta)",
+        "awayTeam": "Cowen (Tuzzy)",
+        "homePlayerName": "Paulo Neto",
+        "awayPlayerName": "Facundo Cowen",
+        "homeElo": 1930,
+        "awayElo": 1920,
+        "homeLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/18418.png",
+        "awayLogo": "https://a.espncdn.com/i/teamlogos/soccer/500/103.png",
+        "dateISO": "2026-11-12T17:45Z",
+        "time": "Tomorrow 17:45 WAT",
+        "status": "SCHEDULED",
+        "score": null,
+        "odds": {
+            "home": 1.89,
+            "away": 1.97,
+            "provider": "SolPlay FC-ELO Model (v26.1)"
+        },
+        "timeline": [
+            { "time": "Pre-Match", "type": "start", "desc": "EA FC Pro Open Group D • Kickoff Tomorrow 17:45 WAT", "icon": "🎮" }
+        ],
+        "isLocked": false
     }
 ];
 
@@ -2024,6 +2272,98 @@ function getMatchMarkets(match) {
                 { label: `${match.homeTeam} Under 24.5`, value: 1.88, outcomeId: 231, desc: `${match.homeTeam} Under 24.5 Points`, marketName: `${match.homeTeam} Points` },
                 { label: `${match.awayTeam} Over 21.5`, value: 1.88, outcomeId: 232, desc: `${match.awayTeam} Over 21.5 Points`, marketName: `${match.awayTeam} Points` },
                 { label: `${match.awayTeam} Under 21.5`, value: 1.88, outcomeId: 233, desc: `${match.awayTeam} Under 21.5 Points`, marketName: `${match.awayTeam} Points` }
+            ];
+        }
+
+        return markets;
+    }
+
+    // =========================================================================
+    // 🎮 ESPORTS (EA SPORTS FC PRO OPEN) AUTHENTIC BETTING MARKETS
+    // =========================================================================
+    if (match.sport === 'esports') {
+        const homeOdds = match.odds?.home || 1.85;
+        const awayOdds = match.odds?.away || 1.95;
+        const isFavHome = homeOdds < awayOdds;
+
+        // 1. Moneyline (2-Way Match Winner - No Draw in FC Pro Knockouts)
+        if (!markets['1x2'] || markets['1x2'].length !== 2) {
+            markets['1x2'] = [
+                { label: `1 (${match.homeTeam})`, value: homeOdds, outcomeId: 0, desc: `${match.homeTeam} Win (Moneyline)`, marketName: 'Moneyline (Winner)' },
+                { label: `2 (${match.awayTeam})`, value: awayOdds, outcomeId: 1, desc: `${match.awayTeam} Win (Moneyline)`, marketName: 'Moneyline (Winner)' }
+            ];
+        }
+
+        // 2. Goal Spread (-1.5 / +1.5 Goals)
+        if (!markets['spread']) {
+            const spreadLine = 1.5;
+            markets['spread'] = isFavHome ? [
+                { label: `${match.homeTeam} -${spreadLine}`, value: 1.92, outcomeId: 300, desc: `${match.homeTeam} Spread (-${spreadLine})`, marketName: 'Goal Spread (-1.5/+1.5)' },
+                { label: `${match.awayTeam} +${spreadLine}`, value: 1.90, outcomeId: 301, desc: `${match.awayTeam} Spread (+${spreadLine})`, marketName: 'Goal Spread (-1.5/+1.5)' }
+            ] : [
+                { label: `${match.homeTeam} +${spreadLine}`, value: 1.90, outcomeId: 300, desc: `${match.homeTeam} Spread (+${spreadLine})`, marketName: 'Goal Spread (-1.5/+1.5)' },
+                { label: `${match.awayTeam} -${spreadLine}`, value: 1.92, outcomeId: 301, desc: `${match.awayTeam} Spread (-${spreadLine})`, marketName: 'Goal Spread (-1.5/+1.5)' }
+            ];
+        }
+
+        // 3. Total Match Goals (Over / Under 6.5 Goals)
+        if (!markets['totalgoals'] && !markets['totalpoints']) {
+            const totalLine = 6.5;
+            const ouOdds = [
+                { label: `Over ${totalLine}`, value: 1.82, outcomeId: 310, desc: `${match.homeTeam} vs ${match.awayTeam} - Over ${totalLine} Goals`, marketName: `Total Goals (O/U ${totalLine})` },
+                { label: `Under ${totalLine}`, value: 2.00, outcomeId: 311, desc: `${match.homeTeam} vs ${match.awayTeam} - Under ${totalLine} Goals`, marketName: `Total Goals (O/U ${totalLine})` }
+            ];
+            markets['totalgoals'] = ouOdds;
+            markets['totalpoints'] = ouOdds;
+            markets['overunder'] = ouOdds;
+        }
+
+        // 4. Both Players to Score 3+ Goals (BTTS 3+)
+        if (!markets['btts3']) {
+            markets['btts3'] = [
+                { label: 'Yes (Both 3+)', value: 1.78, outcomeId: 320, desc: 'Both Players Score 3+ Goals: Yes', marketName: 'Both Score 3+ Goals' },
+                { label: 'No (Under 3 for either)', value: 1.98, outcomeId: 321, desc: 'Both Players Score 3+ Goals: No', marketName: 'Both Score 3+ Goals' }
+            ];
+            markets['btts'] = markets['btts3'];
+        }
+
+        // 5. 1st Half Winner (2-Way Moneyline at 45')
+        if (!markets['halftime']) {
+            markets['halftime'] = [
+                { label: `1H: ${match.homeTeam}`, value: parseFloat((homeOdds * 1.06).toFixed(2)), outcomeId: 330, desc: `1st Half: ${match.homeTeam} Win`, marketName: '1st Half Winner' },
+                { label: `1H: ${match.awayTeam}`, value: parseFloat((awayOdds * 1.06).toFixed(2)), outcomeId: 331, desc: `1st Half: ${match.awayTeam} Win`, marketName: '1st Half Winner' }
+            ];
+        }
+
+        // 6. Alternate Goal Totals (O/U 5.5 & O/U 7.5)
+        if (!markets['alt_totals']) {
+            markets['alt_totals'] = [
+                { label: 'Over 5.5', value: 1.45, outcomeId: 340, desc: 'Over 5.5 Goals', marketName: 'Alt Total Goals' },
+                { label: 'Under 5.5', value: 2.70, outcomeId: 341, desc: 'Under 5.5 Goals', marketName: 'Alt Total Goals' },
+                { label: 'Over 7.5', value: 2.35, outcomeId: 342, desc: 'Over 7.5 Goals', marketName: 'Alt Total Goals' },
+                { label: 'Under 7.5', value: 1.58, outcomeId: 343, desc: 'Under 7.5 Goals', marketName: 'Alt Total Goals' }
+            ];
+        }
+
+        // 7. High-Probability Correct Scores
+        if (!markets['correct_score']) {
+            markets['correct_score'] = [
+                { label: '4 - 3', value: 7.20, outcomeId: 350, desc: `${match.homeTeam} 4 - 3 ${match.awayTeam}`, marketName: 'Correct Score' },
+                { label: '5 - 4', value: 8.50, outcomeId: 351, desc: `${match.homeTeam} 5 - 4 ${match.awayTeam}`, marketName: 'Correct Score' },
+                { label: '5 - 3', value: 9.00, outcomeId: 352, desc: `${match.homeTeam} 5 - 3 ${match.awayTeam}`, marketName: 'Correct Score' },
+                { label: '3 - 4', value: 7.80, outcomeId: 353, desc: `${match.homeTeam} 3 - 4 ${match.awayTeam}`, marketName: 'Correct Score' },
+                { label: '4 - 5', value: 9.20, outcomeId: 354, desc: `${match.homeTeam} 4 - 5 ${match.awayTeam}`, marketName: 'Correct Score' },
+                { label: '3 - 5', value: 9.80, outcomeId: 355, desc: `${match.homeTeam} 3 - 5 ${match.awayTeam}`, marketName: 'Correct Score' }
+            ];
+        }
+
+        // 8. Player Total Goals
+        if (!markets['team_totals']) {
+            markets['team_totals'] = [
+                { label: `${match.homeTeam} Over 3.5`, value: 1.85, outcomeId: 360, desc: `${match.homeTeam} Over 3.5 Goals`, marketName: `${match.homeTeam} Goals` },
+                { label: `${match.homeTeam} Under 3.5`, value: 1.85, outcomeId: 361, desc: `${match.homeTeam} Under 3.5 Goals`, marketName: `${match.homeTeam} Goals` },
+                { label: `${match.awayTeam} Over 2.5`, value: 1.80, outcomeId: 362, desc: `${match.awayTeam} Over 2.5 Goals`, marketName: `${match.awayTeam} Goals` },
+                { label: `${match.awayTeam} Under 2.5`, value: 1.95, outcomeId: 363, desc: `${match.awayTeam} Under 2.5 Goals`, marketName: `${match.awayTeam} Goals` }
             ];
         }
 
@@ -7755,12 +8095,15 @@ function renderLiveMatches() {
     const cntSoccer = MATCHES_DATA.filter(m => (m.sport || 'soccer') === 'soccer' && !isRecentFinished(m)).length;
     const cntNba = MATCHES_DATA.filter(m => m.sport === 'basketball' && !isRecentFinished(m)).length;
     const cntNfl = MATCHES_DATA.filter(m => m.sport === 'football' && !isRecentFinished(m)).length;
+    const cntEsports = MATCHES_DATA.filter(m => m.sport === 'esports' && !isRecentFinished(m)).length;
     const elSoccer = document.getElementById("sport-count-soccer");
     if (elSoccer) elSoccer.textContent = cntSoccer;
     const elNba = document.getElementById("sport-count-basketball");
     if (elNba) elNba.textContent = cntNba;
     const elNfl = document.getElementById("sport-count-football");
     if (elNfl) elNfl.textContent = cntNfl;
+    const elEsports = document.getElementById("sport-count-esports");
+    if (elEsports) elEsports.textContent = cntEsports;
 
     // 2. Filter matches based on user's active filters and search query
     const filteredMatches = MATCHES_DATA.filter(match => {
@@ -7903,6 +8246,50 @@ function renderLiveMatches() {
             `;
         }
 
+        // Esports (EA FC Pro Open) Specific Accordion Drawer
+        if (match.sport === 'esports') {
+            const eCats = [
+                { id: 'all', label: '🌟 All FC Pro Markets (28)' },
+                { id: 'goals', label: '🎯 Total Goals & Spreads' },
+                { id: 'score', label: '🔢 Correct Score (Esports)' },
+                { id: 'halves', label: '⏱️ 1st Half Markets' },
+                { id: 'team_totals', label: '👤 Player Goals' }
+            ];
+            const eCatButtons = eCats.map(c => `
+                <button class="market-cat-pill ${activeCat === c.id ? 'active' : ''}" onclick="setAccordionCategory(${match.id}, '${c.id}', event)">
+                    ${c.label}
+                </button>
+            `).join('');
+
+            let eBlocksHtml = '';
+            if (activeCat === 'all' || activeCat === 'goals') {
+                eBlocksHtml += renderBlock('Goal Spread (-1.5 / +1.5 Goals)', markets['spread'] || [], 'grid-2', 'Goal Spread (-1.5/+1.5)');
+                eBlocksHtml += renderBlock('Total Match Goals (Over / Under 6.5 Goals)', markets['totalgoals'] || [], 'grid-2', 'Total Goals (O/U 6.5)');
+                eBlocksHtml += renderBlock('Alternate Total Goals', markets['alt_totals'] || [], 'grid-2', 'Alt Total Goals');
+                eBlocksHtml += renderBlock('Both Players to Score 3+ Goals', markets['btts3'] || [], 'grid-2', 'Both Score 3+ Goals');
+            }
+            if (activeCat === 'all' || activeCat === 'score') {
+                eBlocksHtml += renderBlock('High-Probability Correct Scorelines', markets['correct_score'] || [], 'grid-3', 'Correct Score');
+            }
+            if (activeCat === 'all' || activeCat === 'halves') {
+                eBlocksHtml += renderBlock('1st Half Winner (Moneyline at 45\')', markets['halftime'] || [], 'grid-2', '1st Half Winner');
+            }
+            if (activeCat === 'all' || activeCat === 'team_totals') {
+                eBlocksHtml += renderBlock('Player Total Goals', markets['team_totals'] || [], 'grid-2', 'Player Goals');
+            }
+
+            return `
+                <div class="match-accordion-drawer">
+                    <div class="market-cat-tabs">
+                        ${eCatButtons}
+                    </div>
+                    <div class="accordion-markets-grid">
+                        ${eBlocksHtml}
+                    </div>
+                </div>
+            `;
+        }
+
         // Soccer / Association Football Accordion Drawer
         const cats = [
             { id: 'all', label: '🌟 All Markets (68)' },
@@ -7975,6 +8362,7 @@ function renderLiveMatches() {
         // Table Header Row - Adaptive to sport filter
         const isTableBasketball = activeSportFilter === 'basketball';
         const isTableFootball = activeSportFilter === 'football';
+        const isTableEsports = activeSportFilter === 'esports';
 
         const header = document.createElement("div");
         header.className = "match-matrix-header";
@@ -7999,6 +8387,18 @@ function renderLiveMatches() {
                     <div class="market-group-title" style="width: 140px;">Moneyline (Winner)</div>
                     <div class="market-group-title" style="width: 140px;">Point Spread (-3.5/+3.5)</div>
                     <div class="market-group-title" style="width: 140px;">Total Points (O/U 45.5)</div>
+                    <div class="market-group-title" style="width: 140px;">1st Half Winner</div>
+                    <div class="market-group-title" style="width: 130px; flex-shrink: 0;">More Markets</div>
+                </div>
+            `;
+        } else if (isTableEsports) {
+            header.innerHTML = `
+                <div class="col-header-info">Event / FC Pro Competitors</div>
+                <div class="col-header-markets">
+                    <div class="market-group-title" style="width: 140px;">Moneyline (Winner)</div>
+                    <div class="market-group-title" style="width: 140px;">Goal Spread (-1.5/+1.5)</div>
+                    <div class="market-group-title" style="width: 140px;">Total Goals (O/U 6.5)</div>
+                    <div class="market-group-title" style="width: 140px;">Both Score 3+ Goals</div>
                     <div class="market-group-title" style="width: 140px;">1st Half Winner</div>
                     <div class="market-group-title" style="width: 130px; flex-shrink: 0;">More Markets</div>
                 </div>
@@ -8039,9 +8439,12 @@ function renderLiveMatches() {
             const mtotalpoints = markets['totalpoints'] || [];
             const mquarter1 = markets['quarter1'] || [];
             const mteamtotals = markets['team_totals'] || [];
+            const mbtts3 = markets['btts3'] || markets['btts'] || [];
+            const mtotalgoals = markets['totalgoals'] || markets['totalpoints'] || [];
 
             const isBasketball = match.sport === 'basketball';
             const isFootball = match.sport === 'football';
+            const isEsports = match.sport === 'esports';
 
             const isMatchConcluded = (match.status === 'FINISHED' || match.time === 'Full Time' || match.time === 'FT');
             let statusBadge = '';
@@ -8052,9 +8455,9 @@ function renderLiveMatches() {
             } else if (match.scheduleGroup === 'today') {
                 statusBadge = `<span class="badge-schedule-today" style="font-size:0.65rem; padding:0.15rem 0.4rem;">📅 ${match.time}</span>`;
             } else if (match.scheduleGroup === 'tomorrow') {
-                statusBadge = `<span class="badge-schedule-tomorrow" style="font-size:0.65rem; padding:0.15rem 0.4rem;">${isBasketball ? '🏀' : '⚽'} ${match.time}</span>`;
+                statusBadge = `<span class="badge-schedule-tomorrow" style="font-size:0.65rem; padding:0.15rem 0.4rem;">${isBasketball ? '🏀' : (isEsports ? '🎮' : (isFootball ? '🏈' : '⚽'))} ${match.time}</span>`;
             } else {
-                statusBadge = `<span class="badge-schedule-week" style="font-size:0.65rem; padding:0.15rem 0.4rem;">🏆 ${match.time}</span>`;
+                statusBadge = `<span class="badge-schedule-week" style="font-size:0.65rem; padding:0.15rem 0.4rem;">${isEsports ? '🎮' : '🏆'} ${match.time}</span>`;
             }
 
             const isStreamActive = (match.id === activeMatchId);
@@ -8076,9 +8479,9 @@ function renderLiveMatches() {
             const homeLogo = match.homeLogo || getTeamLogo(match.homeTeam);
             const awayLogo = match.awayLogo || getTeamLogo(match.awayTeam);
 
-            const sportEmoji = isBasketball ? '🏀' : (isFootball ? '🏈' : '⚽');
-            const lineupBtnLabel = isBasketball ? 'Starting 5' : (isFootball ? 'NFL Lineup' : 'Lineup & Bench');
-            const moreMarketsLabel = isBasketball ? (isAccordionOpen ? 'Close ▴' : '+32 Markets ▾') : (isFootball ? (isAccordionOpen ? 'Close ▴' : '+24 Markets ▾') : (isAccordionOpen ? 'Close ▴' : '+68 Markets ▾'));
+            const sportEmoji = isBasketball ? '🏀' : (isFootball ? '🏈' : (isEsports ? '🎮' : '⚽'));
+            const lineupBtnLabel = isBasketball ? 'Starting 5' : (isFootball ? 'NFL Lineup' : (isEsports ? 'Competitor Profile' : 'Lineup & Bench'));
+            const moreMarketsLabel = isBasketball ? (isAccordionOpen ? 'Close ▴' : '+32 Markets ▾') : (isFootball ? (isAccordionOpen ? 'Close ▴' : '+24 Markets ▾') : (isEsports ? (isAccordionOpen ? 'Close ▴' : '+28 Markets ▾') : (isAccordionOpen ? 'Close ▴' : '+68 Markets ▾')));
 
             // Build Mobile Primary & Secondary Grid
             let mobileOddsHtml = '';
@@ -8145,6 +8548,38 @@ function renderLiveMatches() {
                         `).join('')}
                         <button class="btn-more-markets mobile-more-btn ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
                             <span>${isAccordionOpen ? 'Less ▴' : '+24 ▾'}</span>
+                        </button>
+                    </div>
+                `;
+            } else if (isEsports) {
+                mobileOddsHtml = `
+                    <div class="mobile-primary-odds-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        ${m1x2.map((o, idx) => {
+                            const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                            const clickHandler = isMatchConcluded ? `showToast('This FC Pro fixture has ended.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Moneyline (Winner)')`;
+                            return `
+                                <button class="matrix-odd-box mobile-odd-btn ${isSelected ? 'selected' : ''}" onclick="${clickHandler}">
+                                    <span class="lbl">${idx === 0 ? `1 (${match.homeTeam.slice(0, 10)})` : `2 (${match.awayTeam.slice(0, 10)})`}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="mobile-secondary-odds-row">
+                        ${mtotalgoals.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 6.5)')">
+                                <span class="lbl">${o.label.includes('Over') ? 'O 6.5' : 'U 6.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        ${mspread.map(o => `
+                            <button class="matrix-odd-box mobile-sub-odd-btn ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Goal Spread')">
+                                <span class="lbl">${o.label.includes('-') ? '-1.5' : '+1.5'}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                        <button class="btn-more-markets mobile-more-btn ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                            <span>${isAccordionOpen ? 'Less ▴' : '+28 ▾'}</span>
                         </button>
                     </div>
                 `;
@@ -8296,6 +8731,67 @@ function renderLiveMatches() {
                     </div>
                     <button class="btn-more-markets ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
                         <span>${isAccordionOpen ? 'Close Markets ▴' : '+24 NFL Markets ▾'}</span>
+                    </button>
+                `;
+            } else if (isEsports) {
+                desktopTrackHtml = `
+                    <!-- 2-Way Moneyline -->
+                    <div class="odds-col-group group-2">
+                        ${m1x2.map(o => {
+                            const isSelected = isOutcomeSelected(match.id, o.outcomeId);
+                            const clickHandler = isMatchConcluded ? `showToast('This FC Pro fixture has ended.', 'info')` : `selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Moneyline (Winner)')`;
+                            return `
+                                <button class="matrix-odd-box ${isSelected ? 'selected' : ''}" onclick="${clickHandler}">
+                                    <span class="lbl">${o.label}</span>
+                                    <span class="val">${o.value.toFixed(2)}</span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Goal Spread (-1.5 / +1.5) -->
+                    <div class="odds-col-group group-2">
+                        ${mspread.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Goal Spread (-1.5/+1.5)')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Total Match Goals (O/U 6.5) -->
+                    <div class="odds-col-group group-2">
+                        ${mtotalgoals.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Total Goals (O/U 6.5)')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Both Score 3+ Goals -->
+                    <div class="odds-col-group group-2">
+                        ${mbtts3.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', 'Both Score 3+ Goals')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- 1st Half Winner -->
+                    <div class="odds-col-group group-2">
+                        ${mhalftime.map(o => `
+                            <button class="matrix-odd-box ${isOutcomeSelected(match.id, o.outcomeId) ? 'selected' : ''}" onclick="selectOdds(${match.id}, ${o.outcomeId}, ${o.value}, '${o.desc.replace(/'/g, "\\'")}', '${match.homeTeam} vs ${match.awayTeam}', '1st Half Winner')">
+                                <span class="lbl">${o.label}</span>
+                                <span class="val">${o.value.toFixed(2)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- More Markets Button -->
+                    <button class="btn-more-markets ${isAccordionOpen ? 'expanded' : ''}" onclick="toggleMatchAccordion(${match.id}, event)">
+                        <span>${isAccordionOpen ? 'Close Markets ▴' : '+28 FC Pro Markets ▾'}</span>
                     </button>
                 `;
             } else {
@@ -10249,8 +10745,64 @@ function getPosColor(pos) {
 window.getPosColor = getPosColor;
 
 function buildSportTacticalDiagram(match, homeLineup, awayLineup, homeForm, awayForm) {
-    if (!homeLineup.length && !awayLineup.length) return '';
     const sport = match.sport || 'soccer';
+
+    // 0. ESPORTS 1V1 COMPETITOR BATTLE ARENA (FC PRO OPEN)
+    if (sport === 'esports') {
+        const hElo = match.homeElo || 2050;
+        const aElo = match.awayElo || 2000;
+        const hPlayer = match.homePlayerName || match.homeTeam;
+        const aPlayer = match.awayPlayerName || match.awayTeam;
+        return `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="p-3.5 rounded-xl bg-gradient-to-b from-purple-950/40 via-slate-900/80 to-purple-950/40 border border-purple-500/30 flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between text-[11px] font-mono border-b border-purple-500/20 pb-1.5">
+                        <span class="font-black text-white uppercase flex items-center gap-1.5">🎮 ${hPlayer}</span>
+                        <span class="text-emerald-400 font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">FC-ELO: ${hElo}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                        <div class="p-2 rounded-lg bg-black/40 border border-white/5">
+                            <span class="text-slate-400 block text-[9px]">TACTICAL SETUP</span>
+                            <span class="text-cyan-300 font-bold">4-3-2-1 Narrow</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-black/40 border border-white/5">
+                            <span class="text-slate-400 block text-[9px]">FAVORITE FINISH</span>
+                            <span class="text-amber-300 font-bold">Trivela & Driven Low</span>
+                        </div>
+                    </div>
+                    <div class="text-[9px] font-mono text-purple-300/80 uppercase tracking-widest pt-1 border-t border-dashed border-purple-500/20">Active Controller & Hardware</div>
+                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-300 px-1">
+                        <span>🎮 PS5 DualSense Edge (Low Deadzone)</span>
+                        <span class="text-emerald-300 font-bold">LAN Ready ✓</span>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-gradient-to-b from-cyan-950/40 via-slate-900/80 to-cyan-950/40 border border-cyan-500/30 flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between text-[11px] font-mono border-b border-cyan-500/20 pb-1.5">
+                        <span class="font-black text-white uppercase flex items-center gap-1.5">🎮 ${aPlayer}</span>
+                        <span class="text-emerald-400 font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">FC-ELO: ${aElo}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                        <div class="p-2 rounded-lg bg-black/40 border border-white/5">
+                            <span class="text-slate-400 block text-[9px]">TACTICAL SETUP</span>
+                            <span class="text-cyan-300 font-bold">4-2-3-1 Balanced</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-black/40 border border-white/5">
+                            <span class="text-slate-400 block text-[9px]">SIGNATURE MOVE</span>
+                            <span class="text-amber-300 font-bold">Reverse Elastico & Cutback</span>
+                        </div>
+                    </div>
+                    <div class="text-[9px] font-mono text-cyan-300/80 uppercase tracking-widest pt-1 border-t border-dashed border-cyan-500/20">Active Controller & Hardware</div>
+                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-300 px-1">
+                        <span>🎮 PS5 DualSense Edge (Competitive 95)</span>
+                        <span class="text-emerald-300 font-bold">LAN Ready ✓</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (!homeLineup.length && !awayLineup.length) return '';
 
     const renderChip = (p, teamName, accentCls) => {
         if (!p) return '';
