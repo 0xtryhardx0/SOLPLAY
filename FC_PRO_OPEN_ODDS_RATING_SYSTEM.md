@@ -242,3 +242,34 @@ All 24 competitors are integrated with:
 2. **6 Real-Time Odds Markets**: Moneyline, Goal Spread (-1.5/+1.5), O/U 6.5 Goals, Both Score 3+, 1st Half Winner, and Correct Scores.
 3. **Hardware & Tactics Card**: Live interactive competitor profiles rendered via `buildSportTacticalDiagram`.
 4. **Instant On-Chain Wagers**: Non-custodial Solana devnet and mainnet settlement with Phantom and Solflare.
+
+---
+
+## 📡 5. OFFICIAL ROUND 1 SCHEDULE & REAL-TIME SCORE VERIFICATION
+
+### Official Matchups (Zero Simulated / Fake Scores):
+* **Group A • Round 1**:
+  1. `Jafonso (Luna Galaxy)` (1.35) vs. `NiKSNEB (1J Esports)` (3.30)
+  2. `xCharifx (Morocco)` (2.15) vs. `Mark11 (Team FUTWIZ)` (1.75)
+  3. `FacuCowen (Tuzzy E-Sports)` (2.05) vs. `Stingray (Twisted Minds)` (1.82)
+
+* **Group B • Round 1**:
+  4. `The1OS (Twisted Minds)` (3.20) vs. `Anders Vejrgang (RBLZ Gaming)` (1.38)
+  5. `nicolas99fc (Sevilla FC)` (1.58) vs. `LJR_Peixoto (FC Lorient)` (2.45)
+  6. `ManuBachoore (Team Gullit)` (1.45) vs. `AboFawzi (Twisted Minds)` (2.85)
+
+* **Group C • Round 1**:
+  7. `Emre Yilmaz (Team Gullit)` (1.55) vs. `Obrun2002 (exeed Esports)` (2.50)
+  8. `Umut (RBLZ Gaming)` (1.48) vs. `Yuval (Famalicão Esports)` (2.70)
+  9. `GuiBarros (RBLZ Gaming)` (2.15) vs. `Tekkz (Manchester City Esports)` (1.75)
+
+* **Group D • Round 1**:
+  10. `PHzin (Ajax Esports)` (1.52) vs. `AbuMakkah (Team Falcons / Al Qadsiah)` (2.60)
+  11. `Levi de Weerd (Team Gullit)` (1.72) vs. `Fouma (FC Lorient / Team BDS)` (2.20)
+  12. `KTzn_91 (Galatasaray Esports)` (1.82) vs. `Paulo Neto (Atlanta United FC)` (2.05)
+
+### How Live Scores Are Checked In Real Time:
+1. **Battlefy Public API**: EA Sports FC Pro tournaments are executed on Battlefy's engine (`https://api.battlefy.com/tournaments/.../matches`), returning real-time match state, active games, and verified scorelines without key requirements.
+2. **Liquipedia MediaWiki Engine**: Automated parse via `/api/esports-sync` extracts verified match maps from official community editors within minutes of broadcast.
+3. **PandaScore / Abios Commercial Webhooks**: Industry esports API for sub-second goal events.
+4. **Automated On-Chain Payout**: Once a match concludes, the verified score triggers payout via SolPlay's multi-hop settlement escrow (`HHBB-1645-8AA6`).
