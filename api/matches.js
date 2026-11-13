@@ -2,6 +2,12 @@ const fs = require('fs');
 const path = require('path');
 
 const MULTI_SPORT_FEEDS = [
+        // International Football Fixtures
+    { sport: 'soccer', leagueKey: 'uefa.nations', name: 'UEFA Nations League', category: 'Nations League' },
+    { sport: 'soccer', leagueKey: 'fifa.friendly', name: 'International Friendly', category: 'International Friendly' },
+    { sport: 'soccer', leagueKey: 'fifa.worldq.conmebol', name: 'World Cup Qualifying - CONMEBOL', category: 'World Cup Qualifiers' },
+    { sport: 'soccer', leagueKey: 'fifa.worldq.caf', name: 'World Cup Qualifying - CAF', category: 'World Cup Qualifiers' },
+    { sport: 'soccer', leagueKey: 'fifa.worldq.uefa', name: 'World Cup Qualifying - UEFA', category: 'World Cup Qualifiers' },
     { sport: 'soccer', leagueKey: 'uefa.champions', name: 'UEFA Champions League', category: 'Champions League' },
     { sport: 'soccer', leagueKey: 'uefa.europa', name: 'UEFA Europa League', category: 'Europa League' },
     { sport: 'soccer', leagueKey: 'uefa.europa.conf', name: 'UEFA Conference League', category: 'Conference League' },

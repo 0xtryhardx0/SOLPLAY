@@ -327,12 +327,13 @@
                         </div>
 
                         <!-- Secondary League Shortcuts -->
-                        <div class="hidden sm:flex items-center gap-1.5 ml-auto text-xs font-bold text-slate-400" id="league-filter-bar">
-                            <button onclick="filterMatchesByLeague('all')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white">All Leagues</button>
-                            <button onclick="filterMatchesByLeague('ucl')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">Champions League</button>
-                            <button onclick="filterMatchesByLeague('epl')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">Premier League</button>
-                            <button onclick="filterMatchesByLeague('laliga')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">La Liga</button>
-                            <button onclick="filterMatchesByLeague('bundesliga')" class="px-2.5 py-1 rounded-lg hover:bg-white/5">Bundesliga</button>
+                        <div class="hidden sm:flex items-center gap-1.5 ml-auto text-xs font-bold text-slate-400 overflow-x-auto no-scrollbar" id="league-filter-bar">
+                            <button onclick="filterMatchesByLeague('all')" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white whitespace-nowrap">All</button>
+                            <button onclick="filterMatchesByLeague('Nations League')" class="px-2.5 py-1 rounded-lg hover:bg-white/5 text-amber-400 whitespace-nowrap">🌍 Nations League</button>
+                            <button onclick="filterMatchesByLeague('World Cup')" class="px-2.5 py-1 rounded-lg hover:bg-white/5 text-cyan-400 whitespace-nowrap">🏆 World Cup</button>
+                            <button onclick="filterMatchesByLeague('Premier League')" class="px-2.5 py-1 rounded-lg hover:bg-white/5 whitespace-nowrap">EPL</button>
+                            <button onclick="filterMatchesByLeague('Champions League')" class="px-2.5 py-1 rounded-lg hover:bg-white/5 whitespace-nowrap">UCL</button>
+                            <button onclick="filterMatchesByLeague('La Liga')" class="px-2.5 py-1 rounded-lg hover:bg-white/5 whitespace-nowrap">La Liga</button>
                         </div>
                     </div>
                     <!-- Featured Horizontal Matches Scroll -->
