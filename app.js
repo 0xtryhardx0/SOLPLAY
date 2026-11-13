@@ -1,3 +1,50 @@
+
+// Helper to extract & group goalscorers and assists strictly by country / team
+function getMatchGoalsGrouped(match) {
+    if (!match) return { home: [], away: [] };
+    const homeGoals = [];
+    const awayGoals = [];
+
+    const isMatchConcluded = (match.status === 'FINISHED' || match.time === 'Full Time' || match.time === 'FT');
+    const isMatchLive = (match.status === 'LIVE' || match.scheduleGroup === 'live');
+    if (!isMatchConcluded && !isMatchLive && (!match.score || (match.score.home === 0 && match.score.away === 0))) {
+        return { home: [], away: [] };
+    }
+
+    const events = match.goalEvents || [];
+    events.forEach(g => {
+        let isAway = false;
+        if (g.team === 'away' || g.side === 'away') isAway = true;
+        else if (g.teamName && match.awayTeam && g.teamName.toLowerCase().includes(match.awayTeam.toLowerCase())) isAway = true;
+        else if (g.teamId && match.awayTeamId && String(g.teamId) === String(match.awayTeamId)) isAway = true;
+        else if (match.lineup?.away && match.lineup.away.some(p => p.name && g.scorer && (p.name.includes(g.scorer) || g.scorer.includes(p.name)))) isAway = true;
+
+        if (isAway) awayGoals.push(g);
+        else homeGoals.push(g);
+    });
+
+    // Also extract from match.timeline if goalEvents is empty
+    if (homeGoals.length === 0 && awayGoals.length === 0 && Array.isArray(match.timeline)) {
+        match.timeline.forEach(t => {
+            if (t.type === 'goal' && t.desc) {
+                const isAway = match.awayTeam && t.desc.includes(match.awayTeam);
+                const scorerMatch = t.desc.match(/Scored by ([^\(\.]+)/);
+                const assistMatch = t.desc.match(/Assist:\s*([^\)]+)/);
+                const gObj = {
+                    scorer: scorerMatch ? scorerMatch[1].trim() : 'Goal',
+                    assist: assistMatch ? assistMatch[1].trim() : '',
+                    time: t.time || '',
+                    teamName: isAway ? match.awayTeam : match.homeTeam
+                };
+                if (isAway) awayGoals.push(gObj);
+                else homeGoals.push(gObj);
+            }
+        });
+    }
+
+    return { home: homeGoals, away: awayGoals };
+}
+
 // Fallback mock for solanaWeb3 when loaded offline/locally without CDN access
 if (typeof solanaWeb3 === 'undefined') {
     console.warn("solanaWeb3 is not defined. Using local sandbox fallback mock.");
@@ -3323,20 +3370,79 @@ function renderMatchOfTheDaySpotlight() {
             </div>
         </div>
 
-        ${(spotlightMatch.goalEvents && spotlightMatch.goalEvents.length > 0) ? `
-            <div class="mt-3 p-2.5 rounded-xl bg-black/60 border border-emerald-500/25 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs font-mono shadow-lg">
-                ${spotlightMatch.goalEvents.map(g => `
-                    <span class="text-white flex items-center gap-1">
-                        <span>⚽</span>
-                        <strong class="text-white">${g.scorer}</strong>
-                        <span class="text-emerald-400 font-bold">${g.time}</span>
-                        ${g.isPenalty ? '<span class="px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">PEN</span>' : ''}
-                        ${g.isOwnGoal ? '<span class="px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold">OG</span>' : ''}
-                        ${g.assist ? `<span class="text-slate-400 text-[11px]">(ast: <span class="text-cyan-300">${g.assist}</span>)</span>` : ''}
-                    </span>
-                `).join('<span class="text-slate-600 font-bold">&bull;</span>')}
-            </div>
-        ` : ''}
+        ${(() => {
+            const { home: hGoals, away: aGoals } = getMatchGoalsGrouped(spotlightMatch);
+            if (hGoals.length === 0 && aGoals.length === 0) return '';
+            return `
+                <div class="mt-3 p-3 rounded-2xl bg-black/80 border border-white/10 shadow-2xl backdrop-blur-md">
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex items-center justify-between pb-2 border-b border-white/5 mb-2.5">
+                        <span class="flex items-center gap-1.5 text-emerald-400">
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Official Goal &amp; Assist Telemetry</span>
+                        </span>
+                        <span class="text-slate-500 font-mono">BY SQUAD / COUNTRY</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+                        <!-- Home Country Goals -->
+                        <div class="flex flex-col gap-1.5 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                            <div class="flex items-center justify-between text-xs font-bold text-white pb-1.5 border-b border-white/5">
+                                <span class="flex items-center gap-1.5">
+                                    <img src="${homeLogo}" class="w-4 h-4 rounded-full object-contain" alt="">
+                                    <span class="text-white">${spotlightMatch.homeTeam}</span>
+                                </span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-mono ${hGoals.length > 0 ? 'bg-emerald-500/20 text-emerald-300 font-bold' : 'text-slate-500'}">
+                                    ${hGoals.length} ${hGoals.length === 1 ? 'Goal' : 'Goals'}
+                                </span>
+                            </div>
+                            ${hGoals.length > 0 ? `
+                                <div class="space-y-1 mt-1">
+                                    ${hGoals.map(g => `
+                                        <div class="flex items-center justify-between text-[11px] font-mono text-slate-300 bg-black/40 px-2 py-1 rounded border border-white/5">
+                                            <span class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="text-emerald-400">⚽</span>
+                                                <strong class="text-white">${g.scorer}</strong>
+                                                ${g.assist ? `<span class="text-slate-400 text-[10px]">(ast: <span class="text-cyan-300 font-medium">${g.assist}</span>)</span>` : ''}
+                                                ${g.isPenalty ? '<span class="px-1 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">PEN</span>' : ''}
+                                            </span>
+                                            <span class="text-emerald-400 font-bold ml-1">${g.time}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : `<span class="text-[11px] text-slate-500 font-mono italic px-1 py-1">No goals scored</span>`}
+                        </div>
+
+                        <!-- Away Country Goals -->
+                        <div class="flex flex-col gap-1.5 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                            <div class="flex items-center justify-between text-xs font-bold text-white pb-1.5 border-b border-white/5">
+                                <span class="flex items-center gap-1.5">
+                                    <img src="${awayLogo}" class="w-4 h-4 rounded-full object-contain" alt="">
+                                    <span class="text-white">${spotlightMatch.awayTeam}</span>
+                                </span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-mono ${aGoals.length > 0 ? 'bg-cyan-500/20 text-cyan-300 font-bold' : 'text-slate-500'}">
+                                    ${aGoals.length} ${aGoals.length === 1 ? 'Goal' : 'Goals'}
+                                </span>
+                            </div>
+                            ${aGoals.length > 0 ? `
+                                <div class="space-y-1 mt-1">
+                                    ${aGoals.map(g => `
+                                        <div class="flex items-center justify-between text-[11px] font-mono text-slate-300 bg-black/40 px-2 py-1 rounded border border-white/5">
+                                            <span class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="text-cyan-400">⚽</span>
+                                                <strong class="text-white">${g.scorer}</strong>
+                                                ${g.assist ? `<span class="text-slate-400 text-[10px]">(ast: <span class="text-emerald-300 font-medium">${g.assist}</span>)</span>` : ''}
+                                                ${g.isPenalty ? '<span class="px-1 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">PEN</span>' : ''}
+                                            </span>
+                                            <span class="text-cyan-400 font-bold ml-1">${g.time}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : `<span class="text-[11px] text-slate-500 font-mono italic px-1 py-1">No goals scored</span>`}
+                        </div>
+                    </div>
+                </div>
+            `;
+        })()}
 
         <div class="spotlight-quick-odds-grid">
             <button class="spotlight-odds-btn ${isHomeSel ? 'selected' : ''}" onclick="selectOdds(${spotlightMatch.id}, ${homeOutcomeId}, ${homeOdd}, '${escapedHome} Win', '${matchLabel}', 'Winner (1X2)')">
@@ -9030,18 +9136,39 @@ function renderLiveMatches() {
                             <span class="match-meta-league">${sportEmoji} ${match.league}</span>
                             ${statusBadge}
                         </div>
-                        <div class="match-teams-block">
-                            <div class="matrix-team-name matrix-team-row-crest">
-                                <img src="${homeLogo}" class="team-crest-img" alt="${match.homeTeam}" onerror="this.style.display='none'">
-                                <span>${match.homeTeam}</span>
-                                <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayHome}</span>
-                            </div>
-                            <div class="matrix-team-name matrix-team-row-crest">
-                                <img src="${awayLogo}" class="team-crest-img" alt="${match.awayTeam}" onerror="this.style.display='none'">
-                                <span>${match.awayTeam}</span>
-                                <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayAway}</span>
-                            </div>
-                        </div>
+                        ${(() => {
+                            const { home: hGoals, away: aGoals } = getMatchGoalsGrouped(match);
+                            return `
+                                <div class="match-teams-block">
+                                    <div class="matrix-team-name matrix-team-row-crest">
+                                        <img src="${homeLogo}" class="team-crest-img" alt="${match.homeTeam}" onerror="this.style.display='none'">
+                                        <div class="flex flex-col flex-1 overflow-hidden">
+                                            <span class="truncate font-bold">${match.homeTeam}</span>
+                                            ${hGoals.length > 0 ? `
+                                                <div class="text-[10px] text-emerald-400 font-mono flex flex-wrap items-center gap-1 mt-0.5">
+                                                    <span class="text-[9px]">⚽</span>
+                                                    ${hGoals.map(g => `<span class="text-white font-medium">${(g.scorer || '').split(' ').pop()} <span class="text-emerald-400">${g.time}</span>${g.assist ? ` <span class="text-slate-400 text-[9px]">(ast: ${(g.assist || '').split(' ').pop()})</span>` : ''}</span>`).join('<span class="text-slate-600">&bull;</span>')}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayHome}</span>
+                                    </div>
+                                    <div class="matrix-team-name matrix-team-row-crest">
+                                        <img src="${awayLogo}" class="team-crest-img" alt="${match.awayTeam}" onerror="this.style.display='none'">
+                                        <div class="flex flex-col flex-1 overflow-hidden">
+                                            <span class="truncate font-bold">${match.awayTeam}</span>
+                                            ${aGoals.length > 0 ? `
+                                                <div class="text-[10px] text-cyan-400 font-mono flex flex-wrap items-center gap-1 mt-0.5">
+                                                    <span class="text-[9px]">⚽</span>
+                                                    ${aGoals.map(g => `<span class="text-white font-medium">${(g.scorer || '').split(' ').pop()} <span class="text-cyan-400">${g.time}</span>${g.assist ? ` <span class="text-slate-400 text-[9px]">(ast: ${(g.assist || '').split(' ').pop()})</span>` : ''}</span>`).join('<span class="text-slate-600">&bull;</span>')}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        <span class="score" style="${isMatchConcluded ? 'color: #38bdf8; font-weight: 800;' : ''}">${scoreDisplayAway}</span>
+                                    </div>
+                                </div>
+                            `;
+                        })()}
                         <div class="match-actions-line">
                             <button class="btn-stream-pill ${isStreamActive ? 'active' : ''}" onclick="watchMatchStream(${match.id}, event)" title="Watch direct live stream on SolPlay">
                                 <span class="material-symbols-outlined text-[13px]">${isStreamActive ? 'sensors' : 'play_circle'}</span>
